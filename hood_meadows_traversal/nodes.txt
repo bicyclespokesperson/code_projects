@@ -1,0 +1,42 @@
+# A list of all the nodes and their XY coordinates in pixels
+# File Format: First line contains the size of the map in pixels (X, Y)
+# The following lines contain a node in the format: node_name,x_val,y_val
+# Blank lines and lines beginning with # are ignored
+
+# Width, Height
+300,200
+
+buttercup_daisy_lift_base
+buttercup_lift_top
+cascade_lift_base
+cascade_lift_top
+daisy_lift_top
+easy_rider_and_vista_lift_base
+easy_rider_lift_top
+hood_river_express_lift_base
+hood_river_express_lift_top
+mt_hood_express_lift_top
+mt_hood_express_stadium_lift_base
+shooting_star_lift_base
+shooting_star_lift_top
+stadium_lift_top
+vista_lift_top
+n1
+n2
+n3
+n4
+n5
+n6
+n7
+n8
+n9
+n10
+n11
+n12
+n13
+n14
+n15
+n16
+n17
+n18
+n19
