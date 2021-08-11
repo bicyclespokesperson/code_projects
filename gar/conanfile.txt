@@ -1,0 +1,16 @@
+# conan search 'glm*' -r conan-center
+# conan install .
+
+[generators]
+cmake
+
+[requires]
+Assimp/4.1.0@jacmoe/stable
+glfw/3.3@bincrafters/stable
+glm/0.9.9.4@g-truc/stable
+range-v3/0.5.0@ericniebler/stable
+stb/20190512@conan/stable
+
+[options]
+
+[imports]
