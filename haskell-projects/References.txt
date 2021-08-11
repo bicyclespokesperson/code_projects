@@ -1,0 +1,52 @@
+D Language Wiki - Formatting a Calendar
+https://wiki.dlang.org/Component_programming_with_ranges#Case_Study:_Formatting_a_Calendar
+
+Let vs Where
+https://stackoverflow.com/questions/4362328/haskell-where-vs-let
+
+@ sign (as-pattern)
+https://stackoverflow.com/questions/1153465/what-does-the-symbol-mean-in-reference-to-lists-in-haskell
+
+groupBy definition
+https://stackoverflow.com/questions/1316365/haskell-surprising-behavior-of-groupby
+groupBy                 :: (a -> a -> Bool) -> [a] -> [[a]]
+groupBy _  []           =  []
+groupBy eq (x:xs)       =  (x:ys) : groupBy eq zs
+                           where (ys,zs) = span (eq x) xs
+
+Span definition
+https://mail.haskell.org/pipermail/haskell-cafe/2010-June/078639.html
+     span _ []         = ([], [])
+     span p xs@(x:xs')
+         | p x         = (x:ys, zs)
+         | otherwise   = ([], xs)
+         where
+         (ys, zs) = span p xs'
+
+OOP vs Type Classes
+https://wiki.haskell.org/OOP_vs_type_classes
+
+IO Overview
+https://wiki.haskell.org/IO_inside
+
+Transpose Definition
+https://codereview.stackexchange.com/questions/48451/implementing-transpose
+transpose' :: [[a]] -> [[a]]
+transpose' [[]]    = []
+transpose' [[], _] = []
+transpose' rows    = (map head' rows) : transpose' (map tail' rows)
+  where
+    head' (x:_) = x
+    tail' (_:xs) = xs
+
+map :: (a -> b) -> [a] -> [b]
+mapM :: Monad m => (a -> m b) -> [a] -> m [b]
+mapM_ :: Monad m => (a -> m b) -> [a] -> m ()
+fmap :: Functor f => (a -> b) -> f a -> f b
+
+class Functor f where  
+    fmap :: (a -> b) -> f a -> f b  
+
+class (Functor f) => Applicative f where  
+    pure :: a -> f a  
+    (<*>) :: f (a -> b) -> f a -> f b  

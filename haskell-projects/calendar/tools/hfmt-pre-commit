@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# 
+# Save this as .git/hooks/pre-commit to run hfmt on all staged haskell files
+# http://hackage.haskell.org/package/hfmt
+
+if ! [[ $(command -v "hfmt") ]]; then
+  echo "Commit cannot proceed. hfmt is not installed."
+  exit 1
+fi
+
+format_file() {
+  fullfile="${1}"
+
+  if [ -f $fullfile ]; then
+
+    filename=$(basename -- "$fullfile")
+    extension="${filename##*.}"
+
+    if [ $extension = "hs" ] || [ $extension = "haskell" ]; then
+      hfmt -w ${1}
+      git add ${1}
+    fi
+  fi
+}
+
+case "${1}" in
+  --about )
+    echo "Runs hfmt on source files"
+    ;;
+  * )
+    for file in `git diff-index --cached --name-only HEAD` ; do
+      format_file "${file}"
+    done
+    ;;
+esac
