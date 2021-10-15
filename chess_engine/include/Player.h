@@ -1,10 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <set>
-#include <string>
-#include "Square.h"
-
 class King;
 class Piece;
 class Square;

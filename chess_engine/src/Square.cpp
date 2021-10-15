@@ -1,7 +1,7 @@
-#include "Square.h"
 #include "Board.h"
-#include "Piece.h"
 #include "King.h"
+#include "Piece.h"
+#include "Square.h"
 
 using namespace std;
 

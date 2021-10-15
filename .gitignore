@@ -183,3 +183,5 @@ _deps
 *.exe
 *.out
 *.app
+
+.cache/

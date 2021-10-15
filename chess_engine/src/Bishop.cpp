@@ -1,4 +1,6 @@
 #include "Bishop.h"
+#include "Board.h"
+#include "Square.h"
 
 using namespace std;
 

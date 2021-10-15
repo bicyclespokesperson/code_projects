@@ -1,42 +1,24 @@
-//Grading Template
 
-/* ID         :  1697518
-   Assignment :  Chess
-   Class      :  CSIS 370 Object-Oriented Programming
-   Date       : 4/24/2013
-
-Programming Assessment Standards
-
-PROGRAM CORRECTNESS
-   a) the program is complete & functions correctly       (40)________
-PROGRAM DESIGN
-   b) object-oriented class design & implementation       (10)________
-   c) appropriate use of language and features            (10)________
-   d) subjective elegance                                 (20)________
-PROGRAM READABILITY AND DOCUMENTATION
-   e) Header comments are complete & clear                 (5)________
-   f) Internal comments are used when appropriate         (15)________
-
-TOTAL                                                    (100)________
-
-******************************************************************/
-
+#include "Board.h"
 #include "Pawn.h"
-#include "RestrictedPiece.h"
 #include "Piece.h"
 #include "Queen.h"
+#include "RestrictedPiece.h"
+#include "Square.h"
 
 using namespace std;
 
 Pawn::Pawn(Player& owner, string color, Square& location)
 : RestrictedPiece(owner, color, location)
 {
-    
 }
 
 Pawn::~Pawn()
 {
-    delete _proxy;
+    if (_proxy)
+    {
+        delete _proxy;
+    }
 }
 
 void Pawn::setProxy(Piece& proxy)

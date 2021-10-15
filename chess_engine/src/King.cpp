@@ -1,6 +1,9 @@
-#include "RestrictedPiece.h"
-#include "Player.h"
+#include "Board.h"
+#include "Game.h"
 #include "King.h"
+#include "Player.h"
+#include "Square.h"
+#include "RestrictedPiece.h"
 using namespace std;
 
 King::King(Player& owner, string color, Square& location)

@@ -29,6 +29,7 @@ target_precompile_headers(chess_engine
     <numeric>
     <random>
     <ranges>
+    <set>
     <span>
     <string>
     <unordered_map>

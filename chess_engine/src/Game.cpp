@@ -1,13 +1,14 @@
-#include "Player.h"
-#include "Piece.h"
-#include "Game.h"
-#include "Rook.h"
-#include "Knight.h"
 #include "Bishop.h"
-#include "King.h"
-#include "Queen.h"
-#include "Pawn.h"
 #include "Board.h"
+#include "Game.h"
+#include "King.h"
+#include "Knight.h"
+#include "Pawn.h"
+#include "Piece.h"
+#include "Player.h"
+#include "Queen.h"
+#include "Rook.h"
+#include "Square.h"
 using namespace std;
 
 // These will be initialized in the initialize method
@@ -15,15 +16,9 @@ Player* Game::_player1 = NULL;
 Player* Game::_player2 = NULL;
 Player* Game::_currentPlayer = _player1;
 
-Game::Game()
-{
-    
-}
+Game::Game() = default;
 
-Game::~Game()
-{
-    
-}
+Game::~Game() = default;
 
 Player& Game::getNextPlayer()
 {

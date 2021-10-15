@@ -1,7 +1,9 @@
-#include "Player.h"
-#include "Piece.h"
+#include "Board.h"
+#include "Game.h"
 #include "King.h"
-#include <string>
+#include "Piece.h"
+#include "Player.h"
+#include "Square.h"
 
 class Square;
 using namespace std;

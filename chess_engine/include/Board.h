@@ -1,10 +1,6 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <vector>
-#include "Game.h"
-#include "Square.h"
-
 class Square;
 class Game;
 

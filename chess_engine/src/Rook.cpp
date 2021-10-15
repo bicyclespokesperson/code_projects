@@ -1,5 +1,6 @@
+#include "Board.h"
+#include "Square.h"
 #include "Rook.h"
-#include "RestrictedPiece.h"
 using namespace std;
 
 class Square;

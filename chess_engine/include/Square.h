@@ -1,9 +1,8 @@
 #ifndef SQUARE_H
 #define SQUARE_H
-#include "Board.h"
-#include "Piece.h"
 
 class Board;
+class Piece;
 
 using namespace std;
 
@@ -13,8 +12,6 @@ using namespace std;
  * board. It also knows what board is holding it.
  */
 class Square {
-  // Associations
-  // Attributes
 private:
     
   int _x;  

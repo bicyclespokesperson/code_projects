@@ -1,5 +1,7 @@
+#include "Board.h"
 #include "Piece.h"
 #include "Queen.h"
+#include "Square.h"
 using namespace std;
 
 Queen::Queen(Player& owner, string color, Square& location)

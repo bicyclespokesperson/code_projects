@@ -1,6 +1,7 @@
+#include "Board.h"
+#include "Square.h"
+#include "Piece.h"
 #include "Player.h"
-#include <string>
-#include <iostream>
 
 class Piece;
 

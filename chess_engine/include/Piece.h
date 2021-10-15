@@ -1,8 +1,5 @@
 #ifndef PIECE_H
 #define PIECE_H
-#include <string>
-#include "Square.h"
-#include <iostream>
 
 class Square;
 class Player;

@@ -1,9 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "Player.h"
-#include "Piece.h"
 using namespace std;
+
+class Player;
 
 /**
  * A game is the overarching container for the random elements of a game.

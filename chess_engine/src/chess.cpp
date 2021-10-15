@@ -11,11 +11,12 @@
 #include "Player.h"
 #include "King.h"
 #include "Pawn.h"
+#include "Game.h"
+#include "Board.h"
 #include "chess.h"
 #include "thread"
 
 using namespace std;
-
 
 /**
  * Play the chess game.

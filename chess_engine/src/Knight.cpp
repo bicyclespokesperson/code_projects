@@ -1,4 +1,5 @@
 #include "Knight.h"
+#include "Square.h"
 
 using namespace std;
 

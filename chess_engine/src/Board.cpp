@@ -1,4 +1,5 @@
 #include "Board.h"
+#include "Square.h"
 using namespace std;
 
 Board* Board::_theBoard = NULL;
