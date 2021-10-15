@@ -103,7 +103,7 @@ bool Pawn::canMoveTo (Square& location) const
 
 bool Pawn::moveTo (Player& byPlayer, Square& to)
 {
-    bool moveSucceeded = Piece::moveTo(byPlayer, to);
+    bool moveSucceeded = RestrictedPiece::moveTo(byPlayer, to);
     
     // Promote pawn if it is on the eighth row
     if (moveSucceeded && (to.getY() == 0 || to.getY() == 7) && _proxy == NULL)

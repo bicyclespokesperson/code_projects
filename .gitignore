@@ -83,6 +83,7 @@ __pycache__
 bin/.*.swp
 # Concourse CLI; changes depending on target version
 bin/fly
+bin/
 
 # Config for local daemons (e.g. squid)
 !etc

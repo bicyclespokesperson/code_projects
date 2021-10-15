@@ -6,12 +6,6 @@ class Piece;
 
 using namespace std;
 
-extern int startX;
-extern int startY;
-extern int endX;
-extern int endY;
-extern volatile bool moved;
-
 Player::Player(string name, King& myKing, set<Piece*>& myPieces) : 
     _name(name), _pieces(myPieces), _captured(*(new set<Piece*>())),  _king(&myKing)
 {
@@ -55,20 +49,6 @@ bool Player::makeMove()
                 {
                     cout << "please enter a valid move for the piece, and ";
                     cout << "ensure that it does not leave the King in check." << endl;
-                }
-                else
-                {
-                    // This move was valid. Signal it to the GUI
-                    startX = move->first->getX();
-                    startY = move->first->getY();
-                    endX = move->second->getX();
-                    endY = move->second->getY();
-                    moved = true;
-
-                    while (moved)
-                    {
-                        // Wait for the graphics engine to process the move.
-                    }
                 }
             }
         }
