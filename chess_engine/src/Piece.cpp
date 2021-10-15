@@ -6,9 +6,9 @@
 #include "Square.h"
 
 class Square;
-using namespace std;
 
-Piece::Piece(Player& owner, string color, Square& location) 
+
+Piece::Piece(Player& owner, std::string color, Square& location) 
     : _color(color), _location(&location) , _owner(&owner)
 {
 }
@@ -66,7 +66,7 @@ bool Piece::moveTo (Player& byPlayer, Square& to)
             // This move is illegal
             result = false;
 
-            // set moved piece location back to old location
+            // std::set moved piece location back to old location
             Board::getBoard().squareAt(original.getX(), original.getY()).setOccupier(*this);
             setLocation(Board::getBoard().squareAt(original.getX(), original.getY()));
 
@@ -92,7 +92,7 @@ bool Piece::moveTo (Player& byPlayer, Square& to)
     return result;
 }
 
-string Piece::color() const
+std::string Piece::color() const
 {
 	return _color;
 }

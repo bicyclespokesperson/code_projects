@@ -2,9 +2,9 @@
 #include "Board.h"
 #include "Square.h"
 
-using namespace std;
 
-Bishop::Bishop(Player& owner, string color, Square& location)
+
+Bishop::Bishop(Player& owner, std::string color, Square& location)
 : Piece(owner, color, location)
 {
 }
@@ -13,7 +13,7 @@ Bishop::~Bishop()
 {
 }
 
-void Bishop::display(ostream& out) const
+void Bishop::display(std::ostream& out) const
 {
     char color = (this->color() == "black") ? 'b' : 'w';
 	out << "B_" << color << " ";

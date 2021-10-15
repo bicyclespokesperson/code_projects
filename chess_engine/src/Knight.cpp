@@ -1,9 +1,9 @@
 #include "Knight.h"
 #include "Square.h"
 
-using namespace std;
 
-Knight::Knight(Player& owner, string color, Square& location)
+
+Knight::Knight(Player& owner, std::string color, Square& location)
 : Piece(owner, color, location)
 {
 }
@@ -36,7 +36,7 @@ int Knight::value () const
 	return 3;
 }
 
-void Knight::display(ostream& out) const
+void Knight::display(std::ostream& out) const
 {
     char color = (this->color() == "black") ? 'b' : 'w';
 	out << "N_" << color << " ";

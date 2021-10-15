@@ -4,7 +4,7 @@
 class Square;
 class Game;
 
-using namespace std;
+
 
 /**
  * A board class holds Squares, which hold pieces.
@@ -57,10 +57,10 @@ public:
     int distanceBetween(Square& from, Square& to);
     
     /**
-     * Prints the square to the specified ostream
+     * Prints the square to the specified std::ostream
      * @param outStream The stream to print to
      */
-    void display(ostream& outStream);
+    void display(std::ostream& outStream);
     
     /**
      * Initializes the 2D vector of squares properly.
@@ -81,7 +81,7 @@ public:
 
 private:
     int _DIMENSION;
-    vector< Square* >* _squares;
+    std::vector< Square* >* _squares;
     static Board* _theBoard;
     Board();
 };

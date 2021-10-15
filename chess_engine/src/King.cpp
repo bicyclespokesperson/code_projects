@@ -4,9 +4,9 @@
 #include "Player.h"
 #include "Square.h"
 #include "RestrictedPiece.h"
-using namespace std;
 
-King::King(Player& owner, string color, Square& location)
+
+King::King(Player& owner, std::string color, Square& location)
 : RestrictedPiece(owner, color, location)
 {
     
@@ -21,12 +21,12 @@ bool King::inCheck()
 {
     bool inCheck = false;
     
-    for (set<Piece*>::iterator it = Game::opponentOf(owner()).myPieces().begin();
+    for (std::set<Piece*>::iterator it = Game::opponentOf(owner()).myPieces().begin();
             it != Game::opponentOf(owner()).myPieces().end() && !inCheck; it++)
     {
         if ((*it)->canMoveTo(owner().myKing().location()))
         {
-            (*it)->display(cout);
+            (*it)->display(std::cout);
             inCheck = true;
         }
     }
@@ -58,7 +58,7 @@ int King::value () const
 	return 10;
 }
 
-void King::display(ostream& out) const
+void King::display(std::ostream& out) const
 {
     char color = (this->color() == "black") ? 'b' : 'w';
 	out << "K_" << color << " ";

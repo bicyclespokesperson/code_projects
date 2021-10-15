@@ -4,7 +4,7 @@
 class Board;
 class Piece;
 
-using namespace std;
+
 
 /**
  * Represents a square on a gameboard.
@@ -60,16 +60,16 @@ public:
     /**
      * Remove the piece from this Square
      * This is needed because null references are illegal, so setOccupier 
-     * cannot be used to set the occupant to null.
+     * cannot be used to std::set the occupant to null.
      */
     void removeOccupier();
     
     /**
      * Prints the square
-     * @param out The ostream to print to
+     * @param out The std::ostream to print to
      */
-    void display(ostream& out) const;
+    void display(std::ostream& out) const;
     
-    friend ostream& operator<< (ostream & output, const Square s);
+    friend std::ostream& operator<< (std::ostream & output, const Square s);
 };
 #endif

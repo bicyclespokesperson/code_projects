@@ -6,9 +6,9 @@
 #include "RestrictedPiece.h"
 #include "Square.h"
 
-using namespace std;
 
-Pawn::Pawn(Player& owner, string color, Square& location)
+
+Pawn::Pawn(Player& owner, std::string color, Square& location)
 : RestrictedPiece(owner, color, location)
 {
 }
@@ -101,7 +101,7 @@ bool Pawn::moveTo (Player& byPlayer, Square& to)
     return moveSucceeded;
 }
 
-void Pawn::display(ostream& out) const
+void Pawn::display(std::ostream& out) const
 {
     if (_proxy != NULL)
     {

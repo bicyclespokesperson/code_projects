@@ -3,7 +3,7 @@
 
 #include "RestrictedPiece.h"
 
-using namespace std;
+
 class Piece;
 class Player;
 class Square;
@@ -21,7 +21,7 @@ public:
      * @param color The piece's color
      * @param location The piece's location
      */
-    King(Player& owner, string color, Square& location);
+    King(Player& owner, std::string color, Square& location);
     
     /**
      * The destructor for the King class
@@ -32,7 +32,7 @@ public:
      * Print the king to the specified output stream
      * @param out The outstream to print to
      */
-    virtual void display(ostream& out) const;
+    virtual void display(std::ostream& out) const;
     
     /**
      * Returns True if the king can move to a specific square.

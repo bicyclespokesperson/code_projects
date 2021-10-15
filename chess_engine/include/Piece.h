@@ -4,7 +4,7 @@
 class Square;
 class Player;
 
-using namespace std;
+
 
 /**
  * The superclass for all the Chess pieces
@@ -18,7 +18,7 @@ public:
      * @param _color The color of the piece
      * @param location The location of the piece
      */
-    Piece(Player& owner, string color, Square& location);
+    Piece(Player& owner, std::string color, Square& location);
     
     /**
      * The destructor of the piece.
@@ -46,13 +46,13 @@ public:
     /**
      * @return The color of the piece
      */
-    string color() const;
+    std::string color() const;
     
     /**
      * Prints the piece
      * @param outStream The outstream to print to
      */
-    virtual void display (ostream& outStream) const = 0;
+    virtual void display (std::ostream& outStream) const = 0;
     
     /**
      * Checks if a piece can legally move to a square
@@ -89,7 +89,7 @@ public:
     void setOwner(Player& newOwner);
     
 private:
-  string _color;
+  std::string _color;
   Square* _location;
   Player* _owner;
 

@@ -2,7 +2,7 @@
 #define RESTRICTEDPIECE_H
 
 #include "Piece.h"
-using namespace std;
+
 
 /**
  * A RestrictedPiece can move specially on it's first move, but after that it 
@@ -16,7 +16,7 @@ class RestrictedPiece : public Piece {
          * @param color The pieces color
          * @param location The piece's location
          */
-        RestrictedPiece(Player& owner, string color, Square& location);
+        RestrictedPiece(Player& owner, std::string color, Square& location);
         
         /**
          * Destructor for the restricted piece.

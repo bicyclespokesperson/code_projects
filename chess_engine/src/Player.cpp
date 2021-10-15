@@ -5,10 +5,10 @@
 
 class Piece;
 
-using namespace std;
 
-Player::Player(string name, King& myKing, set<Piece*>& myPieces) : 
-    _name(name), _pieces(myPieces), _captured(*(new set<Piece*>())),  _king(&myKing)
+
+Player::Player(std::string name, King& myKing, std::set<Piece*>& myPieces) : 
+    _name(name), _pieces(myPieces), _captured(*(new std::set<Piece*>())),  _king(&myKing)
 {
 }
 
@@ -22,13 +22,13 @@ bool Player::makeMove()
     bool validMove = false;
     Piece* occupier = NULL;
     bool stillPlaying = true;
-    pair<Square*, Square*>* move = NULL;
+    std::pair<Square*, Square*>* move = NULL;
     
     // Keep trying to make a move until a valid one is requested, or until 
     // the player resigns.
     while (!validMove && stillPlaying)
     {
-        move = promptMove(cin, cout);
+        move = promptMove(std::cin, std::cout);
         
         // promptMove will return null if the player resigns
         if (move == NULL)
@@ -41,21 +41,21 @@ bool Player::makeMove()
 
             if (this->myPieces().find(occupier) == myPieces().end())
             {
-                cout << "Please move one of your own pieces." << endl;
+                std::cout << "Please move one of your own pieces." << std::endl;
             }
             else
             {
                 validMove = occupier->moveTo(*this, *(move->second));
                 if (!validMove)
                 {
-                    cout << "please enter a valid move for the piece, and ";
-                    cout << "ensure that it does not leave the King in check." << endl;
+                    std::cout << "please enter a valid move for the piece, and ";
+                    std::cout << "ensure that it does not leave the King in check." << std::endl;
                 }
             }
         }
         else
         {
-            cout << "please choose a square with a piece on it." << endl;
+            std::cout << "please choose a square with a piece on it." << std::endl;
         }
         
         // Clean up the move
@@ -71,14 +71,14 @@ bool Player::makeMove()
 }
 
 // Returns a null square if the player resigns.
-pair<Square*, Square*>* Player::promptMove(istream& in, ostream& out)
+std::pair<Square*, Square*>* Player::promptMove(std::istream& in, std::ostream& out)
 {
-    string line = "";
+    std::string line = "";
     out << getName() + ", please enter the beginning and ending squares of the ";
     out << "move (ex: A2 A4): ";
     //char fromCol = 0;
     //int toCol = 0;
-    pair<Square*, Square*>* result = NULL;
+    std::pair<Square*, Square*>* result = NULL;
     
     // Get move from the user and ensure that it is of the correct form
     getline(in, line);
@@ -99,12 +99,12 @@ pair<Square*, Square*>* Player::promptMove(istream& in, ostream& out)
         if (line[3] >= 'a')
             line[3] = line[3] - 32;
 
-        // Create a pair of squares to return, representing the beginning and 
+        // Create a std::pair of squares to return, representing the beginning and 
         // ending squares of the desired move. Subtract 48 and 65 from the lines 
         // since they are read as ascii values from the console
         // (so '0' is 48 and 'A' is 65), but we want to store them as integers, 
         // so we can do array access. This must be deleted by the caller.
-        result = new pair<Square*, Square*>(new Square(line[0] - 'A', line[1] - '0' - 1),
+        result = new std::pair<Square*, Square*>(new Square(line[0] - 'A', line[1] - '0' - 1),
                 new Square(line[3] - 'A', line[4] - '0' - 1));
     }
     
@@ -112,17 +112,17 @@ pair<Square*, Square*>* Player::promptMove(istream& in, ostream& out)
     return result;
 }
 
-bool Player::isValid(const string& line)
+bool Player::isValid(const std::string& line)
 {
     bool result = true;
     
     // If any character does not  fall in the allowed range,
-    // the string is invalid. (valid: "A2 A3")
+    // the std::string is invalid. (valid: "A2 A3")
     // Also, "quit" is a valid input.
     
     
-    // Make sure the string is the correct length. This also uses short 
-    // circuiting to protect the string from bounds errors.
+    // Make sure the std::string is the correct length. This also uses short 
+    // circuiting to protect the std::string from bounds errors.
     if (line != "quit" && (line.length() != 5 ||
             
             // 'A' <= line[0] <= 'H'
@@ -147,7 +147,7 @@ bool Player::isValid(const string& line)
     return result;
 }
 
-string& Player::getName()
+std::string& Player::getName()
 {
 	return _name;
 }
@@ -167,7 +167,7 @@ void Player::uncapture(Piece& aPiece)
     _captured.erase(&aPiece);
 }
 
-set<Piece*>& Player::myPieces()
+std::set<Piece*>& Player::myPieces()
 {
 	return this->_pieces;
 }

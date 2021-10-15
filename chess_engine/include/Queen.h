@@ -3,7 +3,7 @@
 
 #include "Piece.h"
 
-using namespace std;
+
 
 class Square;
 
@@ -17,7 +17,7 @@ public:
      * @param color The piece's color
      * @param location The piece's initial location
      */
-    Queen(Player& owner, string color, Square& location);
+    Queen(Player& owner, std::string color, Square& location);
     
     /**
      * The destructor for the piece
@@ -26,9 +26,9 @@ public:
     
     /**
      * Prints the piece
-     * @param out The ostream to print to
+     * @param out The std::ostream to print to
      */
-    virtual void display(ostream& out) const;
+    virtual void display(std::ostream& out) const;
     
     /**
      * Checks if the queen can legally move to a square.

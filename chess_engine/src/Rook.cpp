@@ -1,11 +1,11 @@
 #include "Board.h"
 #include "Square.h"
 #include "Rook.h"
-using namespace std;
+
 
 class Square;
 
-Rook::Rook(Player& owner, string color, Square& location)
+Rook::Rook(Player& owner, std::string color, Square& location)
 : RestrictedPiece (owner, color, location)
 {
 }
@@ -40,7 +40,7 @@ int Rook::value () const
 	return 5;
 }
 
-void Rook::display(ostream& out) const
+void Rook::display(std::ostream& out) const
 {
     char color = (this->color() == "black") ? 'b' : 'w';
 	out << "R_" << color << " ";

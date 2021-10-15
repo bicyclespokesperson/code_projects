@@ -4,7 +4,7 @@
 #include "Piece.h"
 
 
-using namespace std;
+
 
 class Square;
 
@@ -21,7 +21,7 @@ public:
      * @param color The piece's color
      * @param location The piece's location
      */
-    Bishop(Player& owner, string color, Square& location);
+    Bishop(Player& owner, std::string color, Square& location);
     
     /**
      * destructor for the bishop
@@ -32,7 +32,7 @@ public:
      * Prints a representation of the Bishop to an output stream
      * @param out The output stream to print to.
      */
-    virtual void display(ostream& out) const;
+    virtual void display(std::ostream& out) const;
     
     /**
      * Checks if the piece can legally move to a space.

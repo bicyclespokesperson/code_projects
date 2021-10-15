@@ -9,7 +9,7 @@
 #include "Queen.h"
 #include "Rook.h"
 #include "Square.h"
-using namespace std;
+
 
 // These will be initialized in the initialize method
 Player* Game::_player1 = NULL;
@@ -40,8 +40,8 @@ void Game::initialize()
     King* whiteKing = new King(*_player2, "white", (Board::getBoard().squareAt(4, 0)));
     
     // Create the players
-    _player1 = new Player("white", *whiteKing, *(new set<Piece*>));
-    _player2 = new Player("black", *blackKing, *(new set<Piece*>));
+    _player1 = new Player("white", *whiteKing, *(new std::set<Piece*>));
+    _player2 = new Player("black", *blackKing, *(new std::set<Piece*>));
     
     whiteKing->setOwner(*_player1);
     blackKing->setOwner(*_player2);

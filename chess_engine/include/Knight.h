@@ -1,7 +1,7 @@
 #ifndef KNIGHT_H
 #define KNIGHT_H
 #include "Piece.h"
-using namespace std;
+
 
 /**
  * A knight represents a piece on the chess board
@@ -16,7 +16,7 @@ public:
      * @param color The piece's color
      * @param location The piece's location
      */
-    Knight(Player& owner, string color, Square& location);
+    Knight(Player& owner, std::string color, Square& location);
     
     /**
      * The destructor for the knight
@@ -27,7 +27,7 @@ public:
      * Prints the piece to an output stream
      * @param out the output stream to print to.
      */
-    virtual void display(ostream& out) const;
+    virtual void display(std::ostream& out) const;
     
     /**
      * Checks if the knight can legally move to the specified location

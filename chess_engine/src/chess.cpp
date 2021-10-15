@@ -16,7 +16,7 @@
 #include "chess.h"
 #include "thread"
 
-using namespace std;
+
 
 /**
  * Play the chess game.
@@ -28,16 +28,16 @@ int main(int /* argc */, char* /* argv*/ [])
 {
     Game::initialize();
     
-    Board::getBoard().display(cout);
+    Board::getBoard().display(std::cout);
     
     // Player.makeMove() will return false if the player resigns
     while (Game::getNextPlayer().makeMove())
     {
-        Board::getBoard().display(cout);
+        Board::getBoard().display(std::cout);
     }
-    Board::getBoard().display(cout);
+    Board::getBoard().display(std::cout);
     
-    cout << "Thanks for playing!" << endl;
+    std::cout << "Thanks for playing!" << std::endl;
     return 0;
 }
 

@@ -3,7 +3,7 @@
 #include "Piece.h"
 #include "Square.h"
 
-using namespace std;
+
 
 Square::Square(int x, int y, Piece* occupier) : _x(x), _y(y), _occupier(occupier)
 {
@@ -43,7 +43,7 @@ void Square::removeOccupier()
     this->_occupier = NULL;
 }
 
-void Square::display(ostream& out) const
+void Square::display(std::ostream& out) const
 {
     if (this->occupied())
     {
@@ -57,10 +57,10 @@ void Square::display(ostream& out) const
 
 // Print the Square's location to the console.
 // Useful for debugging purposes.
-ostream& operator<< (ostream& out, const Square s)
+std::ostream& operator<< (std::ostream& out, const Square s)
 {
     // Add 65 to _x because it represents a letter but we store it as a 
     // number so we can do array access with it. ('A' == 65)
-    out << "Column: " << (char) (s._x + 65) << ", Row: " << s._y << endl;
+    out << "Column: " << (char) (s._x + 65) << ", Row: " << s._y << std::endl;
     return out;
 }

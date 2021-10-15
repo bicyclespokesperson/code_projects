@@ -1,6 +1,6 @@
 #include "Board.h"
 #include "Square.h"
-using namespace std;
+
 
 Board* Board::_theBoard = NULL;
 
@@ -17,7 +17,7 @@ Board& Board::getBoard()
 Board::Board()
 {
     _DIMENSION = 8;
-    this->_squares = new vector< Square* >(_DIMENSION * _DIMENSION, NULL);
+    this->_squares = new std::vector< Square* >(_DIMENSION * _DIMENSION, NULL);
     
     for(char i = 0; i < _DIMENSION; i++)
     {
@@ -33,7 +33,7 @@ Board::Board()
 
 Board::~Board()
 {
-    for (vector<Square*>::iterator it = _squares->begin();
+    for (std::vector<Square*>::iterator it = _squares->begin();
             it != _squares->end(); it++)
     {
         delete *it;
@@ -78,7 +78,7 @@ int Board::distanceBetween(Square& from, Square& to)
 
 void Board::setup()
 {
-    Board::_squares = new vector< Square* >(64, NULL);
+    Board::_squares = new std::vector< Square* >(64, NULL);
     for(char i = 0; i < _DIMENSION; i++)
     {
         for (int j = 0; j < _DIMENSION; j++)
@@ -213,9 +213,9 @@ bool Board::isClearDiagonal(Square& from, Square& to)
     return result;
 }
 
-void Board::display(ostream& out)
+void Board::display(std::ostream& out)
 {
-    out << endl;
+    out << std::endl;
     for(int i = _DIMENSION - 1; i >= 0; i--)
     {
         out << (i + 1) << "  ";
@@ -223,7 +223,7 @@ void Board::display(ostream& out)
         {
             squareAt(j, i).display(out);
         }
-        out << endl << endl;
+        out << std::endl << std::endl;
     }
     
     out << "   ";
@@ -232,5 +232,5 @@ void Board::display(ostream& out)
         out << " " << (char) (i + 'A') << "  ";
         
     }
-    cout << endl;
+    std::cout << std::endl;
 }

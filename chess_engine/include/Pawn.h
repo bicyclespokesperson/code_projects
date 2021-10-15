@@ -3,7 +3,7 @@
 
 #include "RestrictedPiece.h"
 
-using namespace std;
+
 
 /**
  * A pawn is one of the menial laborors in the game of Chess.
@@ -18,7 +18,7 @@ public:
      * @param color The piece's color
      * @param location The piece's location
      */
-    Pawn(Player& owner, string color, Square& location);
+    Pawn(Player& owner, std::string color, Square& location);
     
     /**
      * destructor
@@ -38,7 +38,7 @@ public:
      * Prints the piece to an output stream
      * @param out The output stream to print to
      */
-    virtual void display(ostream& out) const;
+    virtual void display(std::ostream& out) const;
     
     /**
      * Checks to see if the pawn can legally move to a square on the board.
