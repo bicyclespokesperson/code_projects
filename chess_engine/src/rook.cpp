@@ -23,8 +23,8 @@ bool Rook::can_move_to(Square const& location) const
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (Board::get_board().square_at(location.getX(), location.getY()).occupied() &&
-      Board::get_board().square_at(location.getX(), location.getY()).occupied_by().color() == color())
+  if (Board::get_board().square_at(location.get_x(), location.get_y()).occupied() &&
+      Board::get_board().square_at(location.get_x(), location.get_y()).occupied_by().color() == color())
   {
     result = false;
   }

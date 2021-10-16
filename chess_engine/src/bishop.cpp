@@ -2,7 +2,7 @@
 #include "board.h"
 #include "square.h"
 
-Bishop::Bishop(Player& owner, std::string color, Square const& location) : Piece(owner, color, location)
+Bishop::Bishop(Player& owner, std::string color, Square const& location) : Piece(owner, std::move(color), location)
 {
 }
 
@@ -18,21 +18,19 @@ void Bishop::display(std::ostream& out) const
 
 bool Bishop::can_move_to(Square const& location) const
 {
-  bool result = true;
-
   if (!(Board::get_board().is_clear_diagonal(this->location(), location)))
   {
-    result = false;
+    return false;
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (Board::get_board().square_at(location.getX(), location.getY()).occupied() &&
-      Board::get_board().square_at(location.getX(), location.getY()).occupied_by().color() == color())
+  if (auto square = Board::get_board().square_at(location.get_x(), location.get_y()); 
+      square.occupied() && square.occupied_by().color() == color())
   {
-    result = false;
+    return false;
   }
 
-  return result;
+  return true;
 }
 
 int Bishop::value() const

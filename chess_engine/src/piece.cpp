@@ -34,10 +34,10 @@ bool Piece::move_to(Player& by_player, Square const& to)
   {
 
     // If occupied, capture opponent, while storing it in "captured"
-    if (Board::get_board().square_at(to.getX(), to.getY()).occupied())
+    if (Board::get_board().square_at(to.get_x(), to.get_y()).occupied())
     {
       // Save the piece in case we need to uncapture it later
-      captured = &Board::get_board().square_at(to.getX(), to.getY()).occupied_by();
+      captured = &Board::get_board().square_at(to.get_x(), to.get_y()).occupied_by();
       by_player.capture(*captured);
       Game::opponent_of(by_player).my_pieces().erase(captured);
 
@@ -46,13 +46,13 @@ bool Piece::move_to(Player& by_player, Square const& to)
 
     // Move piece, (original square saved above, in case we need to go back)
     // Delete the piece from its original square
-    Board::get_board().square_at(location().getX(), location().getY()).remove_occupier();
+    Board::get_board().square_at(location().get_x(), location().get_y()).remove_occupier();
 
     // Place piece on new square
-    Board::get_board().square_at(to.getX(), to.getY()).set_occupier(*this);
+    Board::get_board().square_at(to.get_x(), to.get_y()).set_occupier(*this);
 
     // Update the piece's location
-    this->set_location(Board::get_board().square_at(to.getX(), to.getY()));
+    this->set_location(Board::get_board().square_at(to.get_x(), to.get_y()));
 
     // check for check
     in_check = _owner->my_king().in_check();
@@ -64,20 +64,20 @@ bool Piece::move_to(Player& by_player, Square const& to)
       result = false;
 
       // std::set moved piece location back to old location
-      Board::get_board().square_at(original.getX(), original.getY()).set_occupier(*this);
-      set_location(Board::get_board().square_at(original.getX(), original.getY()));
+      Board::get_board().square_at(original.get_x(), original.get_y()).set_occupier(*this);
+      set_location(Board::get_board().square_at(original.get_x(), original.get_y()));
 
       if (performed_capture)
       {
         // place piece back in opponent's pieces, and on board
         _owner->uncapture(*captured);
         Game::opponent_of(by_player).my_pieces().insert(captured);
-        Board::get_board().square_at(to.getX(), to.getY()).set_occupier(*captured);
-        captured->set_location(Board::get_board().square_at(to.getX(), to.getY()));
+        Board::get_board().square_at(to.get_x(), to.get_y()).set_occupier(*captured);
+        captured->set_location(Board::get_board().square_at(to.get_x(), to.get_y()));
       }
       else
       {
-        Board::get_board().square_at(to.getX(), to.getY()).remove_occupier();
+        Board::get_board().square_at(to.get_x(), to.get_y()).remove_occupier();
       }
     }
   }

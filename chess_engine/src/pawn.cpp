@@ -52,22 +52,22 @@ bool Pawn::can_move_to(Square const& location) const
       // Make sure the pawn is moving forward
       // "this" is needed to distinguish between the parameter location and
       // the method location()
-      if ((this->color() == "white" && location.getY() > this->location().getY()) ||
-          (this->color() == "black" && location.getY() < this->location().getY()))
+      if ((this->color() == "white" && location.get_y() > this->location().get_y()) ||
+          (this->color() == "black" && location.get_y() < this->location().get_y()))
       {
 
         // If the space ahead of the pawn is clear and vertical
         // This also prevents moves of zero spaces, since it cannot move to
         // a space occupied by itself.
         if (Board::get_board().is_clear_vertical(this->location(), location) &&
-            !(Board::get_board().square_at(location.getX(), location.getY()).occupied()))
+            !(Board::get_board().square_at(location.get_x(), location.get_y()).occupied()))
         {
           result = true;
         }
         // If the square is diagonally forward and occupied by an opponent
         else if (Board::get_board().is_clear_diagonal(this->location(), location) &&
-                 Board::get_board().square_at(location.getX(), location.getY()).occupied() &&
-                 Board::get_board().square_at(location.getX(), location.getY()).occupied_by().color() != this->color())
+                 Board::get_board().square_at(location.get_x(), location.get_y()).occupied() &&
+                 Board::get_board().square_at(location.get_x(), location.get_y()).occupied_by().color() != this->color())
         {
           result = true;
         }
@@ -83,7 +83,7 @@ bool Pawn::move_to(Player& by_player, Square const& to)
   bool move_succeeded = RestrictedPiece::move_to(by_player, to);
 
   // Promote pawn if it is on the eighth row
-  if (move_succeeded && (to.getY() == 0 || to.getY() == 7) && _proxy == nullptr)
+  if (move_succeeded && (to.get_y() == 0 || to.get_y() == 7) && _proxy == nullptr)
   {
     set_proxy(*(new Queen(owner(), ((is_white()) ? "white" : "black"), location())));
   }

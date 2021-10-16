@@ -35,12 +35,12 @@ public:
   /**
    * @return The column of the square (a letter)
    */
-  int getX() const;
+  int get_x() const;
 
   /**
    * @return The row of the square (a number)
    */
-  int getY() const;
+  int get_y() const;
 
   /**
    * @return True is the Square is occupied

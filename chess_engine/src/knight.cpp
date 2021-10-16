@@ -14,13 +14,13 @@ bool Knight::can_move_to(Square const& location) const
   bool result = false;
 
   // Make sure the move is either two vertical and one horizontal
-  if (abs(this->location().getY() - location.getY()) == 2 && abs(this->location().getX() - location.getX()) == 1)
+  if (abs(this->location().get_y() - location.get_y()) == 2 && abs(this->location().get_x() - location.get_x()) == 1)
   {
     result = true;
   }
 
   // Or two horizontal and one vertical
-  else if (abs(this->location().getX() - location.getX()) == 2 && abs(this->location().getY() - location.getY()) == 1)
+  else if (abs(this->location().get_x() - location.get_x()) == 2 && abs(this->location().get_y() - location.get_y()) == 1)
   {
     result = true;
   }

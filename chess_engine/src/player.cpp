@@ -31,9 +31,9 @@ bool Player::make_move()
     {
       still_playing = false;
     }
-    else if (Board::get_board().square_at(move->first.getX(), move->first.getY()).occupied())
+    else if (Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied())
     {
-      occupier = &Board::get_board().square_at(move->first.getX(), move->first.getY()).occupied_by();
+      occupier = &Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied_by();
 
       if (this->my_pieces().find(occupier) == my_pieces().end())
       {

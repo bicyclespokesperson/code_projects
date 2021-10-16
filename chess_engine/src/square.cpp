@@ -13,12 +13,12 @@ Square::Square(int x, int y, Piece* occupier) : _x(x), _y(y), _occupier(occupier
 
 Square::~Square() = default;
 
-int Square::getX() const
+int Square::get_x() const
 {
   return _x;
 }
 
-int Square::getY() const
+int Square::get_y() const
 {
   return _y;
 }

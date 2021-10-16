@@ -1,6 +1,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include <square.h>
+
 class Square;
 class Game;
 
@@ -73,15 +75,16 @@ public:
    */
   static Board& get_board();
 
+
   /**
    * Destructor
    */
   ~Board();
 
 private:
-  int _DIMENSION;
-  std::vector<Square*>* _squares;
-  static Board* _theBoard;
   Board();
+
+  std::vector<Square> _squares{};
+  static inline std::unique_ptr<Board> _theBoard;
 };
 #endif

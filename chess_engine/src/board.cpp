@@ -1,43 +1,31 @@
 #include "board.h"
-#include "square.h"
 
-Board* Board::_theBoard = nullptr;
+constexpr int c_board_dimension{8};
 
 Board& Board::get_board()
 {
   if (_theBoard == nullptr)
   {
-    _theBoard = new Board();
+    // Use new to access private constructor
+    _theBoard = std::unique_ptr<Board>(new Board());
   }
   return *_theBoard;
 }
 
-// A Board handles its own garbage collection.
 Board::Board()
 {
-  _DIMENSION = 8;
-  this->_squares = new std::vector<Square*>(_DIMENSION * _DIMENSION, nullptr);
-
-  for (char i = 0; i < _DIMENSION; i++)
+  for (int i = 0; i < c_board_dimension; i++)
   {
-    for (int j = 0; j < _DIMENSION; j++)
+    for (int j = 0; j < c_board_dimension; j++)
     {
       // The matrix is compressed into a one dimensional array and stored
       // in row major form.
-      _squares->at((i)*_DIMENSION + (j)) = new Square(i, j, nullptr);
+      _squares.emplace_back(i, j, nullptr);
     }
   }
 }
 
-Board::~Board()
-{
-  for (std::vector<Square*>::iterator it = _squares->begin(); it != _squares->end(); it++)
-  {
-    delete *it;
-  }
-
-  delete _squares;
-}
+Board::~Board() = default;
 
 /**
  * Calculates the distance between two squares on the board
@@ -51,23 +39,23 @@ int Board::distance_between(Square const& from, Square const& to)
 
   // If the squares are on the same vertical, return the difference
   // in their horizontals
-  if (from.getX() == to.getX())
+  if (from.get_x() == to.get_x())
   {
-    result = abs(from.getY() - to.getY());
+    result = std::abs(from.get_y() - to.get_y());
   }
 
   // If the squares are on the same horizontal, return the difference
   // in their verticals
-  else if (from.getY() == to.getY())
+  else if (from.get_y() == to.get_y())
   {
-    result = abs(from.getX() - to.getX());
+    result = std::abs(from.get_x() - to.get_x());
   }
 
   // If the squares are on the same diagonal, their x and y differences
   // will be equal, so return their X difference
-  else if (abs(from.getX() - to.getX()) == abs(from.getY() - to.getY()))
+  else if (std::abs(from.get_x() - to.get_x()) == std::abs(from.get_y() - to.get_y()))
   {
-    result = abs(from.getX() - to.getX());
+    result = std::abs(from.get_x() - to.get_x());
   }
 
   return result;
@@ -75,21 +63,21 @@ int Board::distance_between(Square const& from, Square const& to)
 
 void Board::setup()
 {
-  Board::_squares = new std::vector<Square*>(64, nullptr);
-  for (char i = 0; i < _DIMENSION; i++)
+  _squares.clear();
+  for (char i = 0; i < c_board_dimension; i++)
   {
-    for (int j = 0; j < _DIMENSION; j++)
+    for (int j = 0; j < c_board_dimension; j++)
     {
       // The squares should be stored with their zero based xy coordinates
       // so that the array access math works out nicely.
-      _squares->at((i)*_DIMENSION + (j)) = new Square(i, j, nullptr);
+      _squares.emplace_back(i, j, nullptr);
     }
   }
 }
 
 Square& Board::square_at(int x, int y)
 {
-  return *(_squares->at(_DIMENSION * x + y));
+  return _squares.at(c_board_dimension * x + y);
 }
 
 bool Board::is_clear_vertical(Square const& from, Square const& to)
@@ -101,7 +89,7 @@ bool Board::is_clear_vertical(Square const& from, Square const& to)
   // Assume we are going to start from one space ahead of the current square
   // and walk straight until we hit the destination square
 
-  if (from.getX() != to.getX())
+  if (from.get_x() != to.get_x())
   {
     result = false;
   }
@@ -109,7 +97,7 @@ bool Board::is_clear_vertical(Square const& from, Square const& to)
   {
     // Set up the squares so we always walk up.
     // So if to is above from, swap them.
-    if (to.getY() < from.getY())
+    if (to.get_y() < from.get_y())
     {
       bottom = &to;
       top = &from;
@@ -117,9 +105,9 @@ bool Board::is_clear_vertical(Square const& from, Square const& to)
 
     // Walk along the board and if we find an occupied space, exit the loop
     // and return false.
-    for (int i = bottom->getY() + 1; i < top->getY() && result; i++)
+    for (int i = bottom->get_y() + 1; i < top->get_y() && result; i++)
     {
-      if (square_at(from.getX(), i).occupied())
+      if (square_at(from.get_x(), i).occupied())
       {
         result = false;
       }
@@ -138,7 +126,7 @@ bool Board::is_clear_horizontal(Square const& from, Square const& to)
   // Assume we are going to start from one space ahead of the current square
   // and walk straight until we hit the destination square
 
-  if (from.getY() != to.getY())
+  if (from.get_y() != to.get_y())
   {
     result = false;
   }
@@ -146,7 +134,7 @@ bool Board::is_clear_horizontal(Square const& from, Square const& to)
   {
     // Set up the squares so we always walk up.
     // So if to is above from, swap them.
-    if (to.getX() < from.getX())
+    if (to.get_x() < from.get_x())
     {
       left = &to;
       right = &from;
@@ -154,9 +142,9 @@ bool Board::is_clear_horizontal(Square const& from, Square const& to)
 
     // Walk along the board and if we find an occupied space, exit the loop
     // and return false.
-    for (int i = left->getX() + 1; i < right->getX() && result; i++)
+    for (int i = left->get_x() + 1; i < right->get_x() && result; i++)
     {
-      if (square_at(i, from.getY()).occupied())
+      if (square_at(i, from.get_y()).occupied())
       {
         result = false;
       }
@@ -176,7 +164,7 @@ bool Board::is_clear_diagonal(Square const& from, Square const& to)
   Square const* left = &from;
   Square const* right = &to;
 
-  if (abs(from.getX() - to.getX()) != abs(from.getY() - to.getY()))
+  if (std::abs(from.get_x() - to.get_x()) != std::abs(from.get_y() - to.get_y()))
   {
     result = false;
   }
@@ -184,22 +172,22 @@ bool Board::is_clear_diagonal(Square const& from, Square const& to)
   {
 
     // Verify assumption that we are walking right
-    if (from.getX() > to.getX())
+    if (from.get_x() > to.get_x())
     {
       left = &to;
       right = &from;
     }
 
-    if (left->getY() > right->getY())
+    if (left->get_y() > right->get_y())
     {
       direction = -1;
     }
 
     // Walk from "left" to "right"
-    for (int i = 1; i < right->getX() - left->getX(); i++)
+    for (int i = 1; i < right->get_x() - left->get_x(); i++)
     {
       // Check to see if square is occupied
-      if (Board::get_board().square_at(left->getX() + i, left->getY() + direction * i).occupied())
+      if (Board::get_board().square_at(left->get_x() + i, left->get_y() + direction * i).occupied())
       {
         result = false;
       }
@@ -211,10 +199,10 @@ bool Board::is_clear_diagonal(Square const& from, Square const& to)
 void Board::display(std::ostream& out)
 {
   out << std::endl;
-  for (int i = _DIMENSION - 1; i >= 0; i--)
+  for (int i = c_board_dimension - 1; i >= 0; i--)
   {
     out << (i + 1) << "  ";
-    for (char j = 0; j < _DIMENSION; j++)
+    for (char j = 0; j < c_board_dimension; j++)
     {
       square_at(j, i).display(out);
     }
@@ -222,7 +210,7 @@ void Board::display(std::ostream& out)
   }
 
   out << "   ";
-  for (int i = 0; i < _DIMENSION; i++)
+  for (int i = 0; i < c_board_dimension; i++)
   {
     out << " " << (char)(i + 'A') << "  ";
   }
