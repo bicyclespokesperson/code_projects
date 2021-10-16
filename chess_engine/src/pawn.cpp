@@ -30,7 +30,6 @@ int Pawn::value() const
 
 bool Pawn::can_move_to(Square const& target) const
 {
-  int max_distance = 1;
 
   if (_proxy != nullptr)
   {
@@ -38,15 +37,13 @@ bool Pawn::can_move_to(Square const& target) const
   }
 
   // A pawn can move two spaces on its first move
-  if (!has_moved())
-  {
-    max_distance = 2;
-  }
-
+  int const max_distance = has_moved() ? 1 : 2;
   auto const& board = Board::get_board();
+
   // Make sure the distance of the move is not greater than 1, or 2 if the
   // piece has not yet moved.
-  if (board.distance_between(location(), target) <= max_distance)
+  int const move_distance = board.distance_between(location(), target);
+  if (move_distance <= max_distance)
   {
     // Make sure the pawn is moving forward
     if ((is_white() && target.get_y() > location().get_y()) ||
@@ -62,7 +59,8 @@ bool Pawn::can_move_to(Square const& target) const
         return true;
       }
       // If the square is diagonally forward and occupied by an opponent
-      else if (board.is_clear_diagonal(location(), target) &&
+      else if (move_distance == 1 &&
+               board.is_clear_diagonal(location(), target) &&
                board.square_at(target.get_x(), target.get_y()).occupied() &&
                board.square_at(target.get_x(), target.get_y()).occupied_by().color() != color())
       {
