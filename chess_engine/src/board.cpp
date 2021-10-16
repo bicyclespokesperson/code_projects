@@ -14,15 +14,7 @@ Board& Board::get_board()
 
 Board::Board()
 {
-  for (int i = 0; i < c_board_dimension; i++)
-  {
-    for (int j = 0; j < c_board_dimension; j++)
-    {
-      // The matrix is compressed into a one dimensional array and stored
-      // in row major form.
-      _squares.emplace_back(i, j, nullptr);
-    }
-  }
+  setup();
 }
 
 Board::~Board() = default;
@@ -31,34 +23,32 @@ Board::~Board() = default;
  * Calculates the distance between two squares on the board
  * @param from The first square
  * @param to The second square
- * @return The resulting distance
+ * @return The resulting distance, or -1 if there is no line between the two squares
  */
 int Board::distance_between(Square const& from, Square const& to)
 {
-  int result = -1;
-
   // If the squares are on the same vertical, return the difference
   // in their horizontals
   if (from.get_x() == to.get_x())
   {
-    result = std::abs(from.get_y() - to.get_y());
+    return std::abs(from.get_y() - to.get_y());
   }
 
   // If the squares are on the same horizontal, return the difference
   // in their verticals
   else if (from.get_y() == to.get_y())
   {
-    result = std::abs(from.get_x() - to.get_x());
+    return std::abs(from.get_x() - to.get_x());
   }
 
   // If the squares are on the same diagonal, their x and y differences
   // will be equal, so return their X difference
   else if (std::abs(from.get_x() - to.get_x()) == std::abs(from.get_y() - to.get_y()))
   {
-    result = std::abs(from.get_x() - to.get_x());
+    return std::abs(from.get_x() - to.get_x());
   }
 
-  return result;
+  return -1;
 }
 
 void Board::setup()
@@ -82,46 +72,40 @@ Square& Board::square_at(int x, int y)
 
 bool Board::is_clear_vertical(Square const& from, Square const& to)
 {
-  bool result = true;
-  Square const* top = &to;
-  Square const* bottom = &from;
   // Set up the counter for the while loop.
   // Assume we are going to start from one space ahead of the current square
   // and walk straight until we hit the destination square
 
   if (from.get_x() != to.get_x())
   {
-    result = false;
+    return false;
   }
-  else
+  
+  Square const* top = &to;
+  Square const* bottom = &from;
+  // Set up the squares so we always walk up.
+  // So if "to" is above "from", swap them.
+  if (to.get_y() < from.get_y())
   {
-    // Set up the squares so we always walk up.
-    // So if to is above from, swap them.
-    if (to.get_y() < from.get_y())
-    {
-      bottom = &to;
-      top = &from;
-    }
+    std::swap(bottom, top);
+  }
 
-    // Walk along the board and if we find an occupied space, exit the loop
-    // and return false.
-    for (int i = bottom->get_y() + 1; i < top->get_y() && result; i++)
+  // Walk along the board and if we find an occupied space, exit the loop
+  // and return false.
+  for (int i = bottom->get_y() + 1; i < top->get_y(); i++)
+  {
+    if (square_at(from.get_x(), i).occupied())
     {
-      if (square_at(from.get_x(), i).occupied())
-      {
-        result = false;
-      }
+      return false;
     }
   }
 
-  return result;
+  return true;
 }
 
 bool Board::is_clear_horizontal(Square const& from, Square const& to)
 {
   bool result = true;
-  Square const* right = &to;
-  Square const* left = &from;
   // Set up the counter for the while loop.
   // Assume we are going to start from one space ahead of the current square
   // and walk straight until we hit the destination square
@@ -134,10 +118,11 @@ bool Board::is_clear_horizontal(Square const& from, Square const& to)
   {
     // Set up the squares so we always walk up.
     // So if to is above from, swap them.
+    Square const* right = &to;
+    Square const* left = &from;
     if (to.get_x() < from.get_x())
     {
-      left = &to;
-      right = &from;
+      std::swap(left, right);
     }
 
     // Walk along the board and if we find an occupied space, exit the loop
@@ -155,45 +140,36 @@ bool Board::is_clear_horizontal(Square const& from, Square const& to)
 
 bool Board::is_clear_diagonal(Square const& from, Square const& to)
 {
-  bool result = true;
+  if (std::abs(from.get_x() - to.get_x()) != std::abs(from.get_y() - to.get_y()))
+  {
+    return false;
+  }
+  
+  // Ensure we are walking right
+  Square const* left = &from;
+  Square const* right = &to;
+  if (from.get_x() > to.get_x())
+  {
+    std::swap(left, right);
+  }
 
   // Assume that we are walking up
   int direction = 1;
-
-  // Assume we are walking right
-  Square const* left = &from;
-  Square const* right = &to;
-
-  if (std::abs(from.get_x() - to.get_x()) != std::abs(from.get_y() - to.get_y()))
+  if (left->get_y() > right->get_y())
   {
-    result = false;
+    direction = -1;
   }
-  else
+
+  // Walk from "left" to "right"
+  for (int i = 1; i < right->get_x() - left->get_x(); i++)
   {
-
-    // Verify assumption that we are walking right
-    if (from.get_x() > to.get_x())
+    // Check to see if square is occupied
+    if (Board::get_board().square_at(left->get_x() + i, left->get_y() + direction * i).occupied())
     {
-      left = &to;
-      right = &from;
-    }
-
-    if (left->get_y() > right->get_y())
-    {
-      direction = -1;
-    }
-
-    // Walk from "left" to "right"
-    for (int i = 1; i < right->get_x() - left->get_x(); i++)
-    {
-      // Check to see if square is occupied
-      if (Board::get_board().square_at(left->get_x() + i, left->get_y() + direction * i).occupied())
-      {
-        result = false;
-      }
+      return false;
     }
   }
-  return result;
+  return true;
 }
 
 void Board::display(std::ostream& out)

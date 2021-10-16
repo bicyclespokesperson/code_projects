@@ -19,7 +19,7 @@ public:
    * @param my_king The player's king
    * @param my_pieces The player's pieces
    */
-  Player(std::string name, King& my_king, std::set<Piece*> my_pieces);
+  Player(std::string name, King& my_king);
 
   /**
    * The destructor for the player class

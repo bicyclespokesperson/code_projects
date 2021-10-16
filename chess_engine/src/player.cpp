@@ -5,15 +5,12 @@
 
 class Piece;
 
-Player::Player(std::string name, King& my_king, std::set<Piece*> my_pieces)
-    : _name(std::move(name)), _pieces(std::move(my_pieces)), _king(&my_king)
+Player::Player(std::string name, King& my_king)
+    : _name(std::move(name)), _king(&my_king)
 {
 }
 
-Player::~Player()
-{
-  delete &_captured;
-}
+Player::~Player() = default;
 
 bool Player::make_move()
 {
@@ -57,7 +54,7 @@ bool Player::make_move()
   return still_playing;
 }
 
-// Returns a null square if the player resigns.
+// Returns empty if the player resigns.
 std::optional<std::pair<Square, Square>> Player::prompt_move_(std::istream& in, std::ostream& out)
 {
   std::string line = "";
@@ -95,7 +92,7 @@ std::optional<std::pair<Square, Square>> Player::prompt_move_(std::istream& in, 
     return std::pair<Square, Square>{{line[0] - 'A', line[1] - '0' - 1}, {line[3] - 'A', line[4] - '0' - 1}};
   }
 
-  // Null if the player resigned
+  // Empty if the player resigned
   return {};
 }
 
