@@ -62,6 +62,6 @@ public:
   int value() const override;
 
 private:
-  Piece* _proxy;
+  Piece* _proxy{nullptr};
 };
 #endif

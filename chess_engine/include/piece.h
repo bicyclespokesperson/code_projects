@@ -94,8 +94,8 @@ public:
   void set_owner(Player& new_owner);
 
 private:
-  Color _color;
-  Square const* _location;
-  Player* _owner;
+  Color _color{Color::black};
+  Square const* _location{nullptr};
+  Player* _owner{nullptr};
 };
 #endif

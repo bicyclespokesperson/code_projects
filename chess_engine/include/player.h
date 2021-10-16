@@ -86,6 +86,6 @@ private:
   std::string _name;
   std::set<Piece*> _pieces{};
   std::set<Piece*> _captured{};
-  King* _king;
+  King* _king{nullptr};
 };
 #endif

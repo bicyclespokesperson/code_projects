@@ -75,6 +75,6 @@ public:
 private:
   int _x;
   int _y;
-  Piece* _occupier;
+  Piece* _occupier{nullptr};
 };
 #endif

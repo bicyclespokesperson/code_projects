@@ -31,8 +31,8 @@ public:
 
 private:
   Game();
-  static Player* _player1;
-  static Player* _player2;
-  static Player* _currentPlayer;
+  static inline Player* _player1{nullptr};
+  static inline Player* _player2{nullptr};
+  static inline Player* _currentPlayer{nullptr};
 };
 #endif

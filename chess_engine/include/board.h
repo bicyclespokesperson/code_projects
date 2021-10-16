@@ -85,6 +85,6 @@ private:
   Board();
 
   std::vector<Square> _squares{};
-  static inline std::unique_ptr<Board> _theBoard;
+  static inline std::unique_ptr<Board> _theBoard{nullptr};
 };
 #endif
