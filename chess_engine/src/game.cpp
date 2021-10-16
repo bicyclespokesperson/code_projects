@@ -11,8 +11,8 @@
 #include "square.h"
 
 // These will be initialized in the initialize method
-Player* Game::_player1 = NULL;
-Player* Game::_player2 = NULL;
+Player* Game::_player1 = nullptr;
+Player* Game::_player2 = nullptr;
 Player* Game::_currentPlayer = _player1;
 
 Game::Game() = default;

@@ -33,7 +33,7 @@ bool Pawn::can_move_to(Square const& location) const
   bool result = false;
   int max_distance = 1;
 
-  if (_proxy != NULL)
+  if (_proxy != nullptr)
   {
     result = _proxy->can_move_to(location);
   }
@@ -83,12 +83,12 @@ bool Pawn::move_to(Player& by_player, Square const& to)
   bool move_succeeded = RestrictedPiece::move_to(by_player, to);
 
   // Promote pawn if it is on the eighth row
-  if (move_succeeded && (to.getY() == 0 || to.getY() == 7) && _proxy == NULL)
+  if (move_succeeded && (to.getY() == 0 || to.getY() == 7) && _proxy == nullptr)
   {
     set_proxy(*(new Queen(owner(), ((is_white()) ? "white" : "black"), location())));
   }
 
-  if (_proxy != NULL)
+  if (_proxy != nullptr)
   {
     _proxy->set_location(to);
   }
@@ -98,7 +98,7 @@ bool Pawn::move_to(Player& by_player, Square const& to)
 
 void Pawn::display(std::ostream& out) const
 {
-  if (_proxy != NULL)
+  if (_proxy != nullptr)
   {
     _proxy->display(out);
   }

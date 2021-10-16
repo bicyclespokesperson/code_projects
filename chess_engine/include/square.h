@@ -48,7 +48,7 @@ public:
   bool occupied() const;
 
   /**
-   * @return The piece occupying the square (NULL if empty)
+   * @return The piece occupying the square (nullptr if empty)
    */
   Piece& occupied_by() const;
 

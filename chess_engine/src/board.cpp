@@ -1,11 +1,11 @@
 #include "board.h"
 #include "square.h"
 
-Board* Board::_theBoard = NULL;
+Board* Board::_theBoard = nullptr;
 
 Board& Board::get_board()
 {
-  if (_theBoard == NULL)
+  if (_theBoard == nullptr)
   {
     _theBoard = new Board();
   }
@@ -16,7 +16,7 @@ Board& Board::get_board()
 Board::Board()
 {
   _DIMENSION = 8;
-  this->_squares = new std::vector<Square*>(_DIMENSION * _DIMENSION, NULL);
+  this->_squares = new std::vector<Square*>(_DIMENSION * _DIMENSION, nullptr);
 
   for (char i = 0; i < _DIMENSION; i++)
   {
@@ -24,7 +24,7 @@ Board::Board()
     {
       // The matrix is compressed into a one dimensional array and stored
       // in row major form.
-      _squares->at((i)*_DIMENSION + (j)) = new Square(i, j, NULL);
+      _squares->at((i)*_DIMENSION + (j)) = new Square(i, j, nullptr);
     }
   }
 }
@@ -75,14 +75,14 @@ int Board::distance_between(Square const& from, Square const& to)
 
 void Board::setup()
 {
-  Board::_squares = new std::vector<Square*>(64, NULL);
+  Board::_squares = new std::vector<Square*>(64, nullptr);
   for (char i = 0; i < _DIMENSION; i++)
   {
     for (int j = 0; j < _DIMENSION; j++)
     {
       // The squares should be stored with their zero based xy coordinates
       // so that the array access math works out nicely.
-      _squares->at((i)*_DIMENSION + (j)) = new Square(i, j, NULL);
+      _squares->at((i)*_DIMENSION + (j)) = new Square(i, j, nullptr);
     }
   }
 }

@@ -70,7 +70,7 @@ private:
    * @param in The input stream to read the prompt from
    * @param out The output stream to print prompts to.
    * @return A std::pair of squares representing the beginning and ending of the
-   * std::string. Note: The std::pair and both squares must be deleted. Returns NULL
+   * std::string. Note: The std::pair and both squares must be deleted. Returns nullptr
    * if the player resigns.
    */
   std::optional<std::pair<Square, Square>> prompt_move_(std::istream& in, std::ostream& out);

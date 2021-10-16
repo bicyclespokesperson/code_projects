@@ -18,7 +18,7 @@ Player::~Player()
 bool Player::make_move()
 {
   bool valid_move = false;
-  Piece* occupier = NULL;
+  Piece* occupier = nullptr;
   bool still_playing = true;
 
   // Keep trying to make a move until a valid one is requested, or until

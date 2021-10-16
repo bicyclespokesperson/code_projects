@@ -101,7 +101,7 @@ void Piece::set_location(Square const& square)
 
 bool Piece::is_on_square() const
 {
-  return _location == NULL;
+  return _location == nullptr;
 }
 
 Square const& Piece::location() const
