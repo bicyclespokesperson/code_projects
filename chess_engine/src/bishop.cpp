@@ -24,7 +24,7 @@ bool Bishop::can_move_to(Square const& target) const
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (auto square = Board::get_board().square_at(target.get_x(), target.get_y()); 
+  if (auto const& square = Board::get_board().square_at(target.get_x(), target.get_y()); 
       square.occupied() && square.occupied_by().color() == color())
   {
     return false;

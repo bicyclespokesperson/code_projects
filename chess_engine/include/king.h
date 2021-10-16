@@ -49,6 +49,6 @@ public:
   /**
    * @return True if an opposing piece can attack the king
    */
-  bool in_check();
+  bool in_check() const;
 };
 #endif

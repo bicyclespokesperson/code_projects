@@ -85,7 +85,7 @@ public:
   /**
    * @return the piece's owner
    */
-  Player& owner();
+  Player& owner() const;
 
   /**
    * Sets the piece's owner to the specified piece

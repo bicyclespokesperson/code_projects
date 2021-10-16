@@ -30,52 +30,48 @@ int Pawn::value() const
 
 bool Pawn::can_move_to(Square const& target) const
 {
-  bool result = false;
   int max_distance = 1;
 
   if (_proxy != nullptr)
   {
-    result = _proxy->can_move_to(target);
+    return _proxy->can_move_to(target);
   }
-  else
+
+  // A pawn can move two spaces on its first move
+  if (!has_moved())
   {
-    // A pawn can move two spaces on its first move
-    if (!has_moved())
-    {
-      max_distance = 2;
-    }
+    max_distance = 2;
+  }
 
-    // Make sure the distance of the move is not greater than 1, or 2 if the
-    // piece has not yet moved.
-    if (Board::get_board().distance_between(location(), target) <= max_distance)
+  auto const& board = Board::get_board();
+  // Make sure the distance of the move is not greater than 1, or 2 if the
+  // piece has not yet moved.
+  if (board.distance_between(location(), target) <= max_distance)
+  {
+    // Make sure the pawn is moving forward
+    if ((is_white() && target.get_y() > location().get_y()) ||
+        (!is_white() && target.get_y() < location().get_y()))
     {
-      // Make sure the pawn is moving forward
-      // "this" is needed to distinguish between the parameter location and
-      // the method location()
-      if ((is_white() && target.get_y() > location().get_y()) ||
-          (!is_white() && target.get_y() < location().get_y()))
+
+      // Ensure the space ahead of the pawn is clear and vertical
+      // This also prevents moves of zero spaces, since it cannot move to
+      // a space occupied by itself.
+      if (board.is_clear_vertical(location(), target) &&
+          !(board.square_at(target.get_x(), target.get_y()).occupied()))
       {
-
-        // If the space ahead of the pawn is clear and vertical
-        // This also prevents moves of zero spaces, since it cannot move to
-        // a space occupied by itself.
-        if (Board::get_board().is_clear_vertical(location(), target) &&
-            !(Board::get_board().square_at(target.get_x(), target.get_y()).occupied()))
-        {
-          result = true;
-        }
-        // If the square is diagonally forward and occupied by an opponent
-        else if (Board::get_board().is_clear_diagonal(location(), target) &&
-                 Board::get_board().square_at(target.get_x(), target.get_y()).occupied() &&
-                 Board::get_board().square_at(target.get_x(), target.get_y()).occupied_by().color() != color())
-        {
-          result = true;
-        }
+        return true;
+      }
+      // If the square is diagonally forward and occupied by an opponent
+      else if (board.is_clear_diagonal(location(), target) &&
+               board.square_at(target.get_x(), target.get_y()).occupied() &&
+               board.square_at(target.get_x(), target.get_y()).occupied_by().color() != color())
+      {
+        return true;
       }
     }
   }
 
-  return result;
+  return false;
 }
 
 bool Pawn::move_to(Player& by_player, Square const& to)

@@ -5,27 +5,23 @@ Knight::Knight(Player& owner, Color color, Square const& location) : Piece(owner
 {
 }
 
-Knight::~Knight()
-{
-}
+Knight::~Knight() = default;
 
 bool Knight::can_move_to(Square const& target) const
 {
-  bool result = false;
-
   // Make sure the move is either two vertical and one horizontal
-  if (abs(location().get_y() - target.get_y()) == 2 && abs(location().get_x() - target.get_x()) == 1)
+  if (std::abs(location().get_y() - target.get_y()) == 2 && std::abs(location().get_x() - target.get_x()) == 1)
   {
-    result = true;
+    return true;
   }
 
   // Or two horizontal and one vertical
-  else if (abs(location().get_x() - target.get_x()) == 2 && abs(location().get_y() - target.get_y()) == 1)
+  else if (std::abs(location().get_x() - target.get_x()) == 2 && std::abs(location().get_y() - target.get_y()) == 1)
   {
-    result = true;
+    return true;
   }
 
-  return result;
+  return false;
 }
 
 int Knight::value() const

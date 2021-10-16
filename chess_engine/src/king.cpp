@@ -8,43 +8,32 @@ King::King(Player& owner, Color color, Square const& location) : RestrictedPiece
 {
 }
 
-King::~King()
-{
-}
+King::~King() = default;
 
-bool King::in_check()
+bool King::in_check() const
 {
-  bool in_check = false;
-
-  for (std::set<Piece*>::iterator it = Game::opponent_of(owner()).my_pieces().begin();
-       it != Game::opponent_of(owner()).my_pieces().end() && !in_check; it++)
-  {
-    if ((*it)->can_move_to(owner().my_king().location()))
-    {
-      (*it)->display(std::cout);
-      in_check = true;
-    }
-  }
-  return in_check;
+  auto const& opposing_pieces = Game::opponent_of(owner()).my_pieces();
+  return std::any_of(opposing_pieces.cbegin(), opposing_pieces.cend(), [this](auto const& piece)
+                     {
+                       return piece->can_move_to(location());
+                     });
 }
 
 bool King::can_move_to(Square const& target) const
 {
-  bool result = true;
-
   if (Board::get_board().distance_between(location(), target) != 1)
   {
-    result = false;
+    return false;
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (Board::get_board().square_at(target.get_x(), target.get_y()).occupied() &&
-      Board::get_board().square_at(target.get_x(), target.get_y()).occupied_by().color() == color())
+  if (auto const& square = Board::get_board().square_at(target.get_x(), target.get_y());
+      square.occupied() && square.occupied_by().color() == color())
   {
-    result = false;
+    return false;
   }
 
-  return result;
+  return true;
 }
 
 int King::value() const

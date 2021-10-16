@@ -60,6 +60,11 @@ public:
   std::set<Piece*>& my_pieces();
 
   /**
+   * @return The player's pieces
+   */
+  std::set<Piece*> const& my_pieces() const;
+
+  /**
    * @return The player's king
    */
   King& my_king() const;

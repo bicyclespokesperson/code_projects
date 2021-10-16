@@ -21,13 +21,21 @@ public:
   Square& square_at(int x, int y);
 
   /**
+   * Returns the square at the xy location
+   * @param x The column of the desired square (A letter)
+   * @param y The row coordinate of the desired square
+   * @return The square at the desired location
+   */
+  Square const& square_at(int x, int y) const;
+
+  /**
    * Checks if every square in between squares from and to are empty,
    * and if the squares are in a vertical line.
    * @param from The initial square
    * @param to The final square
    * @return True if there is a clear vertical line between the squares
    */
-  bool is_clear_vertical(Square const& from, Square const& to);
+  bool is_clear_vertical(Square const& from, Square const& to) const;
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -36,7 +44,7 @@ public:
    * @param to The final square
    * @return True if there is a clear horizontal line between the squares
    */
-  bool is_clear_horizontal(Square const& from, Square const& to);
+  bool is_clear_horizontal(Square const& from, Square const& to) const;
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -45,7 +53,7 @@ public:
    * @param to The final square
    * @return True if there is a clear diagonal line between the squares
    */
-  bool is_clear_diagonal(Square const& from, Square const& to);
+  bool is_clear_diagonal(Square const& from, Square const& to) const;
 
   /**
    * Returns the distance between two squares on the board.
@@ -55,13 +63,13 @@ public:
    * @param to The Second Square
    * @return The distance between the two squares.
    */
-  int distance_between(Square const& from, Square const& to);
+  int distance_between(Square const& from, Square const& to) const;
 
   /**
    * Prints the square to the specified std::ostream
    * @param out_stream The stream to print to
    */
-  void display(std::ostream& out_stream);
+  void display(std::ostream& out_stream) const;
 
   /**
    * Initializes the 2D vector of squares properly.

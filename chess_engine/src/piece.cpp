@@ -108,7 +108,7 @@ Square const& Piece::location() const
   return *_location;
 }
 
-Player& Piece::owner()
+Player& Piece::owner() const
 {
   return *_owner;
 }

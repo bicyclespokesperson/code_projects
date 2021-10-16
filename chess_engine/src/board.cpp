@@ -25,7 +25,7 @@ Board::~Board() = default;
  * @param to The second square
  * @return The resulting distance, or -1 if there is no line between the two squares
  */
-int Board::distance_between(Square const& from, Square const& to)
+int Board::distance_between(Square const& from, Square const& to) const
 {
   // If the squares are on the same vertical, return the difference
   // in their horizontals
@@ -67,10 +67,15 @@ void Board::setup()
 
 Square& Board::square_at(int x, int y)
 {
+  return const_cast<Square&>(std::as_const(*this).square_at(x, y));
+}
+
+Square const& Board::square_at(int x, int y) const
+{
   return _squares.at(c_board_dimension * x + y);
 }
 
-bool Board::is_clear_vertical(Square const& from, Square const& to)
+bool Board::is_clear_vertical(Square const& from, Square const& to) const
 {
   // Set up the counter for the while loop.
   // Assume we are going to start from one space ahead of the current square
@@ -103,7 +108,7 @@ bool Board::is_clear_vertical(Square const& from, Square const& to)
   return true;
 }
 
-bool Board::is_clear_horizontal(Square const& from, Square const& to)
+bool Board::is_clear_horizontal(Square const& from, Square const& to) const
 {
   bool result = true;
   // Set up the counter for the while loop.
@@ -138,7 +143,7 @@ bool Board::is_clear_horizontal(Square const& from, Square const& to)
   return result;
 }
 
-bool Board::is_clear_diagonal(Square const& from, Square const& to)
+bool Board::is_clear_diagonal(Square const& from, Square const& to) const
 {
   if (std::abs(from.get_x() - to.get_x()) != std::abs(from.get_y() - to.get_y()))
   {
@@ -172,7 +177,7 @@ bool Board::is_clear_diagonal(Square const& from, Square const& to)
   return true;
 }
 
-void Board::display(std::ostream& out)
+void Board::display(std::ostream& out) const
 {
   out << std::endl;
   for (int i = c_board_dimension - 1; i >= 0; i--)

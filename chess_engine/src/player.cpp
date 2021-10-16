@@ -151,6 +151,11 @@ void Player::uncapture(Piece& a_piece)
 
 std::set<Piece*>& Player::my_pieces()
 {
+  return const_cast<std::set<Piece*>&>(std::as_const(*this).my_pieces());
+}
+
+std::set<Piece*> const& Player::my_pieces() const
+{
   return _pieces;
 }
 
