@@ -5,8 +5,6 @@
 #include "player.h"
 #include "square.h"
 
-class Square;
-
 Piece::Piece(Player& owner, Color color, Square const& location)
     : _color(color), _location(&location), _owner(&owner)
 {
@@ -26,7 +24,7 @@ bool Piece::move_to(Player& by_player, Square const& to)
   // Checks if the move succeeded
   bool result = true;
   Square const& original = location();
-  Piece* captured;
+  Piece* captured{nullptr};
   bool in_check = false;
   bool performed_capture = false;
 
@@ -100,7 +98,7 @@ void Piece::set_location(Square const& square)
 
 bool Piece::is_on_square() const
 {
-  return _location == nullptr;
+  return _location != nullptr;
 }
 
 Square const& Piece::location() const

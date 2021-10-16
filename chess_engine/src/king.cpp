@@ -21,6 +21,8 @@ bool King::in_check() const
 
 bool King::can_move_to(Square const& target) const
 {
+  //TODO: Support Castling
+
   if (Board::get_board().distance_between(location(), target) != 1)
   {
     return false;

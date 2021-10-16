@@ -110,37 +110,34 @@ bool Board::is_clear_vertical(Square const& from, Square const& to) const
 
 bool Board::is_clear_horizontal(Square const& from, Square const& to) const
 {
-  bool result = true;
   // Set up the counter for the while loop.
   // Assume we are going to start from one space ahead of the current square
   // and walk straight until we hit the destination square
 
   if (from.get_y() != to.get_y())
   {
-    result = false;
+    return false;
   }
-  else
+  
+  // Set up the squares so we always walk up.
+  // So if to is above from, swap them.
+  Square const* right = &to;
+  Square const* left = &from;
+  if (to.get_x() < from.get_x())
   {
-    // Set up the squares so we always walk up.
-    // So if to is above from, swap them.
-    Square const* right = &to;
-    Square const* left = &from;
-    if (to.get_x() < from.get_x())
-    {
-      std::swap(left, right);
-    }
+    std::swap(left, right);
+  }
 
-    // Walk along the board and if we find an occupied space, exit the loop
-    // and return false.
-    for (int i = left->get_x() + 1; i < right->get_x() && result; i++)
+  // Walk along the board and if we find an occupied space, exit the loop
+  // and return false.
+  for (int i = left->get_x() + 1; i < right->get_x(); i++)
+  {
+    if (square_at(i, from.get_y()).occupied())
     {
-      if (square_at(i, from.get_y()).occupied())
-      {
-        result = false;
-      }
+      return false;
     }
   }
-  return result;
+  return true;
 }
 
 bool Board::is_clear_diagonal(Square const& from, Square const& to) const

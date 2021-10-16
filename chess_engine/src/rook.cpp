@@ -8,28 +8,24 @@ Rook::Rook(Player& owner, Color color, Square const& location) : RestrictedPiece
 {
 }
 
-Rook::~Rook()
-{
-}
+Rook::~Rook() = default;
 
 bool Rook::can_move_to(Square const& target) const
 {
-  bool result = true;
-
   if (!(Board::get_board().is_clear_horizontal(location(), target) ||
         Board::get_board().is_clear_vertical(location(), target)))
   {
-    result = false;
+    return false;
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (Board::get_board().square_at(target.get_x(), target.get_y()).occupied() &&
-      Board::get_board().square_at(target.get_x(), target.get_y()).occupied_by().color() == color())
+  if (auto const& square = Board::get_board().square_at(target.get_x(), target.get_y());
+      square.occupied() && square.occupied_by().color() == color())
   {
-    result = false;
+    return false;
   }
 
-  return result;
+  return true;
 }
 
 int Rook::value() const
