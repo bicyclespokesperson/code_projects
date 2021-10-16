@@ -32,7 +32,7 @@ public:
      * borrowing methods like move and display from the proxy queen.
      * @param proxy
      */
-    void setProxy(Piece& proxy);
+    void set_proxy(Piece& proxy);
     
     /**
      * Prints the piece to an output stream
@@ -51,13 +51,13 @@ public:
      * @param location The square to move to
      * @return True if it can move to that square
      */
-    virtual bool canMoveTo(Square& location) const;
+    virtual bool can_move_to(Square& location) const;
     
     /**
      * Moves the pawn to the specified square if the move is legal
      * @return True if the move succeeded
      */
-    virtual bool moveTo (Player& byPlayer, Square& to);
+    virtual bool move_to (Player& by_player, Square& to);
     
     /** 
      * @return The value of the piece

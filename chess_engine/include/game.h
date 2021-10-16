@@ -16,7 +16,7 @@ public:
     /**
      * @returns the next player whose turn it is
      */
-    static Player& getNextPlayer();
+    static Player& get_next_player();
     
     /**
      * Sets up the board by putting the pieces in place.
@@ -28,7 +28,7 @@ public:
      * @param player The player whose opponent to return
      * @return The opponent of the given player
      */
-    static Player& opponentOf(Player& player);
+    static Player& opponent_of(Player& player);
     
     ~Game();
 private:

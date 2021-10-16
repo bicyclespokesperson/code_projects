@@ -28,17 +28,17 @@ bool Square::occupied() const
 	return (_occupier != NULL);
 }
 
-Piece& Square::occupiedBy() const
+Piece& Square::occupied_by() const
 {
 	return *_occupier;
 }
 
-void Square::setOccupier(Piece& piece)
+void Square::set_occupier(Piece& piece)
 {
 	this->_occupier = &piece;
 }
 
-void Square::removeOccupier()
+void Square::remove_occupier()
 {
     this->_occupier = NULL;
 }

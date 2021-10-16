@@ -7,8 +7,8 @@ class Piece;
 
 
 
-Player::Player(std::string name, King& myKing, std::set<Piece*>& myPieces) : 
-    _name(name), _pieces(myPieces), _captured(*(new std::set<Piece*>())),  _king(&myKing)
+Player::Player(std::string name, King& my_king, std::set<Piece*>& my_pieces) : 
+    _name(name), _pieces(my_pieces), _captured(*(new std::set<Piece*>())),  _king(&my_king)
 {
 }
 
@@ -17,36 +17,36 @@ Player::~Player()
     delete &_captured;
 }
 
-bool Player::makeMove()
+bool Player::make_move()
 {
-    bool validMove = false;
+    bool valid_move = false;
     Piece* occupier = NULL;
-    bool stillPlaying = true;
+    bool still_playing = true;
     std::pair<Square*, Square*>* move = NULL;
     
     // Keep trying to make a move until a valid one is requested, or until 
     // the player resigns.
-    while (!validMove && stillPlaying)
+    while (!valid_move && still_playing)
     {
-        move = promptMove(std::cin, std::cout);
+        move = prompt_move(std::cin, std::cout);
         
-        // promptMove will return null if the player resigns
+        // prompt_move will return null if the player resigns
         if (move == NULL)
         {
-            stillPlaying = false;
+            still_playing = false;
         }
-        else if (Board::getBoard().squareAt(move->first->getX(), move->first->getY()).occupied())
+        else if (Board::get_board().square_at(move->first->getX(), move->first->getY()).occupied())
         {
-            occupier = &Board::getBoard().squareAt(move->first->getX(), move->first->getY()).occupiedBy();
+            occupier = &Board::get_board().square_at(move->first->getX(), move->first->getY()).occupied_by();
 
-            if (this->myPieces().find(occupier) == myPieces().end())
+            if (this->my_pieces().find(occupier) == my_pieces().end())
             {
                 std::cout << "Please move one of your own pieces." << std::endl;
             }
             else
             {
-                validMove = occupier->moveTo(*this, *(move->second));
-                if (!validMove)
+                valid_move = occupier->move_to(*this, *(move->second));
+                if (!valid_move)
                 {
                     std::cout << "please enter a valid move for the piece, and ";
                     std::cout << "ensure that it does not leave the King in check." << std::endl;
@@ -67,22 +67,22 @@ bool Player::makeMove()
         }
     }
     
-    return stillPlaying;
+    return still_playing;
 }
 
 // Returns a null square if the player resigns.
-std::pair<Square*, Square*>* Player::promptMove(std::istream& in, std::ostream& out)
+std::pair<Square*, Square*>* Player::prompt_move(std::istream& in, std::ostream& out)
 {
     std::string line = "";
-    out << getName() + ", please enter the beginning and ending squares of the ";
+    out << get_name() + ", please enter the beginning and ending squares of the ";
     out << "move (ex: A2 A4): ";
-    //char fromCol = 0;
-    //int toCol = 0;
+    //char from_col = 0;
+    //int to_col = 0;
     std::pair<Square*, Square*>* result = NULL;
     
     // Get move from the user and ensure that it is of the correct form
     getline(in, line);
-    while (!isValid(line))
+    while (!is_valid(line))
     {
         out << "Please make sure the move is of the form \"A1 A2\" and stays" <<
                 " within the bounds of the 8x8 board, or is \"quit\": ";
@@ -92,7 +92,7 @@ std::pair<Square*, Square*>* Player::promptMove(std::istream& in, std::ostream& 
     if (line != "quit")
     {
         // convert lower case letters to uppercase
-        // Only check for > 'a' because isValid guarantees that the letter is below 'h'
+        // Only check for > 'a' because is_valid guarantees that the letter is below 'h'
         if (line[0] >= 'a')
             line[0] = line[0] - 32;
 
@@ -112,7 +112,7 @@ std::pair<Square*, Square*>* Player::promptMove(std::istream& in, std::ostream& 
     return result;
 }
 
-bool Player::isValid(const std::string& line)
+bool Player::is_valid(const std::string& line)
 {
     bool result = true;
     
@@ -147,7 +147,7 @@ bool Player::isValid(const std::string& line)
     return result;
 }
 
-std::string& Player::getName()
+std::string& Player::get_name()
 {
 	return _name;
 }
@@ -157,22 +157,22 @@ int Player::score()
 	return 0;
 }
 
-void Player::capture(Piece& aPiece)
+void Player::capture(Piece& a_piece)
 {
-	_captured.insert(&aPiece);
+	_captured.insert(&a_piece);
 }
 
-void Player::uncapture(Piece& aPiece)
+void Player::uncapture(Piece& a_piece)
 {
-    _captured.erase(&aPiece);
+    _captured.erase(&a_piece);
 }
 
-std::set<Piece*>& Player::myPieces()
+std::set<Piece*>& Player::my_pieces()
 {
 	return this->_pieces;
 }
 
-King& Player::myKing()
+King& Player::my_king()
 {
 	return *_king;
 }

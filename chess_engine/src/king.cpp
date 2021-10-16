@@ -16,34 +16,34 @@ King::~King()
     
 }
 
-bool King::inCheck()
+bool King::in_check()
 {
-    bool inCheck = false;
+    bool in_check = false;
     
-    for (std::set<Piece*>::iterator it = Game::opponentOf(owner()).myPieces().begin();
-            it != Game::opponentOf(owner()).myPieces().end() && !inCheck; it++)
+    for (std::set<Piece*>::iterator it = Game::opponent_of(owner()).my_pieces().begin();
+            it != Game::opponent_of(owner()).my_pieces().end() && !in_check; it++)
     {
-        if ((*it)->canMoveTo(owner().myKing().location()))
+        if ((*it)->can_move_to(owner().my_king().location()))
         {
             (*it)->display(std::cout);
-            inCheck = true;
+            in_check = true;
         }
     }
-    return inCheck;
+    return in_check;
 }
 
-bool King::canMoveTo (Square& location) const
+bool King::can_move_to (Square& location) const
 {
     bool result = true;
     
-    if (Board::getBoard().distanceBetween(this->location(), location) != 1)
+    if (Board::get_board().distance_between(this->location(), location) != 1)
     {
         result = false;
     }
     
     // If the target location is occupied by a friend, the move is invalid
-    if (Board::getBoard().squareAt(location.getX(), location.getY()).occupied()
-            && Board::getBoard().squareAt(location.getX(), location.getY()).occupiedBy().color() == color())
+    if (Board::get_board().square_at(location.getX(), location.getY()).occupied()
+            && Board::get_board().square_at(location.getX(), location.getY()).occupied_by().color() == color())
     {
         result = false;
     }

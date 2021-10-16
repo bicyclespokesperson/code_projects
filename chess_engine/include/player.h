@@ -17,10 +17,10 @@ public:
     /**
      * Constructs a new player
      * @param name The player's name
-     * @param myKing The player's king
-     * @param myPieces The player's pieces
+     * @param my_king The player's king
+     * @param my_pieces The player's pieces
      */
-    Player(std::string name, King& myKing, std::set<Piece*>& myPieces);
+    Player(std::string name, King& my_king, std::set<Piece*>& my_pieces);
     
     /**
      * The destructor for the player class
@@ -31,12 +31,12 @@ public:
      * Makes a move
      * @return True if the move is legal
      */
-    bool makeMove();
+    bool make_move();
     
     /**
      * @return The name of the player
      */
-    std::string& getName();
+    std::string& get_name();
     
     /**
      * @return The player's score (the sum of the values of the captured pieces)
@@ -45,25 +45,25 @@ public:
     
     /**
      * Adds a piece to the player's captured collection
-     * @param aPiece The piece to capture
+     * @param a_piece The piece to capture
      */
-    void capture(Piece &aPiece);
+    void capture(Piece &a_piece);
     
     /**
      * Removes a piece from the player's captured collection.
-     * @param aPiece the piece to remove
+     * @param a_piece the piece to remove
      */
-    void uncapture(Piece& aPiece);
+    void uncapture(Piece& a_piece);
     
     /**
      * @return The player's pieces
      */
-    std::set<Piece*>& myPieces();
+    std::set<Piece*>& my_pieces();
     
     /**
      * @return The player's king
      */
-    King& myKing();
+    King& my_king();
     
 private:
     std::string _name;
@@ -79,7 +79,7 @@ private:
      * std::string. Note: The std::pair and both squares must be deleted. Returns NULL
      * if the player resigns.
      */
-    std::pair<Square*, Square*>* promptMove(std::istream& in, std::ostream& out);
+    std::pair<Square*, Square*>* prompt_move(std::istream& in, std::ostream& out);
     
     /**
      * Checks if the input std::string is contains the correct form of the 
@@ -87,7 +87,7 @@ private:
      * @param std::string The std::string of which to check the validity
      * @return true if the std::string is of the form "A2 D2"
      */
-    bool isValid(const std::string& line);
+    bool is_valid(const std::string& line);
     
 };
 #endif

@@ -24,14 +24,14 @@ int main(int /* argc */, char* /* argv*/ [])
 {
     Game::initialize();
     
-    Board::getBoard().display(std::cout);
+    Board::get_board().display(std::cout);
     
-    // Player.makeMove() will return false if the player resigns
-    while (Game::getNextPlayer().makeMove())
+    // Player.make_move() will return false if the player resigns
+    while (Game::get_next_player().make_move())
     {
-        Board::getBoard().display(std::cout);
+        Board::get_board().display(std::cout);
     }
-    Board::getBoard().display(std::cout);
+    Board::get_board().display(std::cout);
     
     std::cout << "Thanks for playing!" << std::endl;
     return 0;

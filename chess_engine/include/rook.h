@@ -35,7 +35,7 @@ public:
      * @param location The location to move to
      * @return True if the piece can legally move to the desired location
      */
-    virtual bool canMoveTo(Square& location) const;
+    virtual bool can_move_to(Square& location) const;
     
     /**
      * @return the value of the piece

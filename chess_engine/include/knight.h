@@ -35,7 +35,7 @@ public:
      * @param location The location to move to
      * @return True if the knight can move to that square
      */
-    virtual bool canMoveTo(Square& location) const;
+    virtual bool can_move_to(Square& location) const;
     
     /**
      * @return The value of the knight

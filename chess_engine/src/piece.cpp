@@ -17,70 +17,70 @@ Piece::~Piece()
 {
 }
 
-bool Piece::isWhite()
+bool Piece::is_white()
 {
     return _color == "white";
 }
 
-bool Piece::moveTo (Player& byPlayer, Square& to)
+bool Piece::move_to (Player& by_player, Square& to)
 {
     // Checks if the move succeeded
     bool result = true;
     Square& original = location();
     Piece* captured;
-    bool inCheck = false;
-    bool performedCapture = false;
+    bool in_check = false;
+    bool performed_capture = false;
     
-    if (canMoveTo(to))
+    if (can_move_to(to))
     {
 
 
         // If occupied, capture opponent, while storing it in "captured"
-        if (Board::getBoard().squareAt(to.getX(), to.getY()).occupied())
+        if (Board::get_board().square_at(to.getX(), to.getY()).occupied())
         {
             // Save the piece in case we need to uncapture it later
-            captured = &Board::getBoard().squareAt(to.getX(), to.getY()).occupiedBy();
-            byPlayer.capture(*captured);
-            Game::opponentOf(byPlayer).myPieces().erase(captured);
+            captured = &Board::get_board().square_at(to.getX(), to.getY()).occupied_by();
+            by_player.capture(*captured);
+            Game::opponent_of(by_player).my_pieces().erase(captured);
 
-            performedCapture = true;
+            performed_capture = true;
         }
 
 
         // Move piece, (original square saved above, in case we need to go back)
         // Delete the piece from its original square
-        Board::getBoard().squareAt(location().getX(), location().getY()).removeOccupier();
+        Board::get_board().square_at(location().getX(), location().getY()).remove_occupier();
 
         // Place piece on new square
-        Board::getBoard().squareAt(to.getX(), to.getY()).setOccupier(*this);
+        Board::get_board().square_at(to.getX(), to.getY()).set_occupier(*this);
 
         // Update the piece's location
-        this->setLocation(Board::getBoard().squareAt(to.getX(), to.getY()));
+        this->set_location(Board::get_board().square_at(to.getX(), to.getY()));
 
         // check for check
-        inCheck = _owner->myKing().inCheck();
+        in_check = _owner->my_king().in_check();
 
         // if in check, undo everything we just did.
-        if (inCheck)
+        if (in_check)
         {
             // This move is illegal
             result = false;
 
             // std::set moved piece location back to old location
-            Board::getBoard().squareAt(original.getX(), original.getY()).setOccupier(*this);
-            setLocation(Board::getBoard().squareAt(original.getX(), original.getY()));
+            Board::get_board().square_at(original.getX(), original.getY()).set_occupier(*this);
+            set_location(Board::get_board().square_at(original.getX(), original.getY()));
 
-            if (performedCapture)
+            if (performed_capture)
             {
                 // place piece back in opponent's pieces, and on board
                 _owner->uncapture(*captured);
-                Game::opponentOf(byPlayer).myPieces().insert(captured);
-                Board::getBoard().squareAt(to.getX(), to.getY()).setOccupier(*captured);
-                captured->setLocation(Board::getBoard().squareAt(to.getX(), to.getY()));
+                Game::opponent_of(by_player).my_pieces().insert(captured);
+                Board::get_board().square_at(to.getX(), to.getY()).set_occupier(*captured);
+                captured->set_location(Board::get_board().square_at(to.getX(), to.getY()));
             }
             else
             {
-                Board::getBoard().squareAt(to.getX(), to.getY()).removeOccupier();
+                Board::get_board().square_at(to.getX(), to.getY()).remove_occupier();
             }
         }
     }
@@ -97,12 +97,12 @@ std::string Piece::color() const
 	return _color;
 }
 
-void Piece::setLocation(Square& square)
+void Piece::set_location(Square& square)
 {
 	this->_location = &square;
 }
 
-bool Piece::isOnSquare() const
+bool Piece::is_on_square() const
 {
 	return _location == NULL;
 }
@@ -117,7 +117,7 @@ Player& Piece::owner()
     return *_owner;
 }
 
-void Piece::setOwner(Player& newOwner)
+void Piece::set_owner(Player& new_owner)
 {
-    _owner = &newOwner;
+    _owner = &new_owner;
 }

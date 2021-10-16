@@ -9,18 +9,18 @@ RestrictedPiece::~RestrictedPiece()
 {
 }
 
-bool RestrictedPiece::hasMoved() const
+bool RestrictedPiece::has_moved() const
 {
 	return _moved;
 }
 
 
-bool RestrictedPiece::moveTo (Player& byPlayer, Square& to)
+bool RestrictedPiece::move_to (Player& by_player, Square& to)
 {
-    bool moveSucceeded = Piece::moveTo(byPlayer, to);
-    if (moveSucceeded)
+    bool move_succeeded = Piece::move_to(by_player, to);
+    if (move_succeeded)
     {
         _moved = true;
     }
-    return moveSucceeded;
+    return move_succeeded;
 }

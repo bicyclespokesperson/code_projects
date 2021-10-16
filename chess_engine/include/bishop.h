@@ -42,7 +42,7 @@ public:
      * @param location The square to move to
      * @return True if the piece captured an opposing piece
      */
-    virtual bool canMoveTo(Square& location) const;
+    virtual bool can_move_to(Square& location) const;
     
     /**
      * @return The value of the piece.

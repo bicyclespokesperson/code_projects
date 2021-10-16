@@ -12,7 +12,7 @@ Knight::~Knight()
 {
 }
 
-bool Knight::canMoveTo (Square& location) const
+bool Knight::can_move_to (Square& location) const
 {
     bool result = false;
     

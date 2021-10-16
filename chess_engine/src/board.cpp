@@ -4,7 +4,7 @@
 
 Board* Board::_theBoard = NULL;
 
-Board& Board::getBoard()
+Board& Board::get_board()
 {
     if (_theBoard == NULL)
     {
@@ -48,7 +48,7 @@ Board::~Board()
  * @param to The second square
  * @return The resulting distance
  */
-int Board::distanceBetween(Square& from, Square& to)
+int Board::distance_between(Square& from, Square& to)
 {
     int result = -1;
     
@@ -91,12 +91,12 @@ void Board::setup()
     }
 }
 
-Square& Board::squareAt (int x, int y)
+Square& Board::square_at (int x, int y)
 {
     return *(_squares->at(_DIMENSION * x + y));
 }
 
-bool Board::isClearVertical(Square& from, Square& to)
+bool Board::is_clear_vertical(Square& from, Square& to)
 {
     bool result = true;
     Square* top = &to;
@@ -123,7 +123,7 @@ bool Board::isClearVertical(Square& from, Square& to)
         // and return false.
         for (int i = bottom->getY() + 1; i < top->getY() && result; i++)
         {
-            if (squareAt(from.getX(), i).occupied())
+            if (square_at(from.getX(), i).occupied())
             {
                 result = false;
             }
@@ -133,7 +133,7 @@ bool Board::isClearVertical(Square& from, Square& to)
 	return result;
 }
 
-bool Board::isClearHorizontal(Square& from, Square& to)
+bool Board::is_clear_horizontal(Square& from, Square& to)
 {
     bool result = true;
     Square* right = &to;
@@ -160,7 +160,7 @@ bool Board::isClearHorizontal(Square& from, Square& to)
         // and return false.
         for (int i =  left->getX() + 1; i < right->getX() && result; i++)
         {
-            if (squareAt(i, from.getY()).occupied())
+            if (square_at(i, from.getY()).occupied())
             {
                 result = false;
             }
@@ -169,7 +169,7 @@ bool Board::isClearHorizontal(Square& from, Square& to)
 	return result;
 }
 
-bool Board::isClearDiagonal(Square& from, Square& to)
+bool Board::is_clear_diagonal(Square& from, Square& to)
 {
     bool result = true;
     
@@ -203,7 +203,7 @@ bool Board::isClearDiagonal(Square& from, Square& to)
         for (int i = 1; i < right->getX() - left->getX(); i++)
         {
             // Check to see if square is occupied
-            if (Board::getBoard().squareAt(left->getX() + i, left->getY() + direction * i).occupied())
+            if (Board::get_board().square_at(left->getX() + i, left->getY() + direction * i).occupied())
             {
                 result = false;
             }
@@ -221,7 +221,7 @@ void Board::display(std::ostream& out)
         out << (i + 1) << "  ";
         for (char j = 0; j < _DIMENSION; j++)
         {
-            squareAt(j, i).display(out);
+            square_at(j, i).display(out);
         }
         out << std::endl << std::endl;
     }

@@ -50,19 +50,19 @@ public:
     /**
      * @return The piece occupying the square (NULL if empty)
      */
-    Piece& occupiedBy() const;
+    Piece& occupied_by() const;
     
     /**
      * @param piece The new occupier of the square
      */
-    void setOccupier(Piece& piece);
+    void set_occupier(Piece& piece);
     
     /**
      * Remove the piece from this Square
-     * This is needed because null references are illegal, so setOccupier 
+     * This is needed because null references are illegal, so set_occupier 
      * cannot be used to std::set the occupant to null.
      */
-    void removeOccupier();
+    void remove_occupier();
     
     /**
      * Prints the square

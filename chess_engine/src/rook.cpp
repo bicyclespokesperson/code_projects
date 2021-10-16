@@ -14,19 +14,19 @@ Rook::~Rook()
 {
 }
 
-bool Rook::canMoveTo (Square& location) const
+bool Rook::can_move_to (Square& location) const
 {
     bool result = true;
     
-    if (!(Board::getBoard().isClearHorizontal(this->location(), location) ||
-            Board::getBoard().isClearVertical(this->location(), location)))
+    if (!(Board::get_board().is_clear_horizontal(this->location(), location) ||
+            Board::get_board().is_clear_vertical(this->location(), location)))
     {
         result = false;
     }
     
     // If the target location is occupied by a friend, the move is invalid
-    if (Board::getBoard().squareAt(location.getX(), location.getY()).occupied()
-            && Board::getBoard().squareAt(location.getX(), location.getY()).occupiedBy().color() == color())
+    if (Board::get_board().square_at(location.getX(), location.getY()).occupied()
+            && Board::get_board().square_at(location.getX(), location.getY()).occupied_by().color() == color())
     {
         result = false;
     }

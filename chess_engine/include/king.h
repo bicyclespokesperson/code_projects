@@ -40,7 +40,7 @@ public:
      * @param location The location to move to.
      * @return True if it can move to that square
      */
-    virtual bool canMoveTo(Square& location) const;
+    virtual bool can_move_to(Square& location) const;
     
     /**
      * @return the value of the king. 
@@ -50,6 +50,6 @@ public:
     /**
      * @return True if an opposing piece can attack the king
      */
-    bool inCheck();
+    bool in_check();
 };
 #endif

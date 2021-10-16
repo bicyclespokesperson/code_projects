@@ -28,15 +28,15 @@ public:
     /**
      * @return True if the piece's color is white.
      */
-    bool isWhite();
+    bool is_white();
     
     /**
      * Moves the piece to the specified square
-     * @param byPlayer The player who moved the piece
+     * @param by_player The player who moved the piece
      * @param to The destination square
      * @return True if the piece captured another piece
      */
-    virtual bool moveTo (Player& byPlayer, Square& to);
+    virtual bool move_to (Player& by_player, Square& to);
     
     /**
      * @return the value of the piece
@@ -50,27 +50,27 @@ public:
     
     /**
      * Prints the piece
-     * @param outStream The outstream to print to
+     * @param out_stream The outstream to print to
      */
-    virtual void display (std::ostream& outStream) const = 0;
+    virtual void display (std::ostream& out_stream) const = 0;
     
     /**
      * Checks if a piece can legally move to a square
      * @param location The square to move to
      * @return True if the move is legal
      */
-    virtual bool canMoveTo(Square& location) const = 0;
+    virtual bool can_move_to(Square& location) const = 0;
     
     /**
      * Changes the piece's location
      * @param square The new location
      */
-    virtual void setLocation(Square& square);
+    virtual void set_location(Square& square);
     
     /**
      * @return True if the piece is on a square
      */
-    bool isOnSquare() const;
+    bool is_on_square() const;
     
     /**
      * @return The location of the piece
@@ -84,9 +84,9 @@ public:
     
     /**
      * Sets the piece's owner to the specified piece
-     * @param newOwner The piece's new owner
+     * @param new_owner The piece's new owner
      */
-    void setOwner(Player& newOwner);
+    void set_owner(Player& new_owner);
     
 private:
   std::string _color;

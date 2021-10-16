@@ -17,7 +17,7 @@ public:
      * @param y The row coordinate of the desired square
      * @return The square at the desired location
      */
-    Square& squareAt(int x, int y);
+    Square& square_at(int x, int y);
     
     /**
      * Checks if every square in between squares from and to are empty,
@@ -26,7 +26,7 @@ public:
      * @param to The final square
      * @return True if there is a clear vertical line between the squares
      */
-    bool isClearVertical(Square& from, Square& to);
+    bool is_clear_vertical(Square& from, Square& to);
     
     /**
      * Checks if every square in between squares from and to are empty,
@@ -35,7 +35,7 @@ public:
      * @param to The final square
      * @return True if there is a clear horizontal line between the squares
      */
-    bool isClearHorizontal(Square& from, Square& to);
+    bool is_clear_horizontal(Square& from, Square& to);
     
     /**
      * Checks if every square in between squares from and to are empty,
@@ -44,7 +44,7 @@ public:
      * @param to The final square
      * @return True if there is a clear diagonal line between the squares
      */
-    bool isClearDiagonal(Square& from, Square& to);
+    bool is_clear_diagonal(Square& from, Square& to);
     
     /**
      * Returns the distance between two squares on the board.
@@ -54,13 +54,13 @@ public:
      * @param to The Second Square
      * @return The distance between the two squares.
      */
-    int distanceBetween(Square& from, Square& to);
+    int distance_between(Square& from, Square& to);
     
     /**
      * Prints the square to the specified std::ostream
-     * @param outStream The stream to print to
+     * @param out_stream The stream to print to
      */
-    void display(std::ostream& outStream);
+    void display(std::ostream& out_stream);
     
     /**
      * Initializes the 2D vector of squares properly.
@@ -72,7 +72,7 @@ public:
      * The effective constructor for the board
      * @return a pointer to the single instance of the board
      */
-    static Board& getBoard();
+    static Board& get_board();
     
     /**
      * Destructor

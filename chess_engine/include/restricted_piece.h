@@ -26,15 +26,15 @@ class RestrictedPiece : public Piece {
         /**
          * @return The piece's location
          */
-        bool hasMoved() const;
+        bool has_moved() const;
         
         /**
         * Moves the piece to the specified square
-        * @param byPlayer The player who moved the piece
+        * @param by_player The player who moved the piece
         * @param to The destination square
         * @return True if the piece captured another piece
         */
-        virtual bool moveTo (Player& byPlayer, Square& to);
+        virtual bool move_to (Player& by_player, Square& to);
     private:
         bool _moved;
         
