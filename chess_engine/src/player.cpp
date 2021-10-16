@@ -31,7 +31,7 @@ bool Player::make_move()
     {
       Piece* occupier = &Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied_by();
 
-      if (this->my_pieces().find(occupier) == my_pieces().end())
+      if (my_pieces().find(occupier) == my_pieces().end())
       {
         std::cout << "Please move one of your own pieces." << std::endl;
       }
@@ -151,7 +151,7 @@ void Player::uncapture(Piece& a_piece)
 
 std::set<Piece*>& Player::my_pieces()
 {
-  return this->_pieces;
+  return _pieces;
 }
 
 King& Player::my_king() const

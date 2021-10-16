@@ -51,7 +51,7 @@ bool Piece::move_to(Player& by_player, Square const& to)
     Board::get_board().square_at(to.get_x(), to.get_y()).set_occupier(*this);
 
     // Update the piece's location
-    this->set_location(Board::get_board().square_at(to.get_x(), to.get_y()));
+    set_location(Board::get_board().square_at(to.get_x(), to.get_y()));
 
     // check for check
     in_check = _owner->my_king().in_check();
@@ -95,7 +95,7 @@ Color Piece::color() const
 
 void Piece::set_location(Square const& square)
 {
-  this->_location = &square;
+  _location = &square;
 }
 
 bool Piece::is_on_square() const

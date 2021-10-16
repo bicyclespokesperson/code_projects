@@ -28,18 +28,18 @@ bool King::in_check()
   return in_check;
 }
 
-bool King::can_move_to(Square const& location) const
+bool King::can_move_to(Square const& target) const
 {
   bool result = true;
 
-  if (Board::get_board().distance_between(this->location(), location) != 1)
+  if (Board::get_board().distance_between(location(), target) != 1)
   {
     result = false;
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (Board::get_board().square_at(location.get_x(), location.get_y()).occupied() &&
-      Board::get_board().square_at(location.get_x(), location.get_y()).occupied_by().color() == color())
+  if (Board::get_board().square_at(target.get_x(), target.get_y()).occupied() &&
+      Board::get_board().square_at(target.get_x(), target.get_y()).occupied_by().color() == color())
   {
     result = false;
   }

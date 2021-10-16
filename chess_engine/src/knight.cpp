@@ -9,18 +9,18 @@ Knight::~Knight()
 {
 }
 
-bool Knight::can_move_to(Square const& location) const
+bool Knight::can_move_to(Square const& target) const
 {
   bool result = false;
 
   // Make sure the move is either two vertical and one horizontal
-  if (abs(this->location().get_y() - location.get_y()) == 2 && abs(this->location().get_x() - location.get_x()) == 1)
+  if (abs(location().get_y() - target.get_y()) == 2 && abs(location().get_x() - target.get_x()) == 1)
   {
     result = true;
   }
 
   // Or two horizontal and one vertical
-  else if (abs(this->location().get_x() - location.get_x()) == 2 && abs(this->location().get_y() - location.get_y()) == 1)
+  else if (abs(location().get_x() - target.get_x()) == 2 && abs(location().get_y() - target.get_y()) == 1)
   {
     result = true;
   }

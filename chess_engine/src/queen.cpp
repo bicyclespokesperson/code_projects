@@ -11,22 +11,22 @@ Queen::~Queen()
 {
 }
 
-bool Queen::can_move_to(Square const& location) const
+bool Queen::can_move_to(Square const& target) const
 {
   bool result = true;
 
   // If the square is not horizontally, vertically, or diagonally away from the
   // Queen's current location, the move is invalid.
-  if (!(Board::get_board().is_clear_diagonal(this->location(), location) ||
-        Board::get_board().is_clear_horizontal(this->location(), location) ||
-        Board::get_board().is_clear_vertical(this->location(), location)))
+  if (!(Board::get_board().is_clear_diagonal(location(), target) ||
+        Board::get_board().is_clear_horizontal(location(), target) ||
+        Board::get_board().is_clear_vertical(location(), target)))
   {
     result = false;
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (Board::get_board().square_at(location.get_x(), location.get_y()).occupied() &&
-      Board::get_board().square_at(location.get_x(), location.get_y()).occupied_by().color() == color())
+  if (Board::get_board().square_at(target.get_x(), target.get_y()).occupied() &&
+      Board::get_board().square_at(target.get_x(), target.get_y()).occupied_by().color() == color())
   {
     result = false;
   }

@@ -16,15 +16,15 @@ void Bishop::display(std::ostream& out) const
   out << "B_" << color << " ";
 }
 
-bool Bishop::can_move_to(Square const& location) const
+bool Bishop::can_move_to(Square const& target) const
 {
-  if (!(Board::get_board().is_clear_diagonal(this->location(), location)))
+  if (!(Board::get_board().is_clear_diagonal(location(), target)))
   {
     return false;
   }
 
   // If the target location is occupied by a friend, the move is invalid
-  if (auto square = Board::get_board().square_at(location.get_x(), location.get_y()); 
+  if (auto square = Board::get_board().square_at(target.get_x(), target.get_y()); 
       square.occupied() && square.occupied_by().color() == color())
   {
     return false;

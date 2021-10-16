@@ -35,17 +35,17 @@ Piece& Square::occupied_by() const
 
 void Square::set_occupier(Piece& piece)
 {
-  this->_occupier = &piece;
+  _occupier = &piece;
 }
 
 void Square::remove_occupier()
 {
-  this->_occupier = nullptr;
+  _occupier = nullptr;
 }
 
 void Square::display(std::ostream& out) const
 {
-  if (this->occupied())
+  if (occupied())
   {
     _occupier->display(out);
   }

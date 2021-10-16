@@ -28,14 +28,14 @@ int Pawn::value() const
   return 1;
 }
 
-bool Pawn::can_move_to(Square const& location) const
+bool Pawn::can_move_to(Square const& target) const
 {
   bool result = false;
   int max_distance = 1;
 
   if (_proxy != nullptr)
   {
-    result = _proxy->can_move_to(location);
+    result = _proxy->can_move_to(target);
   }
   else
   {
@@ -47,27 +47,27 @@ bool Pawn::can_move_to(Square const& location) const
 
     // Make sure the distance of the move is not greater than 1, or 2 if the
     // piece has not yet moved.
-    if (Board::get_board().distance_between(this->location(), location) <= max_distance)
+    if (Board::get_board().distance_between(location(), target) <= max_distance)
     {
       // Make sure the pawn is moving forward
       // "this" is needed to distinguish between the parameter location and
       // the method location()
-      if ((is_white() && location.get_y() > this->location().get_y()) ||
-          (!is_white() && location.get_y() < this->location().get_y()))
+      if ((is_white() && target.get_y() > location().get_y()) ||
+          (!is_white() && target.get_y() < location().get_y()))
       {
 
         // If the space ahead of the pawn is clear and vertical
         // This also prevents moves of zero spaces, since it cannot move to
         // a space occupied by itself.
-        if (Board::get_board().is_clear_vertical(this->location(), location) &&
-            !(Board::get_board().square_at(location.get_x(), location.get_y()).occupied()))
+        if (Board::get_board().is_clear_vertical(location(), target) &&
+            !(Board::get_board().square_at(target.get_x(), target.get_y()).occupied()))
         {
           result = true;
         }
         // If the square is diagonally forward and occupied by an opponent
-        else if (Board::get_board().is_clear_diagonal(this->location(), location) &&
-                 Board::get_board().square_at(location.get_x(), location.get_y()).occupied() &&
-                 Board::get_board().square_at(location.get_x(), location.get_y()).occupied_by().color() != this->color())
+        else if (Board::get_board().is_clear_diagonal(location(), target) &&
+                 Board::get_board().square_at(target.get_x(), target.get_y()).occupied() &&
+                 Board::get_board().square_at(target.get_x(), target.get_y()).occupied_by().color() != color())
         {
           result = true;
         }
