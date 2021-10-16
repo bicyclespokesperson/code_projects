@@ -37,6 +37,6 @@ public:
   bool move_to(Player& by_player, Square const& to) override;
 
 private:
-  bool _moved;
+  bool _moved{false};
 };
 #endif

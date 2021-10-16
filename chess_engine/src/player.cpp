@@ -18,7 +18,6 @@ Player::~Player()
 bool Player::make_move()
 {
   bool valid_move = false;
-  Piece* occupier = nullptr;
   bool still_playing = true;
 
   // Keep trying to make a move until a valid one is requested, or until
@@ -27,13 +26,13 @@ bool Player::make_move()
   {
     auto move = prompt_move_(std::cin, std::cout);
 
-    if (move)
+    if (!move)
     {
       still_playing = false;
     }
     else if (Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied())
     {
-      occupier = &Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied_by();
+      Piece* occupier = &Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied_by();
 
       if (this->my_pieces().find(occupier) == my_pieces().end())
       {
@@ -64,27 +63,29 @@ std::optional<std::pair<Square, Square>> Player::prompt_move_(std::istream& in, 
   std::string line = "";
   out << get_name() + ", please enter the beginning and ending squares of the ";
   out << "move (ex: A2 A4): ";
-  // char from_col = 0;
-  // int to_col = 0;
 
   // Get move from the user and ensure that it is of the correct form
   getline(in, line);
-  while (!is_valid_(line))
+  while (!is_valid_(line) && in.good())
   {
     out << "Please make sure the move is of the form \"A1 A2\" and stays"
         << " within the bounds of the 8x8 board, or is \"quit\": ";
     getline(in, line);
   }
 
-  if (line != "quit")
+  if (line != "quit" && in.good())
   {
     // convert lower case letters to uppercase
     // Only check for > 'a' because is_valid guarantees that the letter is below 'h'
     if (line[0] >= 'a')
+    {
       line[0] = line[0] - 32;
+    }
 
     if (line[3] >= 'a')
+    {
       line[3] = line[3] - 32;
+    }
 
     // Create a std::pair of squares to return, representing the beginning and
     // ending squares of the desired move. Subtract 48 and 65 from the lines

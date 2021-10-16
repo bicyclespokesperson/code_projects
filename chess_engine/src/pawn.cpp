@@ -98,7 +98,7 @@ bool Pawn::move_to(Player& by_player, Square const& to)
 
 void Pawn::display(std::ostream& out) const
 {
-  if (_proxy != nullptr)
+  if (_proxy)
   {
     _proxy->display(out);
   }

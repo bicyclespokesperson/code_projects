@@ -32,7 +32,6 @@ bool Piece::move_to(Player& by_player, Square const& to)
 
   if (can_move_to(to))
   {
-
     // If occupied, capture opponent, while storing it in "captured"
     if (Board::get_board().square_at(to.get_x(), to.get_y()).occupied())
     {
