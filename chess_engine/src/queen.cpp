@@ -3,7 +3,7 @@
 #include "piece.h"
 #include "square.h"
 
-Queen::Queen(Player& owner, std::string color, Square const& location) : Piece(owner, color, location)
+Queen::Queen(Player& owner, Color color, Square const& location) : Piece(owner, color, location)
 {
 }
 
@@ -41,6 +41,6 @@ int Queen::value() const
 
 void Queen::display(std::ostream& out) const
 {
-  char color = (this->color() == "black") ? 'b' : 'w';
+  char color = (is_white()) ? 'w' : 'b';
   out << "Q_" << color << " ";
 }

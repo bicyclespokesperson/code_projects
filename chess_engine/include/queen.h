@@ -16,7 +16,7 @@ public:
    * @param color The piece's color
    * @param location The piece's initial location
    */
-  Queen(Player& owner, std::string color, Square const& location);
+  Queen(Player& owner, Color color, Square const& location);
 
   /**
    * The destructor for the piece

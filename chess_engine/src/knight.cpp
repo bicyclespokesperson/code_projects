@@ -1,7 +1,7 @@
 #include "knight.h"
 #include "square.h"
 
-Knight::Knight(Player& owner, std::string color, Square const& location) : Piece(owner, color, location)
+Knight::Knight(Player& owner, Color color, Square const& location) : Piece(owner, color, location)
 {
 }
 
@@ -35,6 +35,6 @@ int Knight::value() const
 
 void Knight::display(std::ostream& out) const
 {
-  char color = (this->color() == "black") ? 'b' : 'w';
+  char color = (is_white()) ? 'w' : 'b';
   out << "N_" << color << " ";
 }

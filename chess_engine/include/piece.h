@@ -4,6 +4,12 @@
 class Square;
 class Player;
 
+enum class Color
+{
+  black = 0,
+  white
+};
+
 /**
  * The superclass for all the Chess pieces
  */
@@ -17,7 +23,7 @@ public:
    * @param _color The color of the piece
    * @param location The location of the piece
    */
-  Piece(Player& owner, std::string color, Square const& location);
+  Piece(Player& owner, Color color, Square const& location);
 
   /**
    * The destructor of the piece.
@@ -27,7 +33,7 @@ public:
   /**
    * @return True if the piece's color is white.
    */
-  bool is_white();
+  bool is_white() const;
 
   /**
    * Moves the piece to the specified square
@@ -45,7 +51,7 @@ public:
   /**
    * @return The color of the piece
    */
-  std::string color() const;
+  Color color() const;
 
   /**
    * Prints the piece
@@ -88,7 +94,7 @@ public:
   void set_owner(Player& new_owner);
 
 private:
-  std::string _color;
+  Color _color;
   Square const* _location;
   Player* _owner;
 };

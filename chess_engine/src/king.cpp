@@ -4,7 +4,7 @@
 #include "player.h"
 #include "square.h"
 
-King::King(Player& owner, std::string color, Square const& location) : RestrictedPiece(owner, color, location)
+King::King(Player& owner, Color color, Square const& location) : RestrictedPiece(owner, color, location)
 {
 }
 
@@ -54,6 +54,6 @@ int King::value() const
 
 void King::display(std::ostream& out) const
 {
-  char color = (this->color() == "black") ? 'b' : 'w';
+  char color = (is_white()) ? 'w' : 'b';
   out << "K_" << color << " ";
 }

@@ -16,7 +16,7 @@ public:
    * @param color The piece's color
    * @param location The piece's location
    */
-  Pawn(Player& owner, std::string color, Square const& location);
+  Pawn(Player& owner, Color color, Square const& location);
 
   /**
    * destructor

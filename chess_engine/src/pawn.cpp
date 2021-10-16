@@ -5,8 +5,8 @@
 #include "queen.h"
 #include "square.h"
 
-Pawn::Pawn(Player& owner, std::string color, Square const& location)
-    : RestrictedPiece(owner, std::move(color), location)
+Pawn::Pawn(Player& owner, Color color, Square const& location)
+    : RestrictedPiece(owner, color, location)
 {
 }
 
@@ -52,8 +52,8 @@ bool Pawn::can_move_to(Square const& location) const
       // Make sure the pawn is moving forward
       // "this" is needed to distinguish between the parameter location and
       // the method location()
-      if ((this->color() == "white" && location.get_y() > this->location().get_y()) ||
-          (this->color() == "black" && location.get_y() < this->location().get_y()))
+      if ((is_white() && location.get_y() > this->location().get_y()) ||
+          (!is_white() && location.get_y() < this->location().get_y()))
       {
 
         // If the space ahead of the pawn is clear and vertical
@@ -85,7 +85,7 @@ bool Pawn::move_to(Player& by_player, Square const& to)
   // Promote pawn if it is on the eighth row
   if (move_succeeded && (to.get_y() == 0 || to.get_y() == 7) && _proxy == nullptr)
   {
-    set_proxy(*(new Queen(owner(), ((is_white()) ? "white" : "black"), location())));
+    set_proxy(*(new Queen(owner(), ((is_white()) ? Color::white : Color::black), location())));
   }
 
   if (_proxy != nullptr)
@@ -104,7 +104,7 @@ void Pawn::display(std::ostream& out) const
   }
   else
   {
-    char color = (this->color() == "black") ? 'b' : 'w';
+    char color = (is_white()) ? 'w' : 'b';
     out << "P_" << color << " ";
   }
 }

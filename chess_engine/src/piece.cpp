@@ -7,8 +7,8 @@
 
 class Square;
 
-Piece::Piece(Player& owner, std::string color, Square const& location)
-    : _color(std::move(color)), _location(&location), _owner(&owner)
+Piece::Piece(Player& owner, Color color, Square const& location)
+    : _color(color), _location(&location), _owner(&owner)
 {
 }
 
@@ -16,9 +16,9 @@ Piece::~Piece()
 {
 }
 
-bool Piece::is_white()
+bool Piece::is_white() const
 {
-  return _color == "white";
+  return _color == Color::white;
 }
 
 bool Piece::move_to(Player& by_player, Square const& to)
@@ -89,7 +89,7 @@ bool Piece::move_to(Player& by_player, Square const& to)
   return result;
 }
 
-std::string Piece::color() const
+Color Piece::color() const
 {
   return _color;
 }

@@ -15,7 +15,7 @@ public:
    * @param color The pieces color
    * @param location The piece's location
    */
-  Rook(Player& owner, std::string color, Square const& location);
+  Rook(Player& owner, Color color, Square const& location);
 
   /**
    * The destructor for the rook

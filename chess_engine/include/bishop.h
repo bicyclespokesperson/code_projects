@@ -18,7 +18,7 @@ public:
    * @param color The piece's color
    * @param location The piece's location
    */
-  Bishop(Player& owner, std::string color, Square const& location);
+  Bishop(Player& owner, Color color, Square const& location);
 
   /**
    * destructor for the bishop

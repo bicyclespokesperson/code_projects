@@ -16,7 +16,7 @@ public:
    * @param color The pieces color
    * @param location The piece's location
    */
-  RestrictedPiece(Player& owner, std::string color, Square const& location);
+  RestrictedPiece(Player& owner, Color color, Square const& location);
 
   /**
    * Destructor for the restricted piece.

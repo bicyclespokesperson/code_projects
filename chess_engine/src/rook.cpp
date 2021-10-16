@@ -4,7 +4,7 @@
 
 class Square;
 
-Rook::Rook(Player& owner, std::string color, Square const& location) : RestrictedPiece(owner, color, location)
+Rook::Rook(Player& owner, Color color, Square const& location) : RestrictedPiece(owner, color, location)
 {
 }
 
@@ -39,6 +39,6 @@ int Rook::value() const
 
 void Rook::display(std::ostream& out) const
 {
-  char color = (this->color() == "black") ? 'b' : 'w';
+  char color = (is_white()) ? 'w' : 'b';
   out << "R_" << color << " ";
 }

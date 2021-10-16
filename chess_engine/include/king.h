@@ -20,7 +20,7 @@ public:
    * @param color The piece's color
    * @param location The piece's location
    */
-  King(Player& owner, std::string color, Square const& location);
+  King(Player& owner, Color color, Square const& location);
 
   /**
    * The destructor for the King class

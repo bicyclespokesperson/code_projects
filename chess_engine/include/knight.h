@@ -15,7 +15,7 @@ public:
    * @param color The piece's color
    * @param location The piece's location
    */
-  Knight(Player& owner, std::string color, Square const& location);
+  Knight(Player& owner, Color color, Square const& location);
 
   /**
    * The destructor for the knight
