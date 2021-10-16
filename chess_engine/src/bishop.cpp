@@ -2,7 +2,7 @@
 #include "board.h"
 #include "square.h"
 
-Bishop::Bishop(Player& owner, std::string color, Square& location) : Piece(owner, color, location)
+Bishop::Bishop(Player& owner, std::string color, Square const& location) : Piece(owner, color, location)
 {
 }
 
@@ -16,7 +16,7 @@ void Bishop::display(std::ostream& out) const
   out << "B_" << color << " ";
 }
 
-bool Bishop::can_move_to(Square& location) const
+bool Bishop::can_move_to(Square const& location) const
 {
   bool result = true;
 

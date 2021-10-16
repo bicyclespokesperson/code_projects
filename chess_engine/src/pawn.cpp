@@ -5,7 +5,7 @@
 #include "queen.h"
 #include "square.h"
 
-Pawn::Pawn(Player& owner, std::string color, Square& location) : RestrictedPiece(owner, color, location)
+Pawn::Pawn(Player& owner, std::string color, Square const& location) : RestrictedPiece(owner, color, location)
 {
 }
 
@@ -27,7 +27,7 @@ int Pawn::value() const
   return 1;
 }
 
-bool Pawn::can_move_to(Square& location) const
+bool Pawn::can_move_to(Square const& location) const
 {
   bool result = false;
   int max_distance = 1;
@@ -77,7 +77,7 @@ bool Pawn::can_move_to(Square& location) const
   return result;
 }
 
-bool Pawn::move_to(Player& by_player, Square& to)
+bool Pawn::move_to(Player& by_player, Square const& to)
 {
   bool move_succeeded = RestrictedPiece::move_to(by_player, to);
 

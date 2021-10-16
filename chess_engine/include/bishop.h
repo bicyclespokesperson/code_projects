@@ -18,7 +18,7 @@ public:
    * @param color The piece's color
    * @param location The piece's location
    */
-  Bishop(Player& owner, std::string color, Square& location);
+  Bishop(Player& owner, std::string color, Square const& location);
 
   /**
    * destructor for the bishop
@@ -39,7 +39,7 @@ public:
    * @param location The square to move to
    * @return True if the piece captured an opposing piece
    */
-  virtual bool can_move_to(Square& location) const;
+  virtual bool can_move_to(Square const& location) const;
 
   /**
    * @return The value of the piece.

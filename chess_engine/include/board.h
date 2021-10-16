@@ -25,7 +25,7 @@ public:
    * @param to The final square
    * @return True if there is a clear vertical line between the squares
    */
-  bool is_clear_vertical(Square& from, Square& to);
+  bool is_clear_vertical(Square const& from, Square const& to);
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -34,7 +34,7 @@ public:
    * @param to The final square
    * @return True if there is a clear horizontal line between the squares
    */
-  bool is_clear_horizontal(Square& from, Square& to);
+  bool is_clear_horizontal(Square const& from, Square const& to);
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -43,7 +43,7 @@ public:
    * @param to The final square
    * @return True if there is a clear diagonal line between the squares
    */
-  bool is_clear_diagonal(Square& from, Square& to);
+  bool is_clear_diagonal(Square const& from, Square const& to);
 
   /**
    * Returns the distance between two squares on the board.
@@ -53,7 +53,7 @@ public:
    * @param to The Second Square
    * @return The distance between the two squares.
    */
-  int distance_between(Square& from, Square& to);
+  int distance_between(Square const& from, Square const& to);
 
   /**
    * Prints the square to the specified std::ostream

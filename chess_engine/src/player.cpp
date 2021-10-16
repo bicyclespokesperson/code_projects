@@ -168,7 +168,7 @@ std::set<Piece*>& Player::my_pieces()
   return this->_pieces;
 }
 
-King& Player::my_king()
+King& Player::my_king() const
 {
   return *_king;
 }

@@ -16,7 +16,7 @@ public:
    * @param color The pieces color
    * @param location The piece's location
    */
-  RestrictedPiece(Player& owner, std::string color, Square& location);
+  RestrictedPiece(Player& owner, std::string color, Square const& location);
 
   /**
    * Destructor for the restricted piece.
@@ -34,7 +34,7 @@ public:
    * @param to The destination square
    * @return True if the piece captured another piece
    */
-  virtual bool move_to(Player& by_player, Square& to);
+  virtual bool move_to(Player& by_player, Square const& to);
 
 private:
   bool _moved;

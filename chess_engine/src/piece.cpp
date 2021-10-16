@@ -7,7 +7,7 @@
 
 class Square;
 
-Piece::Piece(Player& owner, std::string color, Square& location) : _color(color), _location(&location), _owner(&owner)
+Piece::Piece(Player& owner, std::string color, Square const& location) : _color(color), _location(&location), _owner(&owner)
 {
 }
 
@@ -20,11 +20,11 @@ bool Piece::is_white()
   return _color == "white";
 }
 
-bool Piece::move_to(Player& by_player, Square& to)
+bool Piece::move_to(Player& by_player, Square const& to)
 {
   // Checks if the move succeeded
   bool result = true;
-  Square& original = location();
+  Square const& original = location();
   Piece* captured;
   bool in_check = false;
   bool performed_capture = false;
@@ -93,7 +93,7 @@ std::string Piece::color() const
   return _color;
 }
 
-void Piece::set_location(Square& square)
+void Piece::set_location(Square const& square)
 {
   this->_location = &square;
 }
@@ -103,7 +103,7 @@ bool Piece::is_on_square() const
   return _location == NULL;
 }
 
-Square& Piece::location() const
+Square const& Piece::location() const
 {
   return *_location;
 }

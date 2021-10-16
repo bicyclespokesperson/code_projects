@@ -16,7 +16,7 @@ public:
    * @param color The piece's color
    * @param location The piece's location
    */
-  Pawn(Player& owner, std::string color, Square& location);
+  Pawn(Player& owner, std::string color, Square const& location);
 
   /**
    * destructor
@@ -48,13 +48,13 @@ public:
    * @param location The square to move to
    * @return True if it can move to that square
    */
-  virtual bool can_move_to(Square& location) const;
+  virtual bool can_move_to(Square const& location) const;
 
   /**
    * Moves the pawn to the specified square if the move is legal
    * @return True if the move succeeded
    */
-  virtual bool move_to(Player& by_player, Square& to);
+  virtual bool move_to(Player& by_player, Square const& to);
 
   /**
    * @return The value of the piece

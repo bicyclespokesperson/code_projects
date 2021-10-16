@@ -62,7 +62,7 @@ public:
   /**
    * @return The player's king
    */
-  King& my_king();
+  King& my_king() const;
 
 private:
   std::string _name;

@@ -3,7 +3,7 @@
 #include "piece.h"
 #include "square.h"
 
-Queen::Queen(Player& owner, std::string color, Square& location) : Piece(owner, color, location)
+Queen::Queen(Player& owner, std::string color, Square const& location) : Piece(owner, color, location)
 {
 }
 
@@ -11,7 +11,7 @@ Queen::~Queen()
 {
 }
 
-bool Queen::can_move_to(Square& location) const
+bool Queen::can_move_to(Square const& location) const
 {
   bool result = true;
 

@@ -45,7 +45,7 @@ Board::~Board()
  * @param to The second square
  * @return The resulting distance
  */
-int Board::distance_between(Square& from, Square& to)
+int Board::distance_between(Square const& from, Square const& to)
 {
   int result = -1;
 
@@ -92,11 +92,11 @@ Square& Board::square_at(int x, int y)
   return *(_squares->at(_DIMENSION * x + y));
 }
 
-bool Board::is_clear_vertical(Square& from, Square& to)
+bool Board::is_clear_vertical(Square const& from, Square const& to)
 {
   bool result = true;
-  Square* top = &to;
-  Square* bottom = &from;
+  Square const* top = &to;
+  Square const* bottom = &from;
   // Set up the counter for the while loop.
   // Assume we are going to start from one space ahead of the current square
   // and walk straight until we hit the destination square
@@ -129,11 +129,11 @@ bool Board::is_clear_vertical(Square& from, Square& to)
   return result;
 }
 
-bool Board::is_clear_horizontal(Square& from, Square& to)
+bool Board::is_clear_horizontal(Square const& from, Square const& to)
 {
   bool result = true;
-  Square* right = &to;
-  Square* left = &from;
+  Square const* right = &to;
+  Square const* left = &from;
   // Set up the counter for the while loop.
   // Assume we are going to start from one space ahead of the current square
   // and walk straight until we hit the destination square
@@ -165,7 +165,7 @@ bool Board::is_clear_horizontal(Square& from, Square& to)
   return result;
 }
 
-bool Board::is_clear_diagonal(Square& from, Square& to)
+bool Board::is_clear_diagonal(Square const& from, Square const& to)
 {
   bool result = true;
 
@@ -173,8 +173,8 @@ bool Board::is_clear_diagonal(Square& from, Square& to)
   int direction = 1;
 
   // Assume we are walking right
-  Square* left = &from;
-  Square* right = &to;
+  Square const* left = &from;
+  Square const* right = &to;
 
   if (abs(from.getX() - to.getX()) != abs(from.getY() - to.getY()))
   {

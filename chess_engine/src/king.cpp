@@ -4,7 +4,7 @@
 #include "player.h"
 #include "square.h"
 
-King::King(Player& owner, std::string color, Square& location) : RestrictedPiece(owner, color, location)
+King::King(Player& owner, std::string color, Square const& location) : RestrictedPiece(owner, color, location)
 {
 }
 
@@ -28,7 +28,7 @@ bool King::in_check()
   return in_check;
 }
 
-bool King::can_move_to(Square& location) const
+bool King::can_move_to(Square const& location) const
 {
   bool result = true;
 

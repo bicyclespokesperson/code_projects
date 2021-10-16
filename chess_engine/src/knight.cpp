@@ -1,7 +1,7 @@
 #include "knight.h"
 #include "square.h"
 
-Knight::Knight(Player& owner, std::string color, Square& location) : Piece(owner, color, location)
+Knight::Knight(Player& owner, std::string color, Square const& location) : Piece(owner, color, location)
 {
 }
 
@@ -9,7 +9,7 @@ Knight::~Knight()
 {
 }
 
-bool Knight::can_move_to(Square& location) const
+bool Knight::can_move_to(Square const& location) const
 {
   bool result = false;
 

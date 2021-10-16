@@ -15,7 +15,7 @@ public:
    * @param color The pieces color
    * @param location The piece's location
    */
-  Rook(Player& owner, std::string color, Square& location);
+  Rook(Player& owner, std::string color, Square const& location);
 
   /**
    * The destructor for the rook
@@ -34,7 +34,7 @@ public:
    * @param location The location to move to
    * @return True if the piece can legally move to the desired location
    */
-  virtual bool can_move_to(Square& location) const;
+  virtual bool can_move_to(Square const& location) const;
 
   /**
    * @return the value of the piece

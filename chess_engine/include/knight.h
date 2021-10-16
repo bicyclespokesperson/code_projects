@@ -15,7 +15,7 @@ public:
    * @param color The piece's color
    * @param location The piece's location
    */
-  Knight(Player& owner, std::string color, Square& location);
+  Knight(Player& owner, std::string color, Square const& location);
 
   /**
    * The destructor for the knight
@@ -34,7 +34,7 @@ public:
    * @param location The location to move to
    * @return True if the knight can move to that square
    */
-  virtual bool can_move_to(Square& location) const;
+  virtual bool can_move_to(Square const& location) const;
 
   /**
    * @return The value of the knight

@@ -17,7 +17,7 @@ public:
    * @param _color The color of the piece
    * @param location The location of the piece
    */
-  Piece(Player& owner, std::string color, Square& location);
+  Piece(Player& owner, std::string color, Square const& location);
 
   /**
    * The destructor of the piece.
@@ -35,7 +35,7 @@ public:
    * @param to The destination square
    * @return True if the piece captured another piece
    */
-  virtual bool move_to(Player& by_player, Square& to);
+  virtual bool move_to(Player& by_player, Square const& to);
 
   /**
    * @return the value of the piece
@@ -58,13 +58,13 @@ public:
    * @param location The square to move to
    * @return True if the move is legal
    */
-  virtual bool can_move_to(Square& location) const = 0;
+  virtual bool can_move_to(Square const& location) const = 0;
 
   /**
    * Changes the piece's location
    * @param square The new location
    */
-  virtual void set_location(Square& square);
+  virtual void set_location(Square const& square);
 
   /**
    * @return True if the piece is on a square
@@ -74,7 +74,7 @@ public:
   /**
    * @return The location of the piece
    */
-  Square& location() const;
+  Square const& location() const;
 
   /**
    * @return the piece's owner
@@ -89,7 +89,7 @@ public:
 
 private:
   std::string _color;
-  Square* _location;
+  Square const* _location;
   Player* _owner;
 };
 #endif
