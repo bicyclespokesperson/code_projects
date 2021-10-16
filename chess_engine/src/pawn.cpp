@@ -5,7 +5,8 @@
 #include "queen.h"
 #include "square.h"
 
-Pawn::Pawn(Player& owner, std::string color, Square const& location) : RestrictedPiece(owner, color, location)
+Pawn::Pawn(Player& owner, std::string color, Square const& location)
+    : RestrictedPiece(owner, std::move(color), location)
 {
 }
 

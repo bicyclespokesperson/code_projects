@@ -21,13 +21,13 @@ public:
   /**
    * The destructor for the piece
    */
-  ~Queen();
+  ~Queen() override;
 
   /**
    * Prints the piece
    * @param out The std::ostream to print to
    */
-  virtual void display(std::ostream& out) const;
+  void display(std::ostream& out) const override;
 
   /**
    * Checks if the queen can legally move to a square.
@@ -35,11 +35,11 @@ public:
    * @param location The square to move to.
    * @return True if the queen can move there
    */
-  virtual bool can_move_to(Square const& location) const;
+  bool can_move_to(Square const& location) const override;
 
   /**
    * @return The value of the piece
    */
-  virtual int value() const;
+  int value() const override;
 };
 #endif

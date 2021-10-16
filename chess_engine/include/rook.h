@@ -20,13 +20,13 @@ public:
   /**
    * The destructor for the rook
    */
-  ~Rook();
+  ~Rook() override;
 
   /**
    * Prints the piece
    * @param out The outstream to print to
    */
-  virtual void display(std::ostream& out) const;
+  void display(std::ostream& out) const override;
 
   /**
    * Checks if the rook can move to a location. A rook can move vertically
@@ -34,11 +34,11 @@ public:
    * @param location The location to move to
    * @return True if the piece can legally move to the desired location
    */
-  virtual bool can_move_to(Square const& location) const;
+  bool can_move_to(Square const& location) const override;
 
   /**
    * @return the value of the piece
    */
-  virtual int value() const;
+  int value() const override;
 };
 #endif

@@ -7,7 +7,8 @@
 
 class Square;
 
-Piece::Piece(Player& owner, std::string color, Square const& location) : _color(color), _location(&location), _owner(&owner)
+Piece::Piece(Player& owner, std::string color, Square const& location)
+    : _color(std::move(color)), _location(&location), _owner(&owner)
 {
 }
 

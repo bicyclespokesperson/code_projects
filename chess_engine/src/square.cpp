@@ -3,13 +3,15 @@
 #include "king.h"
 #include "piece.h"
 
+Square::Square(int x, int y) : _x(x), _y(y), _occupier(nullptr)
+{
+}
+
 Square::Square(int x, int y, Piece* occupier) : _x(x), _y(y), _occupier(occupier)
 {
 }
 
-Square::~Square()
-{
-}
+Square::~Square() = default;
 
 int Square::getX() const
 {
@@ -23,7 +25,7 @@ int Square::getY() const
 
 bool Square::occupied() const
 {
-  return (_occupier != NULL);
+  return (_occupier != nullptr);
 }
 
 Piece& Square::occupied_by() const
@@ -38,7 +40,7 @@ void Square::set_occupier(Piece& piece)
 
 void Square::remove_occupier()
 {
-  this->_occupier = NULL;
+  this->_occupier = nullptr;
 }
 
 void Square::display(std::ostream& out) const
@@ -59,6 +61,6 @@ std::ostream& operator<<(std::ostream& out, const Square s)
 {
   // Add 65 to _x because it represents a letter but we store it as a
   // number so we can do array access with it. ('A' == 65)
-  out << "Column: " << (char)(s._x + 65) << ", Row: " << s._y << std::endl;
+  out << "Column: " << static_cast<char>(s._x + 65) << ", Row: " << s._y << std::endl;
   return out;
 }

@@ -23,13 +23,13 @@ public:
   /**
    * destructor for the bishop
    */
-  ~Bishop();
+  ~Bishop() override;
 
   /**
    * Prints a representation of the Bishop to an output stream
    * @param out The output stream to print to.
    */
-  virtual void display(std::ostream& out) const;
+  void display(std::ostream& out) const override;
 
   /**
    * Checks if the piece can legally move to a space.
@@ -39,11 +39,11 @@ public:
    * @param location The square to move to
    * @return True if the piece captured an opposing piece
    */
-  virtual bool can_move_to(Square const& location) const;
+  bool can_move_to(Square const& location) const override;
 
   /**
    * @return The value of the piece.
    */
-  virtual int value() const;
+  int value() const override;
 };
 #endif

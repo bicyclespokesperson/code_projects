@@ -5,8 +5,8 @@
 
 class Piece;
 
-Player::Player(std::string name, King& my_king, std::set<Piece*>& my_pieces)
-    : _name(name), _pieces(my_pieces), _captured(*(new std::set<Piece*>())), _king(&my_king)
+Player::Player(std::string name, King& my_king, std::set<Piece*> my_pieces)
+    : _name(std::move(name)), _pieces(std::move(my_pieces)), _king(&my_king)
 {
 }
 
@@ -20,22 +20,20 @@ bool Player::make_move()
   bool valid_move = false;
   Piece* occupier = NULL;
   bool still_playing = true;
-  std::pair<Square*, Square*>* move = NULL;
 
   // Keep trying to make a move until a valid one is requested, or until
   // the player resigns.
   while (!valid_move && still_playing)
   {
-    move = prompt_move(std::cin, std::cout);
+    auto move = prompt_move_(std::cin, std::cout);
 
-    // prompt_move will return null if the player resigns
-    if (move == NULL)
+    if (move)
     {
       still_playing = false;
     }
-    else if (Board::get_board().square_at(move->first->getX(), move->first->getY()).occupied())
+    else if (Board::get_board().square_at(move->first.getX(), move->first.getY()).occupied())
     {
-      occupier = &Board::get_board().square_at(move->first->getX(), move->first->getY()).occupied_by();
+      occupier = &Board::get_board().square_at(move->first.getX(), move->first.getY()).occupied_by();
 
       if (this->my_pieces().find(occupier) == my_pieces().end())
       {
@@ -43,7 +41,7 @@ bool Player::make_move()
       }
       else
       {
-        valid_move = occupier->move_to(*this, *(move->second));
+        valid_move = occupier->move_to(*this, (move->second));
         if (!valid_move)
         {
           std::cout << "please enter a valid move for the piece, and ";
@@ -55,32 +53,23 @@ bool Player::make_move()
     {
       std::cout << "please choose a square with a piece on it." << std::endl;
     }
-
-    // Clean up the move
-    if (move != NULL)
-    {
-      delete move->first;
-      delete move->second;
-      delete move;
-    }
   }
 
   return still_playing;
 }
 
 // Returns a null square if the player resigns.
-std::pair<Square*, Square*>* Player::prompt_move(std::istream& in, std::ostream& out)
+std::optional<std::pair<Square, Square>> Player::prompt_move_(std::istream& in, std::ostream& out)
 {
   std::string line = "";
   out << get_name() + ", please enter the beginning and ending squares of the ";
   out << "move (ex: A2 A4): ";
   // char from_col = 0;
   // int to_col = 0;
-  std::pair<Square*, Square*>* result = NULL;
 
   // Get move from the user and ensure that it is of the correct form
   getline(in, line);
-  while (!is_valid(line))
+  while (!is_valid_(line))
   {
     out << "Please make sure the move is of the form \"A1 A2\" and stays"
         << " within the bounds of the 8x8 board, or is \"quit\": ";
@@ -101,16 +90,15 @@ std::pair<Square*, Square*>* Player::prompt_move(std::istream& in, std::ostream&
     // ending squares of the desired move. Subtract 48 and 65 from the lines
     // since they are read as ascii values from the console
     // (so '0' is 48 and 'A' is 65), but we want to store them as integers,
-    // so we can do array access. This must be deleted by the caller.
-    result = new std::pair<Square*, Square*>(new Square(line[0] - 'A', line[1] - '0' - 1),
-                                             new Square(line[3] - 'A', line[4] - '0' - 1));
+    // so we can do array access.
+    return std::pair<Square, Square>{{line[0] - 'A', line[1] - '0' - 1}, {line[3] - 'A', line[4] - '0' - 1}};
   }
 
   // Null if the player resigned
-  return result;
+  return {};
 }
 
-bool Player::is_valid(const std::string& line)
+bool Player::is_valid_(const std::string& line)
 {
   bool result = true;
 

@@ -25,7 +25,7 @@ public:
    * @param player The player whose opponent to return
    * @return The opponent of the given player
    */
-  static Player& opponent_of(Player& player);
+  static Player& opponent_of(Player const& player);
 
   ~Game();
 

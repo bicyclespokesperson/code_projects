@@ -25,13 +25,13 @@ public:
   /**
    * The destructor for the King class
    */
-  ~King();
+  ~King() override;
 
   /**
    * Print the king to the specified output stream
    * @param out The outstream to print to
    */
-  virtual void display(std::ostream& out) const;
+  void display(std::ostream& out) const override;
 
   /**
    * Returns True if the king can move to a specific square.
@@ -39,12 +39,12 @@ public:
    * @param location The location to move to.
    * @return True if it can move to that square
    */
-  virtual bool can_move_to(Square const& location) const;
+  bool can_move_to(Square const& location) const override;
 
   /**
    * @return the value of the king.
    */
-  virtual int value() const;
+  int value() const override;
 
   /**
    * @return True if an opposing piece can attack the king

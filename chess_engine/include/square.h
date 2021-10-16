@@ -11,19 +11,21 @@ class Piece;
  */
 class Square
 {
-private:
-  int _x;
-  int _y;
-  Piece* _occupier;
-
 public:
+  /**
+   * Creates a new square
+   * @param x The column of the square (a letter)
+   * @param y The row of the square (a number)
+   */
+  Square(int x, int y);
+
   /**
    * Creates a new square
    * @param x The column of the square (a letter)
    * @param y The row of the square (a number)
    * @param occupier The piece occupying the square
    */
-  Square(int x, int y, Piece* occupier = NULL);
+  Square(int x, int y, Piece* occupier);
 
   /**
    * destructor
@@ -69,5 +71,10 @@ public:
   void display(std::ostream& out) const;
 
   friend std::ostream& operator<<(std::ostream& output, const Square s);
+
+private:
+  int _x;
+  int _y;
+  Piece* _occupier;
 };
 #endif

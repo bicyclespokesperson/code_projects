@@ -19,7 +19,7 @@ public:
    * @param my_king The player's king
    * @param my_pieces The player's pieces
    */
-  Player(std::string name, King& my_king, std::set<Piece*>& my_pieces);
+  Player(std::string name, King& my_king, std::set<Piece*> my_pieces);
 
   /**
    * The destructor for the player class
@@ -65,11 +65,6 @@ public:
   King& my_king() const;
 
 private:
-  std::string _name;
-  std::set<Piece*> _pieces;
-  std::set<Piece*> _captured;
-  King* _king;
-
   /**
    * Prompts the user for a move and returns the beginning and ending squares
    * @param in The input stream to read the prompt from
@@ -78,7 +73,7 @@ private:
    * std::string. Note: The std::pair and both squares must be deleted. Returns NULL
    * if the player resigns.
    */
-  std::pair<Square*, Square*>* prompt_move(std::istream& in, std::ostream& out);
+  std::optional<std::pair<Square, Square>> prompt_move_(std::istream& in, std::ostream& out);
 
   /**
    * Checks if the input std::string is contains the correct form of the
@@ -86,6 +81,11 @@ private:
    * @param std::string The std::string of which to check the validity
    * @return true if the std::string is of the form "A2 D2"
    */
-  bool is_valid(const std::string& line);
+  bool is_valid_(const std::string& line);
+
+  std::string _name;
+  std::set<Piece*> _pieces{};
+  std::set<Piece*> _captured{};
+  King* _king;
 };
 #endif

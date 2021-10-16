@@ -34,7 +34,7 @@ public:
    * @param to The destination square
    * @return True if the piece captured another piece
    */
-  virtual bool move_to(Player& by_player, Square const& to);
+  bool move_to(Player& by_player, Square const& to) override;
 
 private:
   bool _moved;

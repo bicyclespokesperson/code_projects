@@ -123,7 +123,7 @@ void Game::initialize()
 }
 
 // Returns player one if argument is null
-Player& Game::opponent_of(Player& player)
+Player& Game::opponent_of(Player const& player)
 {
   Player* result = _player1;
 

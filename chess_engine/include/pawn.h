@@ -21,7 +21,7 @@ public:
   /**
    * destructor
    */
-  ~Pawn();
+  ~Pawn() override;
 
   /**
    * A pawn can be promoted to a queen if it advances to the eighth row
@@ -35,7 +35,7 @@ public:
    * Prints the piece to an output stream
    * @param out The output stream to print to
    */
-  virtual void display(std::ostream& out) const;
+  void display(std::ostream& out) const override;
 
   /**
    * Checks to see if the pawn can legally move to a square on the board.
@@ -48,18 +48,18 @@ public:
    * @param location The square to move to
    * @return True if it can move to that square
    */
-  virtual bool can_move_to(Square const& location) const;
+  bool can_move_to(Square const& location) const override;
 
   /**
    * Moves the pawn to the specified square if the move is legal
    * @return True if the move succeeded
    */
-  virtual bool move_to(Player& by_player, Square const& to);
+  bool move_to(Player& by_player, Square const& to) override;
 
   /**
    * @return The value of the piece
    */
-  virtual int value() const;
+  int value() const override;
 
 private:
   Piece* _proxy;

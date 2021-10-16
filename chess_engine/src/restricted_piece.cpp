@@ -1,6 +1,7 @@
 #include "restricted_piece.h"
 
-RestrictedPiece::RestrictedPiece(Player& owner, std::string color, Square const& location) : Piece(owner, color, location)
+RestrictedPiece::RestrictedPiece(Player& owner, std::string color, Square const& location)
+    : Piece(owner, color, location)
 {
 }
 
