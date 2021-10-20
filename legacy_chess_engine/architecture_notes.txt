@@ -1,0 +1,46 @@
+Current architecture
+
+Singletons:
+  Board
+    Knows aboug pieces
+
+  Game
+    Owns players
+    Knows about pieces
+
+
+
+Potential new architecture
+
+  Game
+    Has player names, possibly date/time of game or other metadata like that
+
+    Handles communication with gui?
+
+    Board
+      Owns pieces
+      Might have a list of piece locations as well, for easy iterating over them
+
+      Easily copyable? 
+      move_to(from, to) -> new board
+
+    Has an engine, which can generate lots of other boards as needed to calculate out to a given depth?
+
+
+  Where should the can_move_to logic live? What is the non-OO way of structuring that?
+
+  Bishop->get_valid_moves(board, square)
+  Bishop->can_move_to(board, from, to)
+
+
+
+def board::can_move(from, to):
+  if not from.occupied()
+    return false
+
+  if not from.occupier().can_move_to(board, from, to)
+    return false
+
+  return true
+
+
