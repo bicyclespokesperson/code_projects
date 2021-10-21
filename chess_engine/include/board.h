@@ -77,9 +77,11 @@ public:
 
   std::optional<std::pair<Coordinates, Coordinates>> previous_move() const;
 
-  std::vector<Coordinates> const& opposing_pieces(Coordinates piece_location) const;
+  std::vector<Coordinates>& get_opposing_pieces(Coordinates piece_location);
+  std::vector<Coordinates> const& get_opposing_pieces(Coordinates piece_location) const;
 
-  std::vector<Coordinates>& friendly_pieces(Coordinates piece_location);
+  std::vector<Coordinates>& get_friendly_pieces(Coordinates piece_location);
+  std::vector<Coordinates> const& get_friendly_pieces(Coordinates piece_location) const;
 
   bool check_castling_rights(Coordinates to) const;
 
@@ -94,6 +96,9 @@ private:
   void update_castling_rights_(Coordinates from);
 
   bool is_in_check_(Color color) const;
+
+  static void remove_piece_(std::vector<Coordinates>& pieces, Coordinates piece_location);
+  static void add_piece_(std::vector<Coordinates>& pieces, Coordinates piece_location);
 
   std::pair<Coordinates, Coordinates> find_castling_rook_move_(Coordinates king_destination);
 
