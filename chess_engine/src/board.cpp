@@ -276,6 +276,18 @@ bool Board::make_move(Coordinates from, Coordinates to)
 
     std::cerr << "\nAfter update\n";
     std::copy(pieces.begin(), pieces.end(), std::ostream_iterator<Coordinates>(std::cerr, " "));
+
+    if (auto sq = square_at(to); sq.occupier() == Piece::king)
+    {
+      if (sq.is_white())
+      {
+        m_white_king = to;
+      }
+      else
+      {
+        m_black_king = to;
+      }
+    }
     
     return captured_piece;
   };
@@ -298,6 +310,18 @@ bool Board::make_move(Coordinates from, Coordinates to)
       add_piece_(opposing_pieces, captured_piece->first);
       square_at(captured_piece->first).set_occupier(captured_piece->second);
       square_at(captured_piece->first).set_occupier_color((white_move) ? Color::black : Color::white);
+    }
+
+    if (auto sq = square_at(from); sq.occupier() == Piece::king)
+    {
+      if (sq.is_white())
+      {
+        m_white_king = from;
+      }
+      else
+      {
+        m_black_king = from;
+      }
     }
   };
 
@@ -330,19 +354,6 @@ bool Board::make_move(Coordinates from, Coordinates to)
   if (square_at(to).occupier() == Piece::pawn && (to.y() == 0 || to.y() == 7))
   {
     square_at(to).set_occupier(Piece::queen);
-  }
-  
-  // TODO: Move this so we can check if the king moved into check
-  if (auto sq = square_at(to); sq.occupier() == Piece::king)
-  {
-    if (sq.is_white())
-    {
-      m_white_king = to;
-    }
-    else
-    {
-      m_black_king = to;
-    }
   }
 
   m_previous_move = std::pair{from, to};
