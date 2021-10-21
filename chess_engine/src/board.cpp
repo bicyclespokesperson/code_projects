@@ -269,6 +269,13 @@ bool Board::make_move(Coordinates from, Coordinates to)
   }
 
   perform_move(from, to);
+
+  // Pawn promotion
+  if (square_at(to).occupier() == Piece::pawn && (to.y() == 0 || to.y() == 7))
+  {
+    square_at(to).set_occupier(Piece::queen);
+  }
+
   m_previous_move = std::pair{from, to};
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
