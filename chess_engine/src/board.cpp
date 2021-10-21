@@ -1,4 +1,5 @@
 #include "board.h"
+#include "my_assert.h"
 
 constexpr int c_board_dimension{8};
 
@@ -238,15 +239,26 @@ bool Board::make_move(Coordinates from, Coordinates to)
   // En passent
   if (square_at(from).occupier() == Piece::pawn && is_clear_diagonal(from, to) && !square_at(to).is_occupied())
   {
+    //TODO: update piece collection for captures
     square_at(previous_move()->second).set_occupier(Piece::empty);
   }
   update_castling_rights_(from);
 
   auto perform_move = [&](Coordinates from, Coordinates to)
   {
+    auto& pieces = friendly_pieces(from);
     square_at(to).set_occupier(square_at(from).occupier());
     square_at(to).set_occupier_color(square_at(from).occupier_color());
     square_at(from).set_occupier(Piece::empty);
+
+    //std::cout << "\nBefore update\n";
+    //std::copy(pieces.begin(),pieces.end(), std::ostream_iterator<Coordinates>(std::cout, " "));
+
+    pieces.erase(std::upper_bound(pieces.begin(), pieces.end(), from) - 1);
+    pieces.insert(std::upper_bound(pieces.begin(), pieces.end(), to), to);
+
+    //std::cout << "\nAfter update\n";
+    //std::copy(pieces.begin(), pieces.end(), std::ostream_iterator<Coordinates>(std::cout, " "));
   };
 
   // Castling
@@ -259,6 +271,7 @@ bool Board::make_move(Coordinates from, Coordinates to)
   perform_move(from, to);
   m_previous_move = std::pair{from, to};
 
+  MY_ASSERT(validate_(), "Board is in an incorrect state after move");
   return true;
 }
 
@@ -561,6 +574,15 @@ std::vector<Coordinates> const& Board::opposing_pieces(Coordinates piece_locatio
   return m_black_pieces;
 }
 
+std::vector<Coordinates>& Board::friendly_pieces(Coordinates piece_location)
+{
+  if (square_at(piece_location).occupier_color() == Color::black)
+  {
+    return m_black_pieces;
+  }
+  return m_white_pieces;
+}
+
 bool Board::validate_() const
 {
   // Count how many pieces of each color are on the board
@@ -581,7 +603,8 @@ bool Board::validate_() const
     {
       if (!square_at(coord).is_occupied() || !(square_at(coord).occupier_color() == color))
       {
-        std::cerr << "Square {" << coord.x() << ", " << coord.y() << "} has incorrect color, expected: " << ((color == Color::black) ? "black" : "white") << std::endl;
+        std::cerr << "Square {" << std::to_string(coord.x()) << ", " << std::to_string(coord.y()) << "} has incorrect color, expected: " << 
+          ((color == Color::black) ? "black" : "white") << ", occupier: " << std::to_string(static_cast<uint8_t>(square_at(coord).occupier())) << std::endl;
         return false;
       }
     }

@@ -79,6 +79,8 @@ public:
 
   std::vector<Coordinates> const& opposing_pieces(Coordinates piece_location) const;
 
+  std::vector<Coordinates>& friendly_pieces(Coordinates piece_location);
+
   bool check_castling_rights(Coordinates to) const;
 
 private:

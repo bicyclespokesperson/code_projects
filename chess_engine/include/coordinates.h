@@ -32,8 +32,11 @@ public:
 
   auto operator<=>(Coordinates const& other) const = default;
 
+
 private:
   uint8_t m_coords{0};
 };
+
+std::ostream& operator<<(std::ostream& os, Coordinates const& self);
 
 #endif
