@@ -123,7 +123,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
 
 bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
 {
-  bool const is_white = board.square_at(from).occupier_color() != Color::black;
+  bool const is_white = board.square_at(from).is_white();
 
   // A pawn can move two spaces on its first move
   int const max_distance = [&]
@@ -213,6 +213,8 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
 }
 
 Board::Board()
+: m_white_king({0, 0}),
+  m_black_king({0, 0})
 {
   static_assert(sizeof(Square) == 1);
 
@@ -240,7 +242,7 @@ bool Board::make_move(Coordinates from, Coordinates to)
   if (square_at(from).occupier() == Piece::pawn && is_clear_diagonal(from, to) && !square_at(to).is_occupied())
   {
     //TODO: update piece collection for captures
-    square_at(previous_move()->second).set_occupier(Piece::empty);
+    square_at(previous_move()->second).remove_occupier();
   }
   update_castling_rights_(from);
 
@@ -249,7 +251,7 @@ bool Board::make_move(Coordinates from, Coordinates to)
     auto& pieces = friendly_pieces(from);
     square_at(to).set_occupier(square_at(from).occupier());
     square_at(to).set_occupier_color(square_at(from).occupier_color());
-    square_at(from).set_occupier(Piece::empty);
+    square_at(from).remove_occupier();
 
     //std::cout << "\nBefore update\n";
     //std::copy(pieces.begin(),pieces.end(), std::ostream_iterator<Coordinates>(std::cout, " "));
@@ -274,6 +276,18 @@ bool Board::make_move(Coordinates from, Coordinates to)
   if (square_at(to).occupier() == Piece::pawn && (to.y() == 0 || to.y() == 7))
   {
     square_at(to).set_occupier(Piece::queen);
+  }
+
+  if (auto sq = square_at(to); sq.occupier() == Piece::king)
+  {
+    if (sq.is_white())
+    {
+      m_white_king = to;
+    }
+    else
+    {
+      m_black_king = to;
+    }
   }
 
   m_previous_move = std::pair{from, to};
@@ -415,7 +429,7 @@ void Board::setup()
   square_at({5, 0}).set_occupier(Piece::bishop_light);
   square_at({6, 0}).set_occupier(Piece::knight);
   square_at({7, 0}).set_occupier(Piece::rook);
-  for (int8_t i{0}; i < 8; ++i)
+  for (int8_t i{0}; i < c_board_dimension; ++i)
   {
     square_at({i, 0}).set_occupier_color(Color::white);
 
@@ -435,7 +449,7 @@ void Board::setup()
   square_at({5, 7}).set_occupier(Piece::bishop_light);
   square_at({6, 7}).set_occupier(Piece::knight);
   square_at({7, 7}).set_occupier(Piece::rook);
-  for (int8_t i{0}; i < 8; ++i)
+  for (int8_t i{0}; i < c_board_dimension; ++i)
   {
     square_at({i, 7}).set_occupier_color(Color::black);
 
@@ -449,6 +463,8 @@ void Board::setup()
   std::sort(m_white_pieces.begin(), m_white_pieces.end());
   std::sort(m_black_pieces.begin(), m_black_pieces.end());
 
+  m_white_king = {4, 0};
+  m_black_king = {4, 7};
   m_white_can_short_castle = true;
   m_white_can_long_castle = true;
   m_black_can_short_castle = true;
@@ -574,20 +590,20 @@ std::optional<std::pair<Coordinates, Coordinates>> Board::previous_move() const
 
 std::vector<Coordinates> const& Board::opposing_pieces(Coordinates piece_location) const
 {
-  if (square_at(piece_location).occupier_color() == Color::black)
-  {
-    return m_white_pieces;
-  }
-  return m_black_pieces;
-}
-
-std::vector<Coordinates>& Board::friendly_pieces(Coordinates piece_location)
-{
-  if (square_at(piece_location).occupier_color() == Color::black)
+  if (square_at(piece_location).is_white())
   {
     return m_black_pieces;
   }
   return m_white_pieces;
+}
+
+std::vector<Coordinates>& Board::friendly_pieces(Coordinates piece_location)
+{
+  if (square_at(piece_location).is_white())
+  {
+    return m_white_pieces;
+  }
+  return m_black_pieces;
 }
 
 bool Board::validate_() const
@@ -630,6 +646,19 @@ bool Board::validate_() const
 
     return true;
   };
+
+  if (auto sq = square_at(m_white_king); 
+      sq.occupier() != Piece::king || !sq.is_white())
+  {
+    std::cerr << "White king not found at " << m_white_king << std::endl;
+    return false;
+  }
+  if (auto sq = square_at(m_black_king); 
+      sq.occupier() != Piece::king || sq.is_white())
+  {
+    std::cerr << "Black king not found at " << m_black_king << std::endl;
+    return false;
+  }
 
   return verify_pieces(Color::black, m_black_pieces) && verify_pieces(Color::white, m_white_pieces);
 }

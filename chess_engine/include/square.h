@@ -53,6 +53,11 @@ public:
     m_occupier = new_occupier;
   }
 
+  void remove_occupier()
+  {
+    set_occupier(Piece::empty);
+  }
+
   Color occupier_color() const
   {
     return m_color;
@@ -72,6 +77,8 @@ public:
   {
     m_square_color = new_color;
   }
+
+  bool is_white() const;
 
   void display(std::ostream& out) const;
 

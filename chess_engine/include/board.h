@@ -93,6 +93,8 @@ private:
 
   void update_castling_rights_(Coordinates from);
 
+  bool is_in_check_(Color color);
+
   std::pair<Coordinates, Coordinates> find_castling_rook_move_(Coordinates king_destination);
 
   constexpr static size_t c_board_size{64};
@@ -104,6 +106,9 @@ private:
   //TODO(jere9309): Should these be arrays? Would that improve copying performance?
   std::vector<Coordinates> m_black_pieces{};
   std::vector<Coordinates> m_white_pieces{};
+
+  Coordinates m_white_king;
+  Coordinates m_black_king;
 
   bool m_white_can_short_castle : 1 {true};
   bool m_white_can_long_castle : 1 {true};
