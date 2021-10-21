@@ -223,6 +223,59 @@ Board::Board()
 
 Board::~Board() = default;
 
+
+std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Coordinates from, Coordinates to, Coordinates capture_location)
+{
+  std::cerr << "Performing move. from: " << from << ", to: " << to << std::endl;
+
+  std::optional<std::pair<Coordinates, Piece>> captured_piece;
+  auto& pieces = get_friendly_pieces(from);
+  auto& opposing_pieces = get_opposing_pieces(from);
+
+  if (square_at(to).is_occupied())
+  {
+    captured_piece = std::pair{to, square_at(capture_location).occupier()};
+    remove_piece_(opposing_pieces, capture_location);
+    square_at(capture_location).remove_occupier();
+  }
+
+  square_at(to).set_occupier(square_at(from).occupier());
+  square_at(to).set_occupier_color(square_at(from).occupier_color());
+  square_at(from).remove_occupier();
+
+  remove_piece_(pieces, from);
+  add_piece_(pieces, to);
+
+  update_king_locations_(to);
+  
+  return captured_piece;
+}
+
+void Board::unperform_move_(Coordinates from, Coordinates to, std::optional<std::pair<Coordinates, Piece>> captured_piece)
+{
+  MY_ASSERT(square_at(to).is_occupied() && !square_at(from).is_occupied(), "This function can only be called after a move has been performed");
+
+  auto& pieces = get_friendly_pieces(to);
+  auto& opposing_pieces = get_opposing_pieces(to);
+  bool white_move = square_at(to).is_white();
+
+  remove_piece_(pieces, to);
+  add_piece_(pieces, from);
+
+  square_at(from).set_occupier(square_at(to).occupier());
+  square_at(from).set_occupier_color(square_at(to).occupier_color());
+  square_at(to).remove_occupier();
+
+  if (captured_piece)
+  {
+    add_piece_(opposing_pieces, captured_piece->first);
+    square_at(captured_piece->first).set_occupier(captured_piece->second);
+    square_at(captured_piece->first).set_occupier_color((white_move) ? Color::black : Color::white);
+  }
+
+  update_king_locations_(from);
+}
+
 bool Board::make_move(Coordinates from, Coordinates to)
 {
   auto piece_to_move = square_at(from).occupier();
@@ -231,9 +284,9 @@ bool Board::make_move(Coordinates from, Coordinates to)
     return false;
   }
 
-  // White goes first 
   if (!previous_move() && !square_at(from).is_white())
   {
+    // White goes first 
     return false;
   }
 
@@ -248,83 +301,6 @@ bool Board::make_move(Coordinates from, Coordinates to)
     return false;
   }
 
-
-  auto perform_move = [&](Coordinates from, Coordinates to, Coordinates capture_location)
-  {
-    std::cerr << "Performing move. from: " << from << ", to: " << to << std::endl;
-
-    std::optional<std::pair<Coordinates, Piece>> captured_piece;
-    auto& pieces = get_friendly_pieces(from);
-    auto& opposing_pieces = get_opposing_pieces(from);
-
-    if (square_at(to).is_occupied())
-    {
-      captured_piece = std::pair{to, square_at(capture_location).occupier()};
-      remove_piece_(opposing_pieces, capture_location);
-      square_at(capture_location).remove_occupier();
-    }
-
-    square_at(to).set_occupier(square_at(from).occupier());
-    square_at(to).set_occupier_color(square_at(from).occupier_color());
-    square_at(from).remove_occupier();
-
-    std::cerr << "\nBefore update\n";
-    std::copy(pieces.begin(),pieces.end(), std::ostream_iterator<Coordinates>(std::cerr, " "));
-
-    remove_piece_(pieces, from);
-    add_piece_(pieces, to);
-
-    std::cerr << "\nAfter update\n";
-    std::copy(pieces.begin(), pieces.end(), std::ostream_iterator<Coordinates>(std::cerr, " "));
-
-    if (auto sq = square_at(to); sq.occupier() == Piece::king)
-    {
-      if (sq.is_white())
-      {
-        m_white_king = to;
-      }
-      else
-      {
-        m_black_king = to;
-      }
-    }
-    
-    return captured_piece;
-  };
-  
-  auto unperform_move = [&](Coordinates from, Coordinates to, std::optional<std::pair<Coordinates, Piece>> captured_piece)
-  {
-    auto& pieces = get_friendly_pieces(to);
-    auto& opposing_pieces = get_opposing_pieces(to);
-    bool white_move = square_at(to).is_white();
-
-    remove_piece_(pieces, to);
-    add_piece_(pieces, from);
-
-    square_at(from).set_occupier(square_at(to).occupier());
-    square_at(from).set_occupier_color(square_at(to).occupier_color());
-    square_at(to).remove_occupier();
-
-    if (captured_piece)
-    {
-      add_piece_(opposing_pieces, captured_piece->first);
-      square_at(captured_piece->first).set_occupier(captured_piece->second);
-      square_at(captured_piece->first).set_occupier_color((white_move) ? Color::black : Color::white);
-    }
-
-    if (auto sq = square_at(from); sq.occupier() == Piece::king)
-    {
-      if (sq.is_white())
-      {
-        m_white_king = from;
-      }
-      else
-      {
-        m_black_king = from;
-      }
-    }
-  };
-
   auto capture_location = to;
   if (square_at(from).occupier() == Piece::pawn && is_clear_diagonal(from, to) && !square_at(to).is_occupied())
   {
@@ -332,25 +308,23 @@ bool Board::make_move(Coordinates from, Coordinates to)
     capture_location = previous_move()->second;
   }
 
-  auto captured_piece = perform_move(from, to, capture_location);
-
+  auto captured_piece = perform_move_(from, to, capture_location);
   if (is_in_check_(square_at(to).occupier_color()))
   {
-    std::cerr << "Unperforming move" << std::endl;
-    unperform_move(from, to, captured_piece);
+    unperform_move_(from, to, captured_piece);
     return false;
   }
 
-  update_castling_rights_(from);
+  update_castling_rights_(to);
 
-  // Castling
+  // Move rook if the move was a castle
   if (square_at(from).occupier() == Piece::king && distance_between(from, to) == 2)
   {
     auto rook_move = find_castling_rook_move_(to);
-    perform_move(rook_move.first, rook_move.second, rook_move.second);
+    perform_move_(rook_move.first, rook_move.second, rook_move.second);
   }
 
-  // Pawn promotion
+  // Promote pawn to queen if it reached the last rank
   if (square_at(to).occupier() == Piece::pawn && (to.y() == 0 || to.y() == 7))
   {
     square_at(to).set_occupier(Piece::queen);
@@ -381,28 +355,28 @@ std::pair<Coordinates, Coordinates> Board::find_castling_rook_move_(Coordinates 
     return {{7, 7}, {5, 7}};
   }
 
-  MY_ASSERT(false, "Invalid king move");
+  MY_ASSERT(false, "Invalid castling move");
   return {{0, 0}, {0, 0}};
 }
 
-bool Board::check_castling_rights(Coordinates to) const
+bool Board::check_castling_rights(Coordinates dest) const
 {
-  if (to == Coordinates{2, 0})
+  if (dest == Coordinates{2, 0})
   {
     return m_white_can_long_castle;
   }
 
-  if (to == Coordinates{6, 0})
+  if (dest == Coordinates{6, 0})
   {
     return m_white_can_short_castle;
   }
 
-  if (to == Coordinates{2, 7})
+  if (dest == Coordinates{2, 7})
   {
     return m_black_can_long_castle;
   }
 
-  if (to == Coordinates{6, 7})
+  if (dest == Coordinates{6, 7})
   {
     return m_black_can_short_castle;
   }
@@ -410,11 +384,26 @@ bool Board::check_castling_rights(Coordinates to) const
   return false;
 }
 
-void Board::update_castling_rights_(Coordinates from)
+void Board::update_king_locations_(Coordinates dest)
 {
-  if (square_at(from).occupier() == Piece::king)
+  if (auto sq = square_at(dest); sq.occupier() == Piece::king)
   {
-    if (square_at(from).occupier_color() == Color::black)
+    if (sq.is_white())
+    {
+      m_white_king = dest;
+    }
+    else
+    {
+      m_black_king = dest;
+    }
+  }
+}
+
+void Board::update_castling_rights_(Coordinates dest)
+{
+  if (square_at(dest).occupier() == Piece::king)
+  {
+    if (square_at(dest).occupier_color() == Color::black)
     {
       m_black_can_short_castle = false;
       m_black_can_long_castle = false;
@@ -426,21 +415,21 @@ void Board::update_castling_rights_(Coordinates from)
     }
   }
 
-  if (square_at(from).occupier() == Piece::rook)
+  if (square_at(dest).occupier() == Piece::rook)
   {
-    if (from == Coordinates{0, 0})
+    if (dest == Coordinates{0, 0})
     {
       m_white_can_long_castle = false;
     }
-    else if (from == Coordinates{7, 0})
+    else if (dest == Coordinates{7, 0})
     {
       m_white_can_short_castle = false;
     }
-    else if (from == Coordinates{0, 7})
+    else if (dest == Coordinates{0, 7})
     {
       m_black_can_long_castle = false;
     }
-    else if (from == Coordinates{7, 7})
+    else if (dest == Coordinates{7, 7})
     {
       m_black_can_short_castle = false;
     }
@@ -481,10 +470,10 @@ int Board::distance_between(Coordinates from, Coordinates to) const
 
 void Board::setup()
 {
-  m_white_pieces.clear();
-  m_black_pieces.clear();
-  m_white_pieces.reserve(c_initial_piece_count);
-  m_black_pieces.reserve(c_initial_piece_count);
+  m_white_piece_locations.clear();
+  m_black_piece_locations.clear();
+  m_white_piece_locations.reserve(c_initial_piece_count);
+  m_black_piece_locations.reserve(c_initial_piece_count);
 
   // White pieces
   square_at({0, 0}).set_occupier(Piece::rook);
@@ -502,8 +491,8 @@ void Board::setup()
     square_at({i, 1}).set_occupier(Piece::pawn);
     square_at({i, 1}).set_occupier_color(Color::white);
 
-    m_white_pieces.push_back({i, 0});
-    m_white_pieces.push_back({i, 1});
+    m_white_piece_locations.push_back({i, 0});
+    m_white_piece_locations.push_back({i, 1});
   }
 
   // Black pieces
@@ -522,12 +511,12 @@ void Board::setup()
     square_at({i, 6}).set_occupier(Piece::pawn);
     square_at({i, 6}).set_occupier_color(Color::black);
 
-    m_black_pieces.push_back({i, 7});
-    m_black_pieces.push_back({i, 6});
+    m_black_piece_locations.push_back({i, 7});
+    m_black_piece_locations.push_back({i, 6});
   }
 
-  std::sort(m_white_pieces.begin(), m_white_pieces.end());
-  std::sort(m_black_pieces.begin(), m_black_pieces.end());
+  std::sort(m_white_piece_locations.begin(), m_white_piece_locations.end());
+  std::sort(m_black_piece_locations.begin(), m_black_piece_locations.end());
 
   m_white_king = {4, 0};
   m_black_king = {4, 7};
@@ -658,18 +647,18 @@ std::vector<Coordinates> const& Board::get_opposing_pieces(Coordinates piece_loc
 {
   if (square_at(piece_location).is_white())
   {
-    return m_black_pieces;
+    return m_black_piece_locations;
   }
-  return m_white_pieces;
+  return m_white_piece_locations;
 }
 
 std::vector<Coordinates> const& Board::get_friendly_pieces(Coordinates piece_location) const
 {
   if (square_at(piece_location).is_white())
   {
-    return m_white_pieces;
+    return m_white_piece_locations;
   }
-  return m_black_pieces;
+  return m_black_piece_locations;
 }
 
 std::vector<Coordinates>& Board::get_opposing_pieces(Coordinates piece_location)
@@ -693,16 +682,16 @@ bool Board::is_in_check_(Color color) const
                      });
 }
 
-void Board::remove_piece_(std::vector<Coordinates>& pieces, Coordinates piece_location)
+void Board::remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove)
 {
-  MY_ASSERT(std::binary_search(pieces.cbegin(), pieces.cend(), piece_location), "Cannot remove piece that is not present");
-  pieces.erase(std::upper_bound(pieces.begin(), pieces.end(), piece_location) - 1);
+  MY_ASSERT(std::binary_search(piece_locations.cbegin(), piece_locations.cend(), to_remove), "Cannot remove piece that is not present");
+  piece_locations.erase(std::upper_bound(piece_locations.begin(), piece_locations.end(), to_remove) - 1);
 }
 
-void Board::add_piece_(std::vector<Coordinates>& pieces, Coordinates piece_location)
+void Board::add_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_add)
 {
-  MY_ASSERT(!std::binary_search(pieces.cbegin(), pieces.cend(), piece_location), "Cannot add piece that is already present");
-  pieces.insert(std::upper_bound(pieces.begin(), pieces.end(), piece_location), piece_location);
+  MY_ASSERT(!std::binary_search(piece_locations.cbegin(), piece_locations.cend(), to_add), "Cannot add piece that is already present");
+  piece_locations.insert(std::upper_bound(piece_locations.begin(), piece_locations.end(), to_add), to_add);
 }
 
 bool Board::validate_() const
@@ -759,7 +748,7 @@ bool Board::validate_() const
     return false;
   }
 
-  return verify_pieces(Color::black, m_black_pieces) && verify_pieces(Color::white, m_white_pieces);
+  return verify_pieces(Color::black, m_black_piece_locations) && verify_pieces(Color::white, m_white_piece_locations);
 }
 
 void Board::display(std::ostream& out) const
@@ -781,5 +770,10 @@ void Board::display(std::ostream& out) const
     out << " " << static_cast<char>(i + 'A') << "  ";
   }
   out << std::endl;
+}
+
+void display_piece_locations_(std::vector<Coordinates> const& piece_locations)
+{
+  std::copy(piece_locations.cbegin(),piece_locations.cend(), std::ostream_iterator<Coordinates>(std::cerr, " "));
 }
 

@@ -83,7 +83,7 @@ public:
   std::vector<Coordinates>& get_friendly_pieces(Coordinates piece_location);
   std::vector<Coordinates> const& get_friendly_pieces(Coordinates piece_location) const;
 
-  bool check_castling_rights(Coordinates to) const;
+  bool check_castling_rights(Coordinates dest) const;
 
 private:
 
@@ -93,12 +93,19 @@ private:
    */
   bool validate_() const;
 
-  void update_castling_rights_(Coordinates from);
+  void update_castling_rights_(Coordinates dest);
+  void update_king_locations_(Coordinates dest);
 
   bool is_in_check_(Color color) const;
 
-  static void remove_piece_(std::vector<Coordinates>& pieces, Coordinates piece_location);
-  static void add_piece_(std::vector<Coordinates>& pieces, Coordinates piece_location);
+  std::optional<std::pair<Coordinates, Piece>> perform_move_(Coordinates from, Coordinates to, Coordinates capture_location);
+  void unperform_move_(Coordinates from, Coordinates to, std::optional<std::pair<Coordinates, Piece>> captured_piece);
+
+  static void remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove);
+  static void add_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_add);
+
+  static void display_piece_locations_(std::vector<Coordinates> const& pieces);
+
 
   std::pair<Coordinates, Coordinates> find_castling_rook_move_(Coordinates king_destination);
 
@@ -109,8 +116,8 @@ private:
   std::optional<std::pair<Coordinates, Coordinates>> m_previous_move;
 
   //TODO(jere9309): Should these be arrays? Would that improve copying performance?
-  std::vector<Coordinates> m_black_pieces{};
-  std::vector<Coordinates> m_white_pieces{};
+  std::vector<Coordinates> m_black_piece_locations{};
+  std::vector<Coordinates> m_white_piece_locations{};
 
   Coordinates m_white_king;
   Coordinates m_black_king;
