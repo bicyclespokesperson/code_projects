@@ -1,80 +1,84 @@
 #ifndef SQUARE_H
 #define SQUARE_H
 
-class Board;
-class Piece;
+enum class Piece : uint8_t
+{
+  empty = 0,
+  pawn,
+  knight,
+  bishop_dark,
+  bishop_light,
+  rook,
+  queen,
+  king,
+};
 
-/**
- * Represents a square on a gameboard.
- * A Square can hold a piece, and knows its location in xy coordinates on a
- * board. It also knows what board is holding it.
- */
+enum class Color : uint8_t
+{
+  black = 0,
+  white,
+};
+
+enum class Square_color : uint8_t
+{
+  dark = 0,
+  light,
+};
+
 class Square
 {
 public:
-  /**
-   * Creates a new square
-   * @param x The column of the square (a letter)
-   * @param y The row of the square (a number)
-   */
-  Square(int x, int y);
+  Square() = default;
 
-  /**
-   * Creates a new square
-   * @param x The column of the square (a letter)
-   * @param y The row of the square (a number)
-   * @param occupier The piece occupying the square
-   */
-  Square(int x, int y, Piece* occupier);
+  Square(Piece piece, Color piece_color, Square_color sq_color)
+  : m_occupier(piece),
+    m_color(piece_color),
+    m_square_color(sq_color)
+  {
+    static_assert(sizeof(Square) == 1);
+  }
 
-  /**
-   * destructor
-   */
-  ~Square();
+  bool is_occupied() const
+  {
+    return m_occupier != Piece::empty;
+  }
 
-  /**
-   * @return The column of the square (a letter)
-   */
-  int get_x() const;
+  Piece occupier() const
+  {
+    return m_occupier;
+  }
 
-  /**
-   * @return The row of the square (a number)
-   */
-  int get_y() const;
+  void set_occupier(Piece new_occupier)
+  {
+    m_occupier = new_occupier;
+  }
 
-  /**
-   * @return True is the Square is occupied
-   */
-  bool occupied() const;
+  Color occupier_color() const
+  {
+    return m_color;
+  }
 
-  /**
-   * @return The piece occupying the square (nullptr if empty)
-   */
-  Piece& occupied_by() const;
+  void set_occupier_color(Color new_color)
+  {
+    m_color = new_color;
+  }
 
-  /**
-   * @param piece The new occupier of the square
-   */
-  void set_occupier(Piece& piece);
+  Square_color square_color() const
+  {
+    return m_square_color;
+  }
 
-  /**
-   * Remove the piece from this Square
-   * This is needed because null references are illegal, so set_occupier
-   * cannot be used to std::set the occupant to null.
-   */
-  void remove_occupier();
+  void set_square_color(Square_color new_color)
+  {
+    m_square_color = new_color;
+  }
 
-  /**
-   * Prints the square
-   * @param out The std::ostream to print to
-   */
   void display(std::ostream& out) const;
 
-  friend std::ostream& operator<<(std::ostream& output, const Square s);
-
 private:
-  int _x;
-  int _y;
-  Piece* _occupier{nullptr};
+  Piece m_occupier : 5;
+  Color m_color : 1;
+  Square_color m_square_color : 1;
 };
+
 #endif

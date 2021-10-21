@@ -1,9 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-class King;
-class Piece;
-class Square;
+#include "board.h"
 
 /**
  * A player class represents one of the players in a chess game. It
@@ -19,7 +17,7 @@ public:
    * @param my_king The player's king
    * @param my_pieces The player's pieces
    */
-  Player(std::string name, King& my_king);
+  Player(std::string name);
 
   /**
    * The destructor for the player class
@@ -27,49 +25,10 @@ public:
   ~Player();
 
   /**
-   * Makes a move
-   * @return True if the move is legal
-   */
-  bool make_move();
-
-  /**
    * @return The name of the player
    */
-  std::string& get_name();
+  std::string const& get_name() const;
 
-  /**
-   * @return The player's score (the sum of the values of the captured pieces)
-   */
-  int score();
-
-  /**
-   * Adds a piece to the player's captured collection
-   * @param a_piece The piece to capture
-   */
-  void capture(Piece& a_piece);
-
-  /**
-   * Removes a piece from the player's captured collection.
-   * @param a_piece the piece to remove
-   */
-  void uncapture(Piece& a_piece);
-
-  /**
-   * @return The player's pieces
-   */
-  std::set<Piece*>& my_pieces();
-
-  /**
-   * @return The player's pieces
-   */
-  std::set<Piece*> const& my_pieces() const;
-
-  /**
-   * @return The player's king
-   */
-  King& my_king() const;
-
-private:
   /**
    * Prompts the user for a move and returns the beginning and ending squares
    * @param in The input stream to read the prompt from
@@ -78,7 +37,8 @@ private:
    * std::string. Note: The std::pair and both squares must be deleted. Returns nullptr
    * if the player resigns.
    */
-  std::optional<std::pair<Square, Square>> prompt_move_(std::istream& in, std::ostream& out);
+  std::optional<std::pair<Coordinates, Coordinates>> prompt_move(std::istream& in, std::ostream& out) const;
+private:
 
   /**
    * Checks if the input std::string is contains the correct form of the
@@ -86,11 +46,8 @@ private:
    * @param std::string The std::string of which to check the validity
    * @return true if the std::string is of the form "A2 D2"
    */
-  bool is_valid_(const std::string& line);
+  static bool is_valid_(const std::string& line);
 
-  std::string _name;
-  std::set<Piece*> _pieces{};
-  std::set<Piece*> _captured{};
-  King* _king{nullptr};
+  std::string m_name;
 };
 #endif

@@ -1,24 +1,16 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include <coordinates.h>
 #include <square.h>
 
-class Square;
-class Game;
-
-/**
- * A board class holds Squares, which hold pieces.
- */
 class Board
 {
 public:
-  /**
-   * Returns the square at the xy location
-   * @param x The column of the desired square (A letter)
-   * @param y The row coordinate of the desired square
-   * @return The square at the desired location
-   */
-  Square& square_at(int x, int y);
+
+  Board();
+
+  ~Board();
 
   /**
    * Returns the square at the xy location
@@ -26,7 +18,9 @@ public:
    * @param y The row coordinate of the desired square
    * @return The square at the desired location
    */
-  Square const& square_at(int x, int y) const;
+  Square square_at(Coordinates coords) const;
+
+  Square& square_at(Coordinates coords);
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -35,7 +29,7 @@ public:
    * @param to The final square
    * @return True if there is a clear vertical line between the squares
    */
-  bool is_clear_vertical(Square const& from, Square const& to) const;
+  bool is_clear_vertical(Coordinates from, Coordinates to) const;
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -44,7 +38,7 @@ public:
    * @param to The final square
    * @return True if there is a clear horizontal line between the squares
    */
-  bool is_clear_horizontal(Square const& from, Square const& to) const;
+  bool is_clear_horizontal(Coordinates from, Coordinates to) const;
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -53,7 +47,7 @@ public:
    * @param to The final square
    * @return True if there is a clear diagonal line between the squares
    */
-  bool is_clear_diagonal(Square const& from, Square const& to) const;
+  bool is_clear_diagonal(Coordinates from, Coordinates to) const;
 
   /**
    * Returns the distance between two squares on the board.
@@ -63,7 +57,7 @@ public:
    * @param to The Second Square
    * @return The distance between the two squares.
    */
-  int distance_between(Square const& from, Square const& to) const;
+  int distance_between(Coordinates from, Coordinates to) const;
 
   /**
    * Prints the square to the specified std::ostream
@@ -72,27 +66,17 @@ public:
   void display(std::ostream& out_stream) const;
 
   /**
-   * Initializes the 2D vector of squares properly.
-   * This should be called before using the board.
+   * Initializes the board with pieces in their standard positions
    */
   void setup();
 
   /**
-   * The effective constructor for the board
-   * @return a pointer to the single instance of the board
+   * Return false on invalid move
    */
-  static Board& get_board();
-
-
-  /**
-   * Destructor
-   */
-  ~Board();
-
+  bool make_move(Coordinates from, Coordinates to);
 private:
-  Board();
 
-  std::vector<Square> _squares{};
-  static inline std::unique_ptr<Board> _theBoard{nullptr};
+  constexpr static size_t c_board_size{64};
+  std::array<Square, c_board_size> m_squares{};
 };
 #endif

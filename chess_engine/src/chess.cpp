@@ -9,8 +9,6 @@
 #include "chess.h"
 #include "board.h"
 #include "game.h"
-#include "king.h"
-#include "pawn.h"
 #include "player.h"
 
 /**
@@ -21,16 +19,8 @@
  */
 int main(int /* argc */, char* /* argv*/[])
 {
-  Game::initialize();
-
-  Board::get_board().display(std::cout);
-
-  // Player.make_move() will return false if the player resigns
-  while (Game::get_next_player().make_move())
-  {
-    Board::get_board().display(std::cout);
-  }
-  Board::get_board().display(std::cout);
+  Game game;
+  game.run();
 
   std::cout << "Thanks for playing!" << std::endl;
   return 0;

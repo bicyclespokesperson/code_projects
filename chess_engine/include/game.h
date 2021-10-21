@@ -10,29 +10,34 @@ class Game
 {
 
 public:
+
+  Game();
+
+  ~Game();
+
   /**
    * @returns the next player whose turn it is
    */
-  static Player& get_next_player();
+  Player* get_next_player();
+
+  bool make_move(Player const& player);
 
   /**
-   * Sets up the board by putting the pieces in place.
+   * Runs a game of chess
    */
-  static void initialize();
+  void run();
 
   /**
    * Returns the opposite of the opposing player
    * @param player The player whose opponent to return
    * @return The opponent of the given player
    */
-  static Player& opponent_of(Player const& player);
+  Player& opponent_of(Player const& player);
 
-  ~Game();
 
 private:
-  Game();
-  static inline Player* _player1{nullptr};
-  static inline Player* _player2{nullptr};
-  static inline Player* _currentPlayer{nullptr};
+  std::unique_ptr<Player> m_player1{nullptr};
+  std::unique_ptr<Player> m_player2{nullptr};
+  Player* m_currentPlayer{nullptr};
 };
 #endif

@@ -1,13 +1,6 @@
 #include "game.h"
-#include "bishop.h"
 #include "board.h"
-#include "king.h"
-#include "knight.h"
-#include "pawn.h"
-#include "piece.h"
 #include "player.h"
-#include "queen.h"
-#include "rook.h"
 #include "square.h"
 
 Game::Game() = default;
@@ -17,120 +10,111 @@ Game::~Game() = default;
 /**
  * Initialize the board by putting the pieces in the correct locations
  */
-void Game::initialize()
+void Game::run()
 {
-  // Set the owner to null since they haven't been initialized yet. We'll add
-  // them later
-  King* black_king = new King(*_player1, Color::black, (Board::get_board().square_at(4, 7)));
-  King* white_king = new King(*_player2, Color::white, (Board::get_board().square_at(4, 0)));
+  m_player1 = std::make_unique<Player>("White player");
+  m_player2 = std::make_unique<Player>("Black player");
 
-  // Create the players
-  _player1 = new Player("White", *white_king);
-  _player2 = new Player("Black", *black_king);
+  Board board;
+  std::cout << "About to setup" << std::endl;
+  board.setup();
+  std::cout << "Done with setup" << std::endl;
 
-  white_king->set_owner(*_player1);
-  black_king->set_owner(*_player2);
+  board.display(std::cout);
 
-  auto& board = Board::get_board();
-  board.square_at(0, 0).set_occupier(
-      *(new Rook(*_player1, Color::white, (board.square_at(0, 0)))));
-  board.square_at(1, 0).set_occupier(
-      *(new Knight(*_player1, Color::white, (board.square_at(1, 0)))));
-  board.square_at(2, 0).set_occupier(
-      *(new Bishop(*_player1, Color::white, (board.square_at(2, 0)))));
-  board.square_at(3, 0).set_occupier(
-      *(new Queen(*_player1, Color::white, (board.square_at(3, 0)))));
-  board.square_at(4, 0).set_occupier(*white_king);
-  board.square_at(5, 0).set_occupier(
-      *(new Bishop(*_player1, Color::white, (board.square_at(5, 0)))));
-  board.square_at(6, 0).set_occupier(
-      *(new Knight(*_player1, Color::white, (board.square_at(6, 0)))));
-  board.square_at(7, 0).set_occupier(
-      *(new Rook(*_player1, Color::white, (board.square_at(7, 0)))));
-  board.square_at(0, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(0, 1)))));
-  board.square_at(1, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(1, 1)))));
-  board.square_at(2, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(2, 1)))));
-  board.square_at(3, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(3, 1)))));
-  board.square_at(4, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(4, 1)))));
-  board.square_at(5, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(5, 1)))));
-  board.square_at(6, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(6, 1)))));
-  board.square_at(7, 1).set_occupier(
-      *(new Pawn(*_player1, Color::white, (board.square_at(7, 1)))));
-
-  // Round two!
-  board.square_at(0, 7).set_occupier(
-      *(new Rook(*_player2, Color::black, (board.square_at(0, 7)))));
-  board.square_at(1, 7).set_occupier(
-      *(new Knight(*_player2, Color::black, (board.square_at(1, 7)))));
-  board.square_at(2, 7).set_occupier(
-      *(new Bishop(*_player2, Color::black, (board.square_at(2, 7)))));
-  board.square_at(3, 7).set_occupier(
-      *(new Queen(*_player2, Color::black, (board.square_at(3, 7)))));
-  board.square_at(4, 7).set_occupier(*black_king);
-  board.square_at(5, 7).set_occupier(
-      *(new Bishop(*_player2, Color::black, (board.square_at(5, 7)))));
-  board.square_at(6, 7).set_occupier(
-      *(new Knight(*_player2, Color::black, (board.square_at(6, 7)))));
-  board.square_at(7, 7).set_occupier(
-      *(new Rook(*_player2, Color::black, (board.square_at(7, 7)))));
-  board.square_at(0, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(0, 6)))));
-  board.square_at(1, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(1, 6)))));
-  board.square_at(2, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(2, 6)))));
-  board.square_at(3, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(3, 6)))));
-  board.square_at(4, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(4, 6)))));
-  board.square_at(5, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(5, 6)))));
-  board.square_at(6, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(6, 6)))));
-  board.square_at(7, 6).set_occupier(
-      *(new Pawn(*_player2, Color::black, (board.square_at(7, 6)))));
-
-  // Add the pieces on rows 0 and 1 to the white players collection, and the
-  // pieces on rows 6 and 7 to the black players pieces collection.
-  for (int i = 0; i < 8; i++)
+  bool game_in_progress = true;
+  auto* player = get_next_player();
+  while (game_in_progress)
   {
-    _player1->my_pieces().insert(&Board::get_board().square_at(i, 0).occupied_by());
-    _player1->my_pieces().insert(&Board::get_board().square_at(i, 1).occupied_by());
-    _player2->my_pieces().insert(&Board::get_board().square_at(i, 6).occupied_by());
-    _player2->my_pieces().insert(&Board::get_board().square_at(i, 7).occupied_by());
+    std::cout << "About to prompt for move" << std::endl;
+    if (auto move = player->prompt_move(std::cin, std::cout))
+    {
+      std::cout << "Prompted for move" << std::endl;
+      if (board.make_move(move->first, move->second))
+      {
+        player = get_next_player();
+      }
+      else
+      {
+        std::cout << "That move is invalid\n";
+      }
+    }
+    else
+    {
+      game_in_progress = false;
+    }
+    board.display(std::cout);
   }
+  board.display(std::cout);
 }
 
-Player& Game::get_next_player()
+#if 0
+bool Game::make_move(Player const& player)
 {
-  if (!_currentPlayer)
+  bool valid_move = false;
+  bool still_playing = true;
+
+  // Keep trying to make a move until a valid one is requested, or until
+  // the player resigns.
+  while (!valid_move && still_playing)
+  {
+    auto move = player.prompt_move(std::cin, std::cout);
+
+    if (!move)
+    {
+      still_playing = false;
+    }
+    else if (Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied())
+    {
+      Piece* occupier = &Board::get_board().square_at(move->first.get_x(), move->first.get_y()).occupied_by();
+
+      if (my_pieces().find(occupier) == my_pieces().end())
+      {
+        std::cout << "Please move one of your own pieces." << std::endl;
+      }
+      else
+      {
+        valid_move = occupier->move_to(*this, (move->second));
+        if (!valid_move)
+        {
+          std::cout << "please enter a valid move for the piece, and ";
+          std::cout << "ensure that it does not leave the King in check." << std::endl;
+        }
+      }
+    }
+    else
+    {
+      std::cout << "please choose a square with a piece on it." << std::endl;
+    }
+  }
+
+  return still_playing;
+}
+#endif
+
+Player* Game::get_next_player()
+{
+  if (!m_currentPlayer)
   {
     // Return player1 the first time this is called
-    _currentPlayer = _player1;
+    m_currentPlayer = m_player1.get();
   }
   else
   {
-    _currentPlayer = &(opponent_of(*_currentPlayer));
+    m_currentPlayer = &opponent_of(*m_currentPlayer);
   }
 
-  return *_currentPlayer;
+  return m_currentPlayer;
 }
 
 Player& Game::opponent_of(Player const& player)
 {
-  Player* result = _player1;
+  Player* result = m_player1.get();
 
   // Make sure to return the opposite of the player who was passed in.
-  if (&player == _player1)
+  if (&player == m_player1.get())
   {
-    result = _player2;
+    result = m_player2.get();
   }
 
   return *result;

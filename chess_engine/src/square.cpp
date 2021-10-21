@@ -1,66 +1,50 @@
 #include "square.h"
-#include "board.h"
-#include "king.h"
-#include "piece.h"
-
-Square::Square(int x, int y) : _x(x), _y(y), _occupier(nullptr)
-{
-}
-
-Square::Square(int x, int y, Piece* occupier) : _x(x), _y(y), _occupier(occupier)
-{
-}
-
-Square::~Square() = default;
-
-int Square::get_x() const
-{
-  return _x;
-}
-
-int Square::get_y() const
-{
-  return _y;
-}
-
-bool Square::occupied() const
-{
-  return (_occupier != nullptr);
-}
-
-Piece& Square::occupied_by() const
-{
-  return *_occupier;
-}
-
-void Square::set_occupier(Piece& piece)
-{
-  _occupier = &piece;
-}
-
-void Square::remove_occupier()
-{
-  _occupier = nullptr;
-}
 
 void Square::display(std::ostream& out) const
 {
-  if (occupied())
+  std::string result{"___ "};
+
+  switch (occupier())
   {
-    _occupier->display(out);
+    case Piece::pawn:
+      result[0] = 'P';
+      break;
+    case Piece::bishop_dark:
+      [[fallthrough]];
+    case Piece::bishop_light:
+      result[0] = 'B';
+      break;
+    case Piece::knight:
+      result[0] = 'N';
+      break;
+    case Piece::rook:
+      result[0] = 'R';
+      break;
+    case Piece::queen:
+      result[0] = '!';
+      break;
+    case Piece::king:
+      result[0] = 'K';
+      break;
+    case Piece::empty:
+      [[fallthrough]];
+    default:
+      break;
   }
-  else
+
+  if (is_occupied())
   {
-    out << "___ ";
+    switch (occupier_color())
+    {
+      case Color::black:
+        result[2] = 'b';
+        break;
+      case Color::white:
+        result[2] = 'w';
+        break;
+    }
   }
+
+  out << result;
 }
 
-// Print the Square's location to the console.
-// Useful for debugging purposes.
-std::ostream& operator<<(std::ostream& out, const Square s)
-{
-  // Add 65 to _x because it represents a letter but we store it as a
-  // number so we can do array access with it. ('A' == 65)
-  out << "Column: " << static_cast<char>(s._x + 65) << ", Row: " << s._y << std::endl;
-  return out;
-}
