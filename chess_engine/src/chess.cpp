@@ -10,6 +10,19 @@
 #include "board.h"
 #include "game.h"
 #include "player.h"
+#include "my_assert.h"
+
+#include <fstream>
+
+std::string read_file_contents(std::string const& filename)
+{
+  std::ifstream infile{filename};
+  if (!infile)
+  {
+    MY_ASSERT(false, "File could not be opened");
+  }
+  return {std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
+}
 
 /**
  * Play the chess game.
@@ -19,9 +32,18 @@
  */
 int main(int /* argc */, char* /* argv*/[])
 {
+#if 0
   Game game;
   game.run();
+#endif
 
-  std::cout << "Thanks for playing!" << std::endl;
+
+#if 1
+
+  std::string pgn_filename{"./data/fischer_spassky.pgn"};
+
+  Board::from_pgn(read_file_contents(pgn_filename));
+#endif
+
   return 0;
 }

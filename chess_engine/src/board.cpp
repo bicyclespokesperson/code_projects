@@ -264,7 +264,7 @@ void Board::unperform_move_(Coordinates from, Coordinates to,
   update_king_locations_(from);
 }
 
-bool Board::make_move(Coordinates from, Coordinates to)
+bool Board::try_make_move(Coordinates from, Coordinates to)
 {
   auto piece_to_move = square_at(from).occupier();
   if (piece_to_move == Piece::empty)
@@ -573,8 +573,8 @@ bool Board::is_clear_horizontal(Coordinates from, Coordinates to) const
 
   // Set up the squares so we always walk up.
   // So if to is above from, swap them.
-  auto right = &to;
-  auto left = &from;
+  auto right = to;
+  auto left = from;
   if (to.x() < from.x())
   {
     std::swap(left, right);
@@ -582,7 +582,7 @@ bool Board::is_clear_horizontal(Coordinates from, Coordinates to) const
 
   // Walk along the board and if we find an occupied space, exit the loop
   // and return false.
-  for (int8_t i = left->x() + 1; i < right->x(); i++)
+  for (int8_t i = left.x() + 1; i < right.x(); i++)
   {
     if (square_at({i, from.y()}).is_occupied())
     {
@@ -600,8 +600,8 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
   }
 
   // Ensure we are walking right
-  auto left = &from;
-  auto right = &to;
+  auto left = from;
+  auto right = to;
   if (from.x() > to.x())
   {
     std::swap(left, right);
@@ -609,16 +609,16 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
 
   // Assume that we are walking up
   int8_t direction = 1;
-  if (left->y() > right->y())
+  if (left.y() > right.y())
   {
     direction = -1;
   }
 
   // Walk from "left" to "right"
-  for (int8_t i = 1; i < right->x() - left->x(); i++)
+  for (int8_t i = 1; i < right.x() - left.x(); i++)
   {
     // Check to see if square is occupied
-    if (square_at({static_cast<int8_t>(left->x() + i), static_cast<int8_t>(left->y() + direction * i)}).is_occupied())
+    if (square_at({static_cast<int8_t>(left.x() + i), static_cast<int8_t>(left.y() + direction * i)}).is_occupied())
     {
       return false;
     }
@@ -736,6 +736,79 @@ bool Board::validate_() const
   }
 
   return verify_pieces(Color::black, m_black_piece_locations) && verify_pieces(Color::white, m_white_piece_locations);
+}
+
+
+std::optional<Board> Board::from_pgn(std::string_view pgn)
+{
+  std::vector<std::string> tag_pairs;
+  std::vector<std::string> moves;
+
+  size_t index{0};
+  std::string game_result;
+
+  while (index < pgn.size() && index != std::string::npos)
+  {
+    // Skip to the next non-space character, starting at the first character we haven't seen yet
+    if (index != 0)
+    {
+      ++index;
+    }
+    index = pgn.find_first_not_of(" \t\n", index); 
+
+    if (pgn[index] == '[')
+    {
+      auto end_index = pgn.find(']', index);
+      tag_pairs.emplace_back(pgn.substr(index + 1, end_index - index - 1)); // Drop the [] in the tag pair
+      index = end_index;
+    }
+    else if (isalpha(pgn[index]) || pgn[index] == '0') // Castling uses both 'O and '0'
+    {
+      auto end_index = pgn.find_first_of(" \t\n", index);
+      moves.emplace_back(pgn.substr(index, end_index - index));
+      index = end_index;
+    }
+    else if (isdigit(pgn[index])) // Skip move number
+    {
+      auto end_index = pgn.find('.', index);
+      if (end_index == std::string::npos)
+      {
+        game_result = pgn.substr(index, end_index - index);
+      }
+      index = end_index;
+    }
+    else if (pgn[index] == ';') // Skip comments
+    {
+      index = pgn.find('\n', index);
+    }
+    else if (pgn[index] == '{') // Skip comments
+    {
+      index = pgn.find('}', index);
+    }
+    else
+    {
+      std::cout << "Unexpected char: " << pgn[index] << "Ascii code: " << std::to_string(static_cast<int32_t>(pgn[index])) << std::endl;
+      MY_ASSERT(false, "Unexpected char while parsing PGN file");
+    }
+  }
+
+  std::cout << "Tag pairs: \n";
+  for (auto const& tag : tag_pairs)
+  {
+    std::cout << tag << "\n";
+  }
+
+  std::cout << "Moves: \n";
+  for (auto const& move : moves)
+  {
+    std::cout << move << "\n";
+  }
+
+  std::cout << "Game result: " << game_result << std::endl;
+
+  std::optional<Board> result = Board{};
+  
+  return result;
 }
 
 void Board::display(std::ostream& out) const

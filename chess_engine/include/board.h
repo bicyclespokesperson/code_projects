@@ -7,6 +7,9 @@
 class Board
 {
 public:
+
+  static std::optional<Board> from_pgn(std::string_view pgn);
+
   Board();
 
   ~Board();
@@ -72,7 +75,7 @@ public:
   /**
    * Return false on invalid move
    */
-  bool make_move(Coordinates from, Coordinates to);
+  bool try_make_move(Coordinates from, Coordinates to);
 
   std::optional<std::pair<Coordinates, Coordinates>> previous_move() const;
 
