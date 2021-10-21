@@ -21,7 +21,7 @@ void Square::display(std::ostream& out) const
       result[0] = 'R';
       break;
     case Piece::queen:
-      result[0] = '!';
+      result[0] = 'Q';
       break;
     case Piece::king:
       result[0] = 'K';

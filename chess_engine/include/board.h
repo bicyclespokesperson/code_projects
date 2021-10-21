@@ -74,6 +74,13 @@ public:
    * Return false on invalid move
    */
   bool make_move(Coordinates from, Coordinates to);
+
+  std::optional<std::pair<Coordinates, Coordinates>> previous_move() const;
+
+  std::vector<Coordinates> const& opposing_pieces(Coordinates piece_location) const;
+
+  bool check_castling_rights(Coordinates to) const;
+
 private:
 
   /**
@@ -82,13 +89,24 @@ private:
    */
   bool validate_() const;
 
+  void update_castling_rights_(Coordinates from);
+
+  std::pair<Coordinates, Coordinates> find_castling_rook_move_(Coordinates king_destination);
+
   constexpr static size_t c_board_size{64};
   constexpr static size_t c_initial_piece_count{20};
 
   std::array<Square, c_board_size> m_squares{};
+  std::optional<std::pair<Coordinates, Coordinates>> m_previous_move;
 
   //TODO(jere9309): Should these be arrays? Would that improve copying performance?
   std::vector<Coordinates> m_black_pieces{};
   std::vector<Coordinates> m_white_pieces{};
+
+  bool m_white_can_short_castle : 1 {true};
+  bool m_white_can_long_castle : 1 {true};
+  bool m_black_can_short_castle : 1 {true};
+  bool m_black_can_long_castle : 1 {true};
 };
+
 #endif

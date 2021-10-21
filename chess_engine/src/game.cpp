@@ -31,7 +31,7 @@ void Game::run()
       }
       else
       {
-        std::cout << "That move is invalid\n";
+        std::cout << "\n --------- That move is invalid --------- \n";
       }
     }
     else
