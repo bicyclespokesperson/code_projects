@@ -236,15 +236,6 @@ bool Board::make_move(Coordinates from, Coordinates to)
     return false;
   }
 
-  // TODO: Check for check
-
-  // En passent
-  if (square_at(from).occupier() == Piece::pawn && is_clear_diagonal(from, to) && !square_at(to).is_occupied())
-  {
-    //TODO: update piece collection for captures
-    square_at(previous_move()->second).remove_occupier();
-  }
-  update_castling_rights_(from);
 
   auto perform_move = [&](Coordinates from, Coordinates to)
   {
@@ -263,6 +254,14 @@ bool Board::make_move(Coordinates from, Coordinates to)
     //std::copy(pieces.begin(), pieces.end(), std::ostream_iterator<Coordinates>(std::cout, " "));
   };
 
+  // En passent
+  if (square_at(from).occupier() == Piece::pawn && is_clear_diagonal(from, to) && !square_at(to).is_occupied())
+  {
+    //TODO: update piece collection for captures
+    square_at(previous_move()->second).remove_occupier();
+  }
+  update_castling_rights_(from);
+
   // Castling
   if (square_at(from).occupier() == Piece::king && distance_between(from, to) == 2)
   {
@@ -277,6 +276,8 @@ bool Board::make_move(Coordinates from, Coordinates to)
   {
     square_at(to).set_occupier(Piece::queen);
   }
+  
+  // TODO: Check for check
 
   if (auto sq = square_at(to); sq.occupier() == Piece::king)
   {
@@ -604,6 +605,17 @@ std::vector<Coordinates>& Board::friendly_pieces(Coordinates piece_location)
     return m_white_pieces;
   }
   return m_black_pieces;
+}
+
+bool Board::is_in_check_(Color color) const
+{
+  auto king_location = (color == Color::white) ? m_white_king : m_black_king;
+  auto const& pieces = opposing_pieces(king_location);
+
+  return std::any_of(pieces.cbegin(), pieces.cend(), [&](Coordinates piece_location)
+                     {
+                       return piece_can_move(piece_location, king_location, *this);
+                     });
 }
 
 bool Board::validate_() const

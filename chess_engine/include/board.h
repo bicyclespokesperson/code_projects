@@ -93,7 +93,7 @@ private:
 
   void update_castling_rights_(Coordinates from);
 
-  bool is_in_check_(Color color);
+  bool is_in_check_(Color color) const;
 
   std::pair<Coordinates, Coordinates> find_castling_rook_move_(Coordinates king_destination);
 
