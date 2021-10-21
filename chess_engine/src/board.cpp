@@ -226,6 +226,11 @@ int Board::distance_between(Coordinates from, Coordinates to) const
 
 void Board::setup()
 {
+  m_white_pieces.clear();
+  m_black_pieces.clear();
+  m_white_pieces.reserve(c_initial_piece_count);
+  m_black_pieces.reserve(c_initial_piece_count);
+
   // White pieces
   square_at({0, 0}).set_occupier(Piece::rook);
   square_at({1, 0}).set_occupier(Piece::knight);
@@ -241,6 +246,9 @@ void Board::setup()
 
     square_at({i, 1}).set_occupier(Piece::pawn);
     square_at({i, 1}).set_occupier_color(Color::white);
+
+    m_white_pieces.push_back({i, 0});
+    m_white_pieces.push_back({i, 1});
   }
 
   // Black pieces
@@ -258,17 +266,25 @@ void Board::setup()
 
     square_at({i, 6}).set_occupier(Piece::pawn);
     square_at({i, 6}).set_occupier_color(Color::black);
+
+    m_black_pieces.push_back({i, 7});
+    m_black_pieces.push_back({i, 6});
   }
+
+  std::sort(m_white_pieces.begin(), m_white_pieces.end());
+  std::sort(m_black_pieces.begin(), m_black_pieces.end());
+
+  MY_ASSERT(validate_(), "Board is in an incorrect state");
 }
 
-Square Board::square_at(Coordinates coords) const
+Square const& Board::square_at(Coordinates coords) const
 {
   return m_squares.at(c_board_dimension * coords.x() + coords.y());
 }
 
 Square& Board::square_at(Coordinates coords)
 {
-  return m_squares.at(c_board_dimension * coords.x() + coords.y());
+  return const_cast<Square&>(std::as_const(*this).square_at(coords));
 }
 
 bool Board::is_clear_vertical(Coordinates from, Coordinates to) const
@@ -368,6 +384,50 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
     }
   }
   return true;
+}
+
+
+bool Board::validate_() const
+{
+  // Count how many pieces of each color are on the board
+  auto verify_pieces = [&](auto color, auto const& pieces)
+  {
+    auto const pieces_count = std::count_if(m_squares.cbegin(), m_squares.cend(), [&](auto const& square)
+                                            {
+                                              return square.is_occupied() && square.occupier_color() == color;
+                                            });
+
+    if (static_cast<size_t>(pieces_count) != pieces.size())
+    {
+      std::cerr << "Incorrect piece count for " << ((color == Color::black) ? "black" : "white") << ": " << pieces_count << "!=" << pieces.size() << std::endl;
+      return false;
+    }
+
+    for (auto const& coord : pieces)
+    {
+      if (!square_at(coord).is_occupied() || !(square_at(coord).occupier_color() == color))
+      {
+        std::cerr << "Square {" << coord.x() << ", " << coord.y() << "} has incorrect color, expected: " << ((color == Color::black) ? "black" : "white") << std::endl;
+        return false;
+      }
+    }
+
+    if (!std::is_sorted(pieces.cbegin(), pieces.cend()))
+    {
+      std::cerr << "Pieces are not sorted for " << ((color == Color::black) ? "black" : "white") << std::endl;
+      return false;
+    }
+
+    if (std::adjacent_find(pieces.cbegin(), pieces.cend()) != pieces.cend())
+    {
+      std::cerr << "Pieces are not unique for " << ((color == Color::black) ? "black" : "white") << std::endl;
+      return false;
+    }
+
+    return true;
+  };
+
+  return verify_pieces(Color::black, m_black_pieces) && verify_pieces(Color::white, m_white_pieces);
 }
 
 void Board::display(std::ostream& out) const

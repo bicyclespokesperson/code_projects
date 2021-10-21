@@ -16,9 +16,6 @@ void Game::run()
   m_player2 = std::make_unique<Player>("Black player");
 
   Board board;
-  std::cout << "About to setup" << std::endl;
-  board.setup();
-  std::cout << "Done with setup" << std::endl;
 
   board.display(std::cout);
 
@@ -26,10 +23,8 @@ void Game::run()
   auto* player = get_next_player();
   while (game_in_progress)
   {
-    std::cout << "About to prompt for move" << std::endl;
     if (auto move = player->prompt_move(std::cin, std::cout))
     {
-      std::cout << "Prompted for move" << std::endl;
       if (board.make_move(move->first, move->second))
       {
         player = get_next_player();

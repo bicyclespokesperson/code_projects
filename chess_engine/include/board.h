@@ -18,7 +18,7 @@ public:
    * @param y The row coordinate of the desired square
    * @return The square at the desired location
    */
-  Square square_at(Coordinates coords) const;
+  Square const& square_at(Coordinates coords) const;
 
   Square& square_at(Coordinates coords);
 
@@ -76,7 +76,19 @@ public:
   bool make_move(Coordinates from, Coordinates to);
 private:
 
+  /**
+   * Ensure that all the coordinates in black and white pieces point to valid
+   * pieces on the board
+   */
+  bool validate_() const;
+
   constexpr static size_t c_board_size{64};
+  constexpr static size_t c_initial_piece_count{20};
+
   std::array<Square, c_board_size> m_squares{};
+
+  //TODO(jere9309): Should these be arrays? Would that improve copying performance?
+  std::vector<Coordinates> m_black_pieces{};
+  std::vector<Coordinates> m_white_pieces{};
 };
 #endif
