@@ -1,10 +1,9 @@
+#include "player.h"
 #include "board.h"
 #include "coordinates.h"
-#include "player.h"
 #include "square.h"
 
-Player::Player(std::string name)
-    : m_name(std::move(name))
+Player::Player(std::string name) : m_name(std::move(name))
 {
 }
 
@@ -46,8 +45,8 @@ std::optional<std::pair<Coordinates, Coordinates>> Player::prompt_move(std::istr
     // (so '0' is 48 and 'A' is 65), but we want to store them as integers,
     // so we can do array access.
     return std::pair<Coordinates, Coordinates>{
-      {static_cast<int8_t>(line[0] - 'A'), static_cast<int8_t>(line[1] - '0' - 1)}, 
-      {static_cast<int8_t>(line[3] - 'A'), static_cast<int8_t>(line[4] - '0' - 1)}};
+        {static_cast<int8_t>(line[0] - 'A'), static_cast<int8_t>(line[1] - '0' - 1)},
+        {static_cast<int8_t>(line[3] - 'A'), static_cast<int8_t>(line[4] - '0' - 1)}};
   }
 
   // Empty if the player resigned
@@ -91,4 +90,3 @@ std::string const& Player::get_name() const
 {
   return m_name;
 }
-

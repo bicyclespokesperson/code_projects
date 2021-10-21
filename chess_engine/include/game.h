@@ -10,7 +10,6 @@ class Game
 {
 
 public:
-
   Game();
 
   ~Game();
@@ -33,7 +32,6 @@ public:
    * @return The opponent of the given player
    */
   Player& opponent_of(Player const& player);
-
 
 private:
   std::unique_ptr<Player> m_player1{nullptr};

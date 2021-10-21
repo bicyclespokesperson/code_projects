@@ -32,7 +32,6 @@ public:
 
   auto operator<=>(Coordinates const& other) const = default;
 
-
 private:
   uint8_t m_coords{0};
 };

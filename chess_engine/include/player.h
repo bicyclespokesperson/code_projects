@@ -38,8 +38,8 @@ public:
    * if the player resigns.
    */
   std::optional<std::pair<Coordinates, Coordinates>> prompt_move(std::istream& in, std::ostream& out) const;
-private:
 
+private:
   /**
    * Checks if the input std::string is contains the correct form of the
    * move input.

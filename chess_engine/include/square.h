@@ -31,9 +31,7 @@ public:
   Square() = default;
 
   Square(Piece piece, Color piece_color, Square_color sq_color)
-  : m_occupier(piece),
-    m_color(piece_color),
-    m_square_color(sq_color)
+      : m_occupier(piece), m_color(piece_color), m_square_color(sq_color)
   {
     static_assert(sizeof(Square) == 1);
   }
