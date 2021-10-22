@@ -12,6 +12,11 @@ Player::~Player() = default;
 // Returns empty if the player resigns.
 std::optional<std::string> Player::prompt_move(std::istream& in, std::ostream& out) const
 {
+  if (!in.good())
+  {
+    return {};
+  }
+
   std::string line = "";
   out << get_name() << ", please enter the beginning and ending squares of the ";
   out << "move (ex: A2 A4): ";

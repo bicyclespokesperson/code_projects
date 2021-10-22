@@ -798,27 +798,28 @@ std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
 
+
   // If any character does not  fall in the allowed range,
   // the string is invalid. (valid: "A2 A3")
   if (move_str.length() != 4 ||
 
                          // 'A' <= move_str[0] <= 'H'
-                         ((move_str[0] < 'A' || move_str[0] > 'H') ||
+                         move_str[0] < 'A' || move_str[0] > 'H' ||
 
                          // '1' <= move_str[1] <= '8'
-                         (move_str[1] < '1' || move_str[1] > '8') ||
+                         move_str[1] < '1' || move_str[1] > '8' ||
 
-                         // 'A' <= move_str[3] <= 'H'
-                         (move_str[2] < 'A' && move_str[2] > 'H') ||
+                         // 'A' <= move_str[2] <= 'H'
+                         move_str[2] < 'A' || move_str[2] > 'H' ||
 
-                         // '1' <= move_str[4] <= '8'
-                         move_str[3] < '1' || move_str[3] > '8'))
+                         // '1' <= move_str[3] <= '8'
+                         move_str[3] < '1' || move_str[3] > '8')
   {
     return {};
   }
 
   return Board::Move{{static_cast<int8_t>(move_str[0] - 'A'), static_cast<int8_t>(move_str[1] - '1')},
-    {static_cast<int8_t>(move_str[3] - 'A'), static_cast<int8_t>(move_str[4] - '1')}};
+    {static_cast<int8_t>(move_str[2] - 'A'), static_cast<int8_t>(move_str[3] - '1')}};
 }
 
 std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
