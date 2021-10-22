@@ -1006,20 +1006,12 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
   }
 
   std::optional<Board> result = Board{};
-  auto color{Color::white};
   for (auto const& move_str : moves)
   {
-    auto move_to_try = result->move_from_algebraic_(move_str, color);
-    if (move_to_try && result->try_move(*move_to_try))
+    if (!result->try_move_algebraic(move_str))
     {
-      std::cout << "Move " << move_str << ": " << move_to_try->from << " -> " << move_to_try->to << std::endl;
-    }
-    else
-    {
-      result->display(std::cout);
       return {};
     }
-    color = (color == Color::white) ? Color::black : Color::white;
   }
 
   return result;
