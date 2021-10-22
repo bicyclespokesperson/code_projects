@@ -9,8 +9,8 @@
 #include "chess.h"
 #include "board.h"
 #include "game.h"
-#include "player.h"
 #include "my_assert.h"
+#include "player.h"
 
 #include <fstream>
 
@@ -36,7 +36,6 @@ int main(int /* argc */, char* /* argv*/[])
   Game game;
   game.run();
 #endif
-
 
 #if 1
 

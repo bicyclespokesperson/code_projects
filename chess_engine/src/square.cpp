@@ -5,20 +5,20 @@ Piece from_char(char c)
 {
   switch (c)
   {
-    case 'N':
-      return Piece::knight;
-    case 'B':
-      return Piece::bishop;
-    case 'R':
-      return Piece::rook;
-    case 'Q':
-      return Piece::queen;
-    case 'K':
-      return Piece::king;
-    case 'P':
-      return Piece::pawn;
-    default:
-      return Piece::empty;
+  case 'N':
+    return Piece::knight;
+  case 'B':
+    return Piece::bishop;
+  case 'R':
+    return Piece::rook;
+  case 'Q':
+    return Piece::queen;
+  case 'K':
+    return Piece::king;
+  case 'P':
+    return Piece::pawn;
+  default:
+    return Piece::empty;
   }
 }
 

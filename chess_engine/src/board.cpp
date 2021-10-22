@@ -179,8 +179,7 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
 
   switch (board.square_at(from).occupier())
   {
-  case Piece::pawn:
-  {
+  case Piece::pawn: {
     auto result = pawn_can_move(from, to, board);
     return result;
   }
@@ -213,8 +212,6 @@ Board::~Board() = default;
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Coordinates from, Coordinates to,
                                                                   Coordinates capture_location)
 {
-  std::cerr << "Performing move. from: " << from << ", to: " << to << std::endl;
-
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
   auto& pieces = get_friendly_pieces(from);
   auto& opposing_pieces = get_opposing_pieces(from);
@@ -757,26 +754,22 @@ std::vector<Coordinates> Board::find_piece(Piece piece, Color color, Coordinates
 {
   std::vector<Coordinates> candidates;
   auto const& locations = get_pieces(color);
-  std::copy_if(locations.cbegin(), locations.cend(), std::back_inserter(candidates), [&](Coordinates piece_loc)
-               {
-                 return square_at(piece_loc).occupier() == piece 
-                 && piece_can_move(piece_loc, target_square, *this);
-               });
+  std::copy_if(locations.cbegin(), locations.cend(), std::back_inserter(candidates), [&](Coordinates piece_loc) {
+    return square_at(piece_loc).occupier() == piece && piece_can_move(piece_loc, target_square, *this);
+  });
 
   return candidates;
 }
 
-std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view move_param, Board const& board, Color color)
+std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view move_param, Board const& board,
+                                                              Color color)
 {
   std::string move_str{move_param};
-  move_str.erase(std::remove(move_str.begin(), move_str.end(), 'x'), move_str.end());
-  move_str.erase(std::remove(move_str.begin(), move_str.end(), '+'), move_str.end());
-  move_str.erase(std::remove(move_str.begin(), move_str.end(), '#'), move_str.end());
-  move_str.erase(std::remove(move_str.begin(), move_str.end(), '?'), move_str.end());
-  move_str.erase(std::remove(move_str.begin(), move_str.end(), '!'), move_str.end());
-  move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
-
-  //std::transform(move_str.begin(), move_str.end(), move_str.begin(), [](unsigned char c){ return std::toupper(c); });
+  move_str.erase(std::remove_if(move_str.begin(), move_str.end(),
+                                [chars = std::string("x+#?!")](char c) {
+                                  return isspace(c) || (chars.find(c) != std::string::npos);
+                                }),
+                 move_str.end());
 
   if (move_str == "O-O" || move_str == "0-0")
   {
@@ -802,15 +795,11 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     }
   }
 
-  Coordinates target_square{
-    static_cast<int8_t>(toupper(move_str[move_str.size() - 2]) - 'A'), 
-    static_cast<int8_t>(move_str[move_str.size() - 1] - '1')};
-
-  std::cout << "Target square for " << move_param << ": " << target_square << std::endl;
+  Coordinates target_square{static_cast<int8_t>(toupper(move_str[move_str.size() - 2]) - 'A'),
+                            static_cast<int8_t>(move_str[move_str.size() - 1] - '1')};
 
   move_str.resize(move_str.size() - 2); // Drop target square from string
-  auto const piece = [&]
-  {
+  auto const piece = [&] {
     // Handle pawn move case (ex: e4, xe4, fxe4)
     if (move_str.empty() || islower(move_str[0]))
     {
@@ -822,7 +811,7 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     move_str = move_str.substr(1);
 
     return piece;
-  }(); 
+  }();
 
   if (piece == Piece::empty)
   {
@@ -830,15 +819,13 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     return {};
   }
 
-  std::cout << "Piece: " << std::to_string(static_cast<uint8_t>(piece)) << std::endl;
-
   auto candidates = board.find_piece(piece, color, target_square);
   if (candidates.empty())
   {
-    std::cerr << "1 No piece can perform move " << move_param << "\n";
+    std::cerr << "No piece can perform move " << move_param << "\n";
     return {};
   }
-  
+
   if (candidates.size() == 1)
   {
     // Exactly one piece can move to the target square
@@ -847,19 +834,19 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
 
   if (move_str.empty())
   {
-    std::cerr << "1 Too many pieces can perform move " << move_param << "\n";
+    std::cerr << "Too many pieces can perform move " << move_param << "\n";
     return {};
   }
 
-  std::cout << "Move_str: " << move_str << std::endl;
   if (isalpha(move_str[0]))
   {
     // Drop candidates that are not on the correct column
     auto start_column = static_cast<int8_t>(move_str[0] - 'a');
-    candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [start_column](Coordinates piece_loc)
-                                    {
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
+                                    [start_column](Coordinates piece_loc) {
                                       return piece_loc.x() != start_column;
-                                    }), candidates.end());
+                                    }),
+                     candidates.end());
 
     move_str = move_str.substr(1);
     if (candidates.size() == 1)
@@ -871,7 +858,7 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
 
   if (move_str.empty())
   {
-    std::cerr << "2 Too many pieces can perform move " << move_param << "\n";
+    std::cerr << "Too many pieces can perform move " << move_param << "\n";
     return {};
   }
 
@@ -880,10 +867,11 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
 
     // Drop candidates that are not on the correct column
     auto start_row = static_cast<int8_t>(move_str[0] - '1');
-    candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [start_row](Coordinates piece_loc)
-                                    {
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
+                                    [start_row](Coordinates piece_loc) {
                                       return piece_loc.y() != start_row;
-                                    }), candidates.end());
+                                    }),
+                     candidates.end());
     move_str = move_str.substr(1);
     if (candidates.size() == 1)
     {
@@ -894,11 +882,11 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
 
   if (candidates.size() > 1)
   {
-    std::cerr << "3 Too many pieces can perform move " << move_param << "\n";
+    std::cerr << "Too many pieces can perform move " << move_param << "\n";
   }
   else
   {
-    std::cerr << "2 No piece can perform move " << move_param << "\n";
+    std::cerr << "No piece can perform move " << move_param << "\n";
   }
   return {};
 }
@@ -918,7 +906,7 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
     {
       ++index;
     }
-    index = pgn.find_first_not_of(" \t\n", index); 
+    index = pgn.find_first_not_of(" \t\n", index);
 
     if (pgn[index] == '[')
     {
@@ -951,45 +939,20 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
     }
     else
     {
-      std::cerr << "Unexpected char at index " << std::to_string(index) << " while parsing pgn file: " << pgn[index] << "Ascii code: " << std::to_string(static_cast<int32_t>(pgn[index])) << std::endl;
+      std::cerr << "Unexpected char at index " << std::to_string(index) << " while parsing pgn file: " << pgn[index]
+                << "Ascii code: " << std::to_string(static_cast<int32_t>(pgn[index])) << std::endl;
       return {};
     }
   }
-
-#if 0
-  std::cout << "Tag pairs: \n";
-  for (auto const& tag : tag_pairs)
-  {
-    std::cout << tag << "\n";
-  }
-
-  std::cout << "Moves: \n";
-  for (auto const& move : moves)
-  {
-    std::cout << move << "\n";
-  }
-
-  std::cout << "Game result: " << game_result << std::endl;
-#endif
 
   std::optional<Board> result = Board{};
   auto color{Color::white};
   for (auto const& move_str : moves)
   {
     auto coords = parse_move(move_str, *result, color);
-    if (coords)
+    if (coords && result->try_make_move(coords->first, coords->second))
     {
-      std::cout << "Attempting move: " << coords->first << ", " << coords->second << "\n";
-      if (result->try_make_move(coords->first, coords->second))
-      {
-        std::cout << "  Move success" << std::endl;;
-      }
-      else
-      {
-        std::cout << "  Move failure" << std::endl;
-        result->display(std::cout);
-        return {};
-      }
+      std::cout << "Move " << move_str << ": " << coords->first << " -> " << coords->second << std::endl;
     }
     else
     {
@@ -998,7 +961,7 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
     }
     color = (color == Color::white) ? Color::black : Color::white;
   }
-  
+
   return result;
 }
 
