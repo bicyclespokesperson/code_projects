@@ -180,7 +180,10 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
   switch (board.square_at(from).occupier())
   {
   case Piece::pawn:
-    return pawn_can_move(from, to, board);
+  {
+    auto result = pawn_can_move(from, to, board);
+    return result;
+  }
   case Piece::knight:
     return knight_can_move(from, to, board);
   case Piece::bishop:
@@ -766,11 +769,14 @@ std::vector<Coordinates> Board::find_piece(Piece piece, Color color, Coordinates
 std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view move_param, Board const& board, Color color)
 {
   std::string move_str{move_param};
-  MY_ASSERT(!isspace(move_str[move_str.size() - 1]), "Move string should already have whitespace removed");
+  move_str.erase(std::remove(move_str.begin(), move_str.end(), 'x'), move_str.end());
+  move_str.erase(std::remove(move_str.begin(), move_str.end(), '+'), move_str.end());
+  move_str.erase(std::remove(move_str.begin(), move_str.end(), '#'), move_str.end());
+  move_str.erase(std::remove(move_str.begin(), move_str.end(), '?'), move_str.end());
+  move_str.erase(std::remove(move_str.begin(), move_str.end(), '!'), move_str.end());
+  move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
 
-  std::transform(move_str.begin(), move_str.end(), move_str.begin(), [](unsigned char c){ return std::toupper(c); });
-  move_str.erase(std::remove(move_str.begin(), move_str.end(), 'X'), move_str.end());
-
+  //std::transform(move_str.begin(), move_str.end(), move_str.begin(), [](unsigned char c){ return std::toupper(c); });
 
   if (move_str == "O-O" || move_str == "0-0")
   {
@@ -800,11 +806,13 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     static_cast<int8_t>(toupper(move_str[move_str.size() - 2]) - 'A'), 
     static_cast<int8_t>(move_str[move_str.size() - 1] - '1')};
 
+  std::cout << "Target square for " << move_param << ": " << target_square << std::endl;
+
   move_str.resize(move_str.size() - 2); // Drop target square from string
   auto const piece = [&]
   {
-    // Handle straight pawn move case (ex: e4)
-    if (move_str.empty())
+    // Handle pawn move case (ex: e4, xe4, fxe4)
+    if (move_str.empty() || islower(move_str[0]))
     {
       return Piece::pawn;
     }
@@ -812,8 +820,17 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     // Handle piece move case (ex: Bc4)
     auto piece = from_char(move_str[0]);
     move_str = move_str.substr(1);
+
     return piece;
   }(); 
+
+  if (piece == Piece::empty)
+  {
+    std::cerr << "Invalid move: " << move_param << "\n";
+    return {};
+  }
+
+  std::cout << "Piece: " << std::to_string(static_cast<uint8_t>(piece)) << std::endl;
 
   auto candidates = board.find_piece(piece, color, target_square);
   if (candidates.empty())
@@ -834,10 +851,11 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     return {};
   }
 
+  std::cout << "Move_str: " << move_str << std::endl;
   if (isalpha(move_str[0]))
   {
     // Drop candidates that are not on the correct column
-    auto start_column = static_cast<int8_t>(move_str[0] - 'A');
+    auto start_column = static_cast<int8_t>(move_str[0] - 'a');
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [start_column](Coordinates piece_loc)
                                     {
                                       return piece_loc.x() != start_column;
@@ -964,11 +982,11 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
       std::cout << "Attempting move: " << coords->first << ", " << coords->second << "\n";
       if (result->try_make_move(coords->first, coords->second))
       {
-        std::cout << "  Move success\n";
+        std::cout << "  Move success" << std::endl;;
       }
       else
       {
-        std::cout << "  Move failure\n";
+        std::cout << "  Move failure" << std::endl;
         result->display(std::cout);
         return {};
       }

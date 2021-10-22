@@ -42,7 +42,11 @@ int main(int /* argc */, char* /* argv*/[])
 
   std::string pgn_filename{"./data/fischer_spassky.pgn"};
 
-  Board::from_pgn(read_file_contents(pgn_filename));
+  auto b = Board::from_pgn(read_file_contents(pgn_filename));
+  if (b)
+  {
+    b->display(std::cout);
+  }
 #endif
 
   return 0;
