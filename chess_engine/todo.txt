@@ -1,7 +1,3 @@
-Clean up session
-
-Add Board_from_PGN method
-
 Generate moves
 
 Add checkmate detection

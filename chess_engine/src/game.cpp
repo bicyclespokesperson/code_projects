@@ -25,7 +25,7 @@ void Game::run()
   {
     if (auto move = player->prompt_move(std::cin, std::cout))
     {
-      if (board.try_make_move(move->first, move->second))
+      if (board.try_make_move(*move))
       {
         player = get_next_player();
       }

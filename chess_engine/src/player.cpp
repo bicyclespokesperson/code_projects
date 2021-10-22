@@ -10,7 +10,7 @@ Player::Player(std::string name) : m_name(std::move(name))
 Player::~Player() = default;
 
 // Returns empty if the player resigns.
-std::optional<std::pair<Coordinates, Coordinates>> Player::prompt_move(std::istream& in, std::ostream& out) const
+std::optional<Board::Move> Player::prompt_move(std::istream& in, std::ostream& out) const
 {
   std::string line = "";
   out << get_name() << ", please enter the beginning and ending squares of the ";
@@ -44,9 +44,8 @@ std::optional<std::pair<Coordinates, Coordinates>> Player::prompt_move(std::istr
     // since they are read as ascii values from the console
     // (so '0' is 48 and 'A' is 65), but we want to store them as integers,
     // so we can do array access.
-    return std::pair<Coordinates, Coordinates>{
-        {static_cast<int8_t>(line[0] - 'A'), static_cast<int8_t>(line[1] - '1')},
-        {static_cast<int8_t>(line[3] - 'A'), static_cast<int8_t>(line[4] - '1')}};
+    return Board::Move{{static_cast<int8_t>(line[0] - 'A'), static_cast<int8_t>(line[1] - '1')},
+      {static_cast<int8_t>(line[3] - 'A'), static_cast<int8_t>(line[4] - '1')}};
   }
 
   // Empty if the player resigned

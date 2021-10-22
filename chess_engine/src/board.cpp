@@ -154,9 +154,10 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
     }
     // En passent
     else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.previous_move() &&
-             board.previous_move()->first.x() == to.x() && std::abs(board.previous_move()->first.y() - to.y()) == 1 &&
-             std::abs(board.previous_move()->second.y() - to.y()) == 1 &&
-             board.square_at(board.previous_move()->second).occupier() == Piece::pawn)
+             board.previous_move()->from.x() == to.x() && 
+             std::abs(board.previous_move()->from.y() - to.y()) == 1 &&
+             std::abs(board.previous_move()->to.y() - to.y()) == 1 &&
+             board.square_at(board.previous_move()->to).occupier() == Piece::pawn)
     {
       return true;
     }
@@ -262,67 +263,67 @@ void Board::unperform_move_(Coordinates from, Coordinates to,
   update_king_locations_(from);
 }
 
-bool Board::try_make_move(Coordinates from, Coordinates to)
+bool Board::try_make_move(Board::Move m)
 {
-  auto piece_to_move = square_at(from).occupier();
+  auto piece_to_move = square_at(m.from).occupier();
   if (piece_to_move == Piece::empty)
   {
     return false;
   }
 
-  if (!previous_move() && !square_at(from).is_white())
+  if (!previous_move() && !square_at(m.from).is_white())
   {
     // White goes first
     return false;
   }
 
-  if (previous_move() && square_at(from).occupier_color() == square_at(previous_move()->second).occupier_color())
+  if (previous_move() && square_at(m.from).occupier_color() == square_at(previous_move()->to).occupier_color())
   {
     // Can't move the same color twice in a row
     return false;
   }
 
-  if (!piece_can_move(from, to, *this))
+  if (!piece_can_move(m.from, m.to, *this))
   {
     return false;
   }
 
-  auto capture_location = to;
-  if (square_at(from).occupier() == Piece::pawn && is_clear_diagonal(from, to) && !square_at(to).is_occupied())
+  auto capture_location = m.to;
+  if (square_at(m.from).occupier() == Piece::pawn && is_clear_diagonal(m.from, m.to) && !square_at(m.to).is_occupied())
   {
     // Update capture location for En passent case
-    capture_location = previous_move()->second;
+    capture_location = previous_move()->to;
   }
 
-  auto captured_piece = perform_move_(from, to, capture_location);
-  if (is_in_check_(square_at(to).occupier_color()))
+  auto captured_piece = perform_move_(m.from, m.to, capture_location);
+  if (is_in_check_(square_at(m.to).occupier_color()))
   {
-    unperform_move_(from, to, captured_piece);
+    unperform_move_(m.from, m.to, captured_piece);
     return false;
   }
 
-  update_castling_rights_(to);
+  update_castling_rights_(m.to);
 
   // Move rook if the move was a castle
-  if (square_at(to).occupier() == Piece::king && distance_between(from, to) == 2)
+  if (square_at(m.to).occupier() == Piece::king && distance_between(m.from, m.to) == 2)
   {
-    auto rook_move = find_castling_rook_move_(to);
-    perform_move_(rook_move.first, rook_move.second, rook_move.second);
+    auto rook_move = find_castling_rook_move_(m.to);
+    perform_move_(rook_move.from, rook_move.to, rook_move.to);
   }
 
   // Promote pawn to queen if it reached the last rank
-  if (square_at(to).occupier() == Piece::pawn && (to.y() == 0 || to.y() == 7))
+  if (square_at(m.to).occupier() == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7))
   {
-    square_at(to).set_occupier(Piece::queen);
+    square_at(m.to).set_occupier(Piece::queen);
   }
 
-  m_previous_move = std::pair{from, to};
+  m_previous_move = Board::Move{m.from, m.to};
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
   return true;
 }
 
-std::pair<Coordinates, Coordinates> Board::find_castling_rook_move_(Coordinates king_destination)
+Board::Move Board::find_castling_rook_move_(Coordinates king_destination)
 {
   if (king_destination == Coordinates{2, 0})
   {
@@ -624,7 +625,7 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
   return true;
 }
 
-std::optional<std::pair<Coordinates, Coordinates>> Board::previous_move() const
+std::optional<Board::Move> Board::previous_move() const
 {
   return m_previous_move;
 }
@@ -761,7 +762,7 @@ std::vector<Coordinates> Board::find_piece(Piece piece, Color color, Coordinates
   return candidates;
 }
 
-std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view move_param, Board const& board,
+std::optional<Board::Move> move_from_pgn(std::string_view move_param, Board const& board,
                                                               Color color)
 {
   std::string move_str{move_param};
@@ -775,11 +776,11 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
   {
     if (color == Color::white)
     {
-      return std::pair(Coordinates{4, 0}, Coordinates{6, 0});
+      return Board::Move{Coordinates{4, 0}, Coordinates{6, 0}};
     }
     else
     {
-      return std::pair(Coordinates{4, 7}, Coordinates{6, 7});
+      return Board::Move{Coordinates{4, 7}, Coordinates{6, 7}};
     }
   }
 
@@ -787,11 +788,11 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
   {
     if (color == Color::white)
     {
-      return std::pair(Coordinates{4, 0}, Coordinates{2, 0});
+      return Board::Move{Coordinates{4, 0}, Coordinates{2, 0}};
     }
     else
     {
-      return std::pair(Coordinates{4, 7}, Coordinates{2, 7});
+      return Board::Move{Coordinates{4, 7}, Coordinates{2, 7}};
     }
   }
 
@@ -829,7 +830,7 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
   if (candidates.size() == 1)
   {
     // Exactly one piece can move to the target square
-    return std::pair(candidates.front(), target_square);
+    return Board::Move{candidates.front(), target_square};
   }
 
   if (move_str.empty())
@@ -852,7 +853,7 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return std::pair(candidates.front(), target_square);
+      return Board::Move{candidates.front(), target_square};
     }
   }
 
@@ -876,7 +877,7 @@ std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view m
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return std::pair(candidates.front(), target_square);
+      return Board::Move{candidates.front(), target_square};
     }
   }
 
@@ -949,10 +950,10 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
   auto color{Color::white};
   for (auto const& move_str : moves)
   {
-    auto coords = parse_move(move_str, *result, color);
-    if (coords && result->try_make_move(coords->first, coords->second))
+    auto move_to_try = move_from_pgn(move_str, *result, color);
+    if (move_to_try && result->try_make_move(*move_to_try))
     {
-      std::cout << "Move " << move_str << ": " << coords->first << " -> " << coords->second << std::endl;
+      std::cout << "Move " << move_str << ": " << move_to_try->from << " -> " << move_to_try->to << std::endl;
     }
     else
     {

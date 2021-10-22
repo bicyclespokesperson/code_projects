@@ -7,6 +7,12 @@
 class Board
 {
 public:
+  struct Move
+  {
+    Coordinates from;
+    Coordinates to;
+  };
+
   static std::optional<Board> from_pgn(std::string_view pgn);
 
   Board();
@@ -74,9 +80,9 @@ public:
   /**
    * Return false on invalid move
    */
-  bool try_make_move(Coordinates from, Coordinates to);
+  bool try_make_move(Move m);
 
-  std::optional<std::pair<Coordinates, Coordinates>> previous_move() const;
+  std::optional<Move> previous_move() const;
 
   std::vector<Coordinates>& get_opposing_pieces(Coordinates piece_location);
   std::vector<Coordinates> const& get_opposing_pieces(Coordinates piece_location) const;
@@ -112,13 +118,13 @@ private:
 
   static void display_piece_locations_(std::vector<Coordinates> const& pieces);
 
-  std::pair<Coordinates, Coordinates> find_castling_rook_move_(Coordinates king_destination);
+  Move find_castling_rook_move_(Coordinates king_destination);
 
   constexpr static size_t c_board_size{64};
   constexpr static size_t c_initial_piece_count{20};
 
   std::array<Square, c_board_size> m_squares{};
-  std::optional<std::pair<Coordinates, Coordinates>> m_previous_move;
+  std::optional<Move> m_previous_move;
 
   // TODO(jere9309): Should these be arrays? Would that improve copying performance?
   std::vector<Coordinates> m_black_piece_locations{};
