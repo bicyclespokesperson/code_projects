@@ -1,12 +1,11 @@
-
 # $ cmake CMakeLists.txt
 # $ make
+#
+# Much of this file comes from: https://cliutils.gitlab.io/modern-cmake/
 
 cmake_minimum_required(VERSION 3.16)
 
 project (chess_engine VERSION 0.1 LANGUAGES CXX)
-
-
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(CMAKE_BUILD_TYPE Debug)
@@ -29,25 +28,19 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Note this needs to be done in the main CMakeLists
   # since it calls enable_testing, which must be in the
   # main CMakeLists.
+  # This sets BUILD_TESTING=ON
   include(CTest)
 
 endif()
 
 include(FetchContent)
 
+# Add the CMakeLists.txt files in the following directories
+add_subdirectory(src)
+add_subdirectory(app)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory(tests)
 endif()
-
-
-add_subdirectory(src)
-add_subdirectory(app)
-
-include_directories(include)
-
-#target_link_libraries(chess_engine PRIVATE chess_engine_lib)
-
-add_test(NAME TestName COMMAND TargetName)
 
 
 

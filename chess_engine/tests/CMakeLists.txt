@@ -1,4 +1,5 @@
 
+# Download catch2 (Need to include FetchContent in the parent CMakeLists.txt file)
 FetchContent_Declare(
   catch
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
@@ -8,7 +9,11 @@ FetchContent_MakeAvailable(catch)
 # Tests need to be added as executables first
 add_executable(testlib chess_engine_tests.cpp)
 
-target_compile_features(testlib PRIVATE cxx_std_17)
+# Compiler settings for the test code
+
+include_directories(../include)
+
+target_compile_features(testlib PRIVATE cxx_std_20)
 
 target_precompile_headers(testlib
   PRIVATE
@@ -28,10 +33,9 @@ target_precompile_headers(testlib
     <vector>
 )
 
-# Should be linked to the main library
+# Need to link with the main library to build/test it, and also link with Catch2
 target_link_libraries(testlib PRIVATE chess_engine_lib Catch2::Catch2)
 
-include_directories(../include)
-
-add_test(NAME test_chess_engine COMMAND testlib)
-
+# Add this so we can use "make test"
+# CMAKE_SOURCE_DIR == the top level of the tree
+add_test(NAME test_chess_engine COMMAND testlib  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
