@@ -6,8 +6,7 @@ enum class Piece : uint8_t
   empty = 0,
   pawn,
   knight,
-  bishop_dark,
-  bishop_light,
+  bishop,
   rook,
   queen,
   king,
@@ -24,6 +23,8 @@ enum class Square_color : uint8_t
   dark = 0,
   light,
 };
+
+Piece from_char(char c);
 
 class Square
 {

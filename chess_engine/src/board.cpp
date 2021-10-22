@@ -183,9 +183,7 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
     return pawn_can_move(from, to, board);
   case Piece::knight:
     return knight_can_move(from, to, board);
-  case Piece::bishop_dark:
-    [[fallthrough]];
-  case Piece::bishop_light:
+  case Piece::bishop:
     return bishop_can_move(from, to, board);
   case Piece::rook:
     return rook_can_move(from, to, board);
@@ -306,7 +304,7 @@ bool Board::try_make_move(Coordinates from, Coordinates to)
   update_castling_rights_(to);
 
   // Move rook if the move was a castle
-  if (square_at(from).occupier() == Piece::king && distance_between(from, to) == 2)
+  if (square_at(to).occupier() == Piece::king && distance_between(from, to) == 2)
   {
     auto rook_move = find_castling_rook_move_(to);
     perform_move_(rook_move.first, rook_move.second, rook_move.second);
@@ -466,10 +464,10 @@ void Board::setup()
   // White pieces
   square_at({0, 0}).set_occupier(Piece::rook);
   square_at({1, 0}).set_occupier(Piece::knight);
-  square_at({2, 0}).set_occupier(Piece::bishop_dark);
+  square_at({2, 0}).set_occupier(Piece::bishop);
   square_at({3, 0}).set_occupier(Piece::queen);
   square_at({4, 0}).set_occupier(Piece::king);
-  square_at({5, 0}).set_occupier(Piece::bishop_light);
+  square_at({5, 0}).set_occupier(Piece::bishop);
   square_at({6, 0}).set_occupier(Piece::knight);
   square_at({7, 0}).set_occupier(Piece::rook);
   for (int8_t i{0}; i < c_board_dimension; ++i)
@@ -486,10 +484,10 @@ void Board::setup()
   // Black pieces
   square_at({0, 7}).set_occupier(Piece::rook);
   square_at({1, 7}).set_occupier(Piece::knight);
-  square_at({2, 7}).set_occupier(Piece::bishop_dark);
+  square_at({2, 7}).set_occupier(Piece::bishop);
   square_at({3, 7}).set_occupier(Piece::queen);
   square_at({4, 7}).set_occupier(Piece::king);
-  square_at({5, 7}).set_occupier(Piece::bishop_light);
+  square_at({5, 7}).set_occupier(Piece::bishop);
   square_at({6, 7}).set_occupier(Piece::knight);
   square_at({7, 7}).set_occupier(Piece::rook);
   for (int8_t i{0}; i < c_board_dimension; ++i)
@@ -649,6 +647,15 @@ std::vector<Coordinates> const& Board::get_friendly_pieces(Coordinates piece_loc
   return m_black_piece_locations;
 }
 
+std::vector<Coordinates> const& Board::get_pieces(Color color) const
+{
+  if (color == Color::white)
+  {
+    return m_white_piece_locations;
+  }
+  return m_black_piece_locations;
+}
+
 std::vector<Coordinates>& Board::get_opposing_pieces(Coordinates piece_location)
 {
   return const_cast<std::vector<Coordinates>&>(std::as_const(*this).get_opposing_pieces(piece_location));
@@ -657,6 +664,11 @@ std::vector<Coordinates>& Board::get_opposing_pieces(Coordinates piece_location)
 std::vector<Coordinates>& Board::get_friendly_pieces(Coordinates piece_location)
 {
   return const_cast<std::vector<Coordinates>&>(std::as_const(*this).get_friendly_pieces(piece_location));
+}
+
+std::vector<Coordinates>& Board::get_pieces(Color color)
+{
+  return const_cast<std::vector<Coordinates>&>(std::as_const(*this).get_pieces(color));
 }
 
 bool Board::is_in_check_(Color color) const
@@ -738,6 +750,140 @@ bool Board::validate_() const
   return verify_pieces(Color::black, m_black_piece_locations) && verify_pieces(Color::white, m_white_piece_locations);
 }
 
+std::vector<Coordinates> Board::find_piece(Piece piece, Color color, Coordinates target_square) const
+{
+  std::vector<Coordinates> candidates;
+  auto const& locations = get_pieces(color);
+  std::copy_if(locations.cbegin(), locations.cend(), std::back_inserter(candidates), [&](Coordinates piece_loc)
+               {
+                 return square_at(piece_loc).occupier() == piece 
+                 && piece_can_move(piece_loc, target_square, *this);
+               });
+
+  return candidates;
+}
+
+std::optional<std::pair<Coordinates, Coordinates>> parse_move(std::string_view move_param, Board const& board, Color color)
+{
+  std::string move_str{move_param};
+  MY_ASSERT(!isspace(move_str[move_str.size() - 1]), "Move string should already have whitespace removed");
+
+  std::transform(move_str.begin(), move_str.end(), move_str.begin(), [](unsigned char c){ return std::toupper(c); });
+  move_str.erase(std::remove(move_str.begin(), move_str.end(), 'X'), move_str.end());
+
+
+  if (move_str == "O-O" || move_str == "0-0")
+  {
+    if (color == Color::white)
+    {
+      return std::pair(Coordinates{4, 0}, Coordinates{6, 0});
+    }
+    else
+    {
+      return std::pair(Coordinates{4, 7}, Coordinates{6, 7});
+    }
+  }
+
+  if (move_str == "O-O-O" || move_str == "0-0-0")
+  {
+    if (color == Color::white)
+    {
+      return std::pair(Coordinates{4, 0}, Coordinates{2, 0});
+    }
+    else
+    {
+      return std::pair(Coordinates{4, 7}, Coordinates{2, 7});
+    }
+  }
+
+  Coordinates target_square{
+    static_cast<int8_t>(toupper(move_str[move_str.size() - 2]) - 'A'), 
+    static_cast<int8_t>(move_str[move_str.size() - 1] - '1')};
+
+  move_str.resize(move_str.size() - 2); // Drop target square from string
+  auto const piece = [&]
+  {
+    // Handle straight pawn move case (ex: e4)
+    if (move_str.empty())
+    {
+      return Piece::pawn;
+    }
+
+    // Handle piece move case (ex: Bc4)
+    auto piece = from_char(move_str[0]);
+    move_str = move_str.substr(1);
+    return piece;
+  }(); 
+
+  auto candidates = board.find_piece(piece, color, target_square);
+  if (candidates.empty())
+  {
+    std::cerr << "1 No piece can perform move " << move_param << "\n";
+    return {};
+  }
+  
+  if (candidates.size() == 1)
+  {
+    // Exactly one piece can move to the target square
+    return std::pair(candidates.front(), target_square);
+  }
+
+  if (move_str.empty())
+  {
+    std::cerr << "1 Too many pieces can perform move " << move_param << "\n";
+    return {};
+  }
+
+  if (isalpha(move_str[0]))
+  {
+    // Drop candidates that are not on the correct column
+    auto start_column = static_cast<int8_t>(move_str[0] - 'A');
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [start_column](Coordinates piece_loc)
+                                    {
+                                      return piece_loc.x() != start_column;
+                                    }), candidates.end());
+
+    move_str = move_str.substr(1);
+    if (candidates.size() == 1)
+    {
+      // Exactly one piece can move to the target square
+      return std::pair(candidates.front(), target_square);
+    }
+  }
+
+  if (move_str.empty())
+  {
+    std::cerr << "2 Too many pieces can perform move " << move_param << "\n";
+    return {};
+  }
+
+  if (isdigit(move_str[0]))
+  {
+
+    // Drop candidates that are not on the correct column
+    auto start_row = static_cast<int8_t>(move_str[0] - '1');
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [start_row](Coordinates piece_loc)
+                                    {
+                                      return piece_loc.y() != start_row;
+                                    }), candidates.end());
+    move_str = move_str.substr(1);
+    if (candidates.size() == 1)
+    {
+      // Exactly one piece can move to the target square
+      return std::pair(candidates.front(), target_square);
+    }
+  }
+
+  if (candidates.size() > 1)
+  {
+    std::cerr << "3 Too many pieces can perform move " << move_param << "\n";
+  }
+  else
+  {
+    std::cerr << "2 No piece can perform move " << move_param << "\n";
+  }
+  return {};
+}
 
 std::optional<Board> Board::from_pgn(std::string_view pgn)
 {
@@ -787,11 +933,12 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
     }
     else
     {
-      std::cout << "Unexpected char: " << pgn[index] << "Ascii code: " << std::to_string(static_cast<int32_t>(pgn[index])) << std::endl;
-      MY_ASSERT(false, "Unexpected char while parsing PGN file");
+      std::cerr << "Unexpected char at index " << std::to_string(index) << " while parsing pgn file: " << pgn[index] << "Ascii code: " << std::to_string(static_cast<int32_t>(pgn[index])) << std::endl;
+      return {};
     }
   }
 
+#if 0
   std::cout << "Tag pairs: \n";
   for (auto const& tag : tag_pairs)
   {
@@ -805,8 +952,34 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
   }
 
   std::cout << "Game result: " << game_result << std::endl;
+#endif
 
   std::optional<Board> result = Board{};
+  auto color{Color::white};
+  for (auto const& move_str : moves)
+  {
+    auto coords = parse_move(move_str, *result, color);
+    if (coords)
+    {
+      std::cout << "Attempting move: " << coords->first << ", " << coords->second << "\n";
+      if (result->try_make_move(coords->first, coords->second))
+      {
+        std::cout << "  Move success\n";
+      }
+      else
+      {
+        std::cout << "  Move failure\n";
+        result->display(std::cout);
+        return {};
+      }
+    }
+    else
+    {
+      result->display(std::cout);
+      return {};
+    }
+    color = (color == Color::white) ? Color::black : Color::white;
+  }
   
   return result;
 }

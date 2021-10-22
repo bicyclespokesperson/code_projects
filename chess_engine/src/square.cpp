@@ -1,6 +1,27 @@
 #include "square.h"
 #include "my_assert.h"
 
+Piece from_char(char c)
+{
+  switch (c)
+  {
+    case 'N':
+      return Piece::knight;
+    case 'B':
+      return Piece::bishop;
+    case 'R':
+      return Piece::rook;
+    case 'Q':
+      return Piece::queen;
+    case 'K':
+      return Piece::king;
+    case 'P':
+      return Piece::pawn;
+    default:
+      return Piece::empty;
+  }
+}
+
 void Square::display(std::ostream& out) const
 {
   std::string result{"___ "};
@@ -10,9 +31,7 @@ void Square::display(std::ostream& out) const
   case Piece::pawn:
     result[0] = 'P';
     break;
-  case Piece::bishop_dark:
-    [[fallthrough]];
-  case Piece::bishop_light:
+  case Piece::bishop:
     result[0] = 'B';
     break;
   case Piece::knight:

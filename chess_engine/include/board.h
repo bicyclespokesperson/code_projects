@@ -85,8 +85,12 @@ public:
   std::vector<Coordinates>& get_friendly_pieces(Coordinates piece_location);
   std::vector<Coordinates> const& get_friendly_pieces(Coordinates piece_location) const;
 
+  std::vector<Coordinates>& get_pieces(Color color);
+  std::vector<Coordinates> const& get_pieces(Color color) const;
+
   bool check_castling_rights(Coordinates dest) const;
 
+  std::vector<Coordinates> find_piece(Piece piece, Color color, Coordinates target_square) const;
 private:
   /**
    * Ensure that all the coordinates in black and white pieces point to valid
