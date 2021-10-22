@@ -1,3 +1,7 @@
+Goal: board.try_move_uci(str)
+Goal: board.try_move_algebraic(str)
+Goal: static Board::from_fen(str)
+
 Generate moves
 
 Add checkmate detection

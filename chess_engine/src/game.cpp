@@ -25,7 +25,7 @@ void Game::run()
   {
     if (auto move = player->prompt_move(std::cin, std::cout))
     {
-      if (board.try_make_move(*move))
+      if (board.try_move_algebraic(*move))
       {
         player = get_next_player();
       }
@@ -40,7 +40,6 @@ void Game::run()
     }
     board.display(std::cout);
   }
-  board.display(std::cout);
 }
 
 Player* Game::get_next_player()

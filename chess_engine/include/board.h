@@ -80,7 +80,20 @@ public:
   /**
    * Return false on invalid move
    */
-  bool try_make_move(Move m);
+  bool try_move(Move m);
+
+  /**
+   * Attempt to make a move encoded in uci format ("e2 e4")
+   * @return False if the move was a malformed move string, or illegal
+   */
+  bool try_move_uci(std::string_view move_str);
+
+  /**
+   * Attempt to make a move encoded in algebraic notation ("Bxc3")
+   * @return False if the move was a malformed move string, or illegal
+   */
+  bool try_move_algebraic(std::string_view move_str);
+
 
   std::optional<Move> previous_move() const;
 
@@ -97,6 +110,7 @@ public:
 
   std::vector<Coordinates> find_piece(Piece piece, Color color, Coordinates target_square) const;
 
+  Color current_turn_color();
 private:
   /**
    * Ensure that all the coordinates in black and white pieces point to valid
@@ -108,6 +122,11 @@ private:
   void update_king_locations_(Coordinates dest);
 
   bool is_in_check_(Color color) const;
+
+  Color opposite_color_(Color color);
+
+  std::optional<Board::Move> move_from_algebraic_(std::string_view move_param, Color color);
+  std::optional<Board::Move> move_from_uci_(std::string move_str);
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Coordinates from, Coordinates to,
                                                              Coordinates capture_location);

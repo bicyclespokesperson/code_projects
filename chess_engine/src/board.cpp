@@ -263,7 +263,7 @@ void Board::unperform_move_(Coordinates from, Coordinates to,
   update_king_locations_(from);
 }
 
-bool Board::try_make_move(Board::Move m)
+bool Board::try_move(Board::Move m)
 {
   auto piece_to_move = square_at(m.from).occupier();
   if (piece_to_move == Piece::empty)
@@ -271,15 +271,9 @@ bool Board::try_make_move(Board::Move m)
     return false;
   }
 
-  if (!previous_move() && !square_at(m.from).is_white())
+  if (current_turn_color() != square_at(m.from).occupier_color())
   {
-    // White goes first
-    return false;
-  }
-
-  if (previous_move() && square_at(m.from).occupier_color() == square_at(previous_move()->to).occupier_color())
-  {
-    // Can't move the same color twice in a row
+    // Make sure the correct color is moving
     return false;
   }
 
@@ -289,7 +283,7 @@ bool Board::try_make_move(Board::Move m)
   }
 
   auto capture_location = m.to;
-  if (square_at(m.from).occupier() == Piece::pawn && is_clear_diagonal(m.from, m.to) && !square_at(m.to).is_occupied())
+  if (piece_to_move == Piece::pawn && is_clear_diagonal(m.from, m.to) && !square_at(m.to).is_occupied())
   {
     // Update capture location for En passent case
     capture_location = previous_move()->to;
@@ -321,6 +315,43 @@ bool Board::try_make_move(Board::Move m)
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
   return true;
+}
+
+bool Board::try_move_algebraic(std::string_view move_str)
+{
+  if (auto m = move_from_algebraic_(std::string{move_str}, current_turn_color()))
+  {
+    return try_move(*m);
+  }
+  return false;
+}
+
+bool Board::try_move_uci(std::string_view move_str)
+{
+  if (auto m = move_from_uci_(std::string{move_str}))
+  {
+    return try_move(*m);
+  }
+  return false;
+}
+
+Color Board::current_turn_color()
+{
+  if (!previous_move())
+  {
+    return Color::white;
+  }
+  
+  return opposite_color_(square_at(previous_move()->to).occupier_color());
+}
+
+Color Board::opposite_color_(Color color)
+{
+  if (color == Color::white)
+  {
+    return Color::black;
+  }
+  return Color::white;
 }
 
 Board::Move Board::find_castling_rook_move_(Coordinates king_destination)
@@ -762,8 +793,35 @@ std::vector<Coordinates> Board::find_piece(Piece piece, Color color, Coordinates
   return candidates;
 }
 
-std::optional<Board::Move> move_from_pgn(std::string_view move_param, Board const& board,
-                                                              Color color)
+std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
+{
+  move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
+  std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
+
+  // If any character does not  fall in the allowed range,
+  // the string is invalid. (valid: "A2 A3")
+  if (move_str.length() != 4 ||
+
+                         // 'A' <= move_str[0] <= 'H'
+                         ((move_str[0] < 'A' || move_str[0] > 'H') ||
+
+                         // '1' <= move_str[1] <= '8'
+                         (move_str[1] < '1' || move_str[1] > '8') ||
+
+                         // 'A' <= move_str[3] <= 'H'
+                         (move_str[2] < 'A' && move_str[2] > 'H') ||
+
+                         // '1' <= move_str[4] <= '8'
+                         move_str[3] < '1' || move_str[3] > '8'))
+  {
+    return {};
+  }
+
+  return Board::Move{{static_cast<int8_t>(move_str[0] - 'A'), static_cast<int8_t>(move_str[1] - '1')},
+    {static_cast<int8_t>(move_str[3] - 'A'), static_cast<int8_t>(move_str[4] - '1')}};
+}
+
+std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
 {
   std::string move_str{move_param};
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(),
@@ -820,7 +878,7 @@ std::optional<Board::Move> move_from_pgn(std::string_view move_param, Board cons
     return {};
   }
 
-  auto candidates = board.find_piece(piece, color, target_square);
+  auto candidates = find_piece(piece, color, target_square);
   if (candidates.empty())
   {
     std::cerr << "No piece can perform move " << move_param << "\n";
@@ -950,8 +1008,8 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
   auto color{Color::white};
   for (auto const& move_str : moves)
   {
-    auto move_to_try = move_from_pgn(move_str, *result, color);
-    if (move_to_try && result->try_make_move(*move_to_try))
+    auto move_to_try = result->move_from_algebraic_(move_str, color);
+    if (move_to_try && result->try_move(*move_to_try))
     {
       std::cout << "Move " << move_str << ": " << move_to_try->from << " -> " << move_to_try->to << std::endl;
     }

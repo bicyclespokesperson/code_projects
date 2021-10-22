@@ -37,7 +37,7 @@ public:
    * std::string. Note: The std::pair and both squares must be deleted. Returns nullptr
    * if the player resigns.
    */
-  std::optional<Board::Move> prompt_move(std::istream& in, std::ostream& out) const;
+  std::optional<std::string> prompt_move(std::istream& in, std::ostream& out) const;
 
 private:
   /**
