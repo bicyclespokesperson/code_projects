@@ -210,48 +210,46 @@ Board::Board() : m_white_king({0, 0}), m_black_king({0, 0})
 
 Board::~Board() = default;
 
-std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Coordinates from, Coordinates to,
-                                                                  Coordinates capture_location)
+std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
-  auto& pieces = get_friendly_pieces(from);
-  auto& opposing_pieces = get_opposing_pieces(from);
+  auto& pieces = get_friendly_pieces(m.from);
+  auto& opposing_pieces = get_opposing_pieces(m.from);
 
-  if (square_at(to).is_occupied())
+  if (square_at(m.to).is_occupied())
   {
-    captured_piece = std::pair{to, square_at(capture_location).occupier()};
+    captured_piece = std::pair{m.to, square_at(capture_location).occupier()};
     remove_piece_(opposing_pieces, capture_location);
     square_at(capture_location).remove_occupier();
   }
 
-  square_at(to).set_occupier(square_at(from).occupier());
-  square_at(to).set_occupier_color(square_at(from).occupier_color());
-  square_at(from).remove_occupier();
+  square_at(m.to).set_occupier(square_at(m.from).occupier());
+  square_at(m.to).set_occupier_color(square_at(m.from).occupier_color());
+  square_at(m.from).remove_occupier();
 
-  remove_piece_(pieces, from);
-  add_piece_(pieces, to);
+  remove_piece_(pieces, m.from);
+  add_piece_(pieces, m.to);
 
-  update_king_locations_(to);
+  update_king_locations_(m.to);
 
   return captured_piece;
 }
 
-void Board::unperform_move_(Coordinates from, Coordinates to,
-                            std::optional<std::pair<Coordinates, Piece>> captured_piece)
+void Board::unperform_move_(Board::Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece)
 {
-  MY_ASSERT(square_at(to).is_occupied() && !square_at(from).is_occupied(),
+  MY_ASSERT(square_at(m.to).is_occupied() && !square_at(m.from).is_occupied(),
             "This function can only be called after a move has been performed");
 
-  auto& pieces = get_friendly_pieces(to);
-  auto& opposing_pieces = get_opposing_pieces(to);
-  bool white_move = square_at(to).is_white();
+  auto& pieces = get_friendly_pieces(m.to);
+  auto& opposing_pieces = get_opposing_pieces(m.to);
+  bool white_move = square_at(m.to).is_white();
 
-  remove_piece_(pieces, to);
-  add_piece_(pieces, from);
+  remove_piece_(pieces, m.to);
+  add_piece_(pieces, m.from);
 
-  square_at(from).set_occupier(square_at(to).occupier());
-  square_at(from).set_occupier_color(square_at(to).occupier_color());
-  square_at(to).remove_occupier();
+  square_at(m.from).set_occupier(square_at(m.to).occupier());
+  square_at(m.from).set_occupier_color(square_at(m.to).occupier_color());
+  square_at(m.to).remove_occupier();
 
   if (captured_piece)
   {
@@ -260,7 +258,7 @@ void Board::unperform_move_(Coordinates from, Coordinates to,
     square_at(captured_piece->first).set_occupier_color((white_move) ? Color::black : Color::white);
   }
 
-  update_king_locations_(from);
+  update_king_locations_(m.from);
 }
 
 bool Board::try_move(Board::Move m)
@@ -289,10 +287,10 @@ bool Board::try_move(Board::Move m)
     capture_location = previous_move()->to;
   }
 
-  auto captured_piece = perform_move_(m.from, m.to, capture_location);
+  auto captured_piece = perform_move_(m, capture_location);
   if (is_in_check_(square_at(m.to).occupier_color()))
   {
-    unperform_move_(m.from, m.to, captured_piece);
+    unperform_move_(m, captured_piece);
     return false;
   }
 
@@ -302,7 +300,7 @@ bool Board::try_move(Board::Move m)
   if (square_at(m.to).occupier() == Piece::king && distance_between(m.from, m.to) == 2)
   {
     auto rook_move = find_castling_rook_move_(m.to);
-    perform_move_(rook_move.from, rook_move.to, rook_move.to);
+    perform_move_(rook_move, rook_move.to);
   }
 
   // Promote pawn to queen if it reached the last rank
@@ -857,8 +855,8 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
 
   Coordinates target_square{static_cast<int8_t>(toupper(move_str[move_str.size() - 2]) - 'A'),
                             static_cast<int8_t>(move_str[move_str.size() - 1] - '1')};
-
   move_str.resize(move_str.size() - 2); // Drop target square from string
+
   auto const piece = [&] {
     // Handle pawn move case (ex: e4, xe4, fxe4)
     if (move_str.empty() || islower(move_str[0]))
@@ -1005,6 +1003,7 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
     }
   }
 
+  // Play out the target moves on the board, and ensure they are valid
   std::optional<Board> result = Board{};
   for (auto const& move_str : moves)
   {

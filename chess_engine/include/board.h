@@ -128,9 +128,8 @@ private:
   std::optional<Board::Move> move_from_algebraic_(std::string_view move_param, Color color);
   std::optional<Board::Move> move_from_uci_(std::string move_str);
 
-  std::optional<std::pair<Coordinates, Piece>> perform_move_(Coordinates from, Coordinates to,
-                                                             Coordinates capture_location);
-  void unperform_move_(Coordinates from, Coordinates to, std::optional<std::pair<Coordinates, Piece>> captured_piece);
+  std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
+  void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
 
   static void remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove);
   static void add_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_add);
