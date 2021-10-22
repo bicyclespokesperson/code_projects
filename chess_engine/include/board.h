@@ -7,7 +7,6 @@
 class Board
 {
 public:
-
   static std::optional<Board> from_pgn(std::string_view pgn);
 
   Board();
@@ -91,6 +90,7 @@ public:
   bool check_castling_rights(Coordinates dest) const;
 
   std::vector<Coordinates> find_piece(Piece piece, Color color, Coordinates target_square) const;
+
 private:
   /**
    * Ensure that all the coordinates in black and white pieces point to valid

@@ -5,7 +5,7 @@
 
 namespace
 {
-  std::optional<std::string> read_file_contents(std::string const& filename)
+std::optional<std::string> read_file_contents(std::string const& filename)
 {
   std::ifstream infile{filename};
   if (!infile)
@@ -16,9 +16,7 @@ namespace
 }
 } // namespace
 
-
-static const char c_fischer_spassky_result[] = 
-" 8  ___ ___ ___ ___ ___ ___ ___ ___ \
+static const char c_fischer_spassky_result[] = " 8  ___ ___ ___ ___ ___ ___ ___ ___ \
 \
 7  ___ ___ ___ ___ ___ ___ ___ ___ \
 \
@@ -36,8 +34,7 @@ static const char c_fischer_spassky_result[] =
 \
     A   B   C   D   E   F   G   H  ";
 
-static const char c_sigrist_result[] = 
-" 8  R_b ___ ___ ___ ___ ___ ___ ___ \
+static const char c_sigrist_result[] = " 8  R_b ___ ___ ___ ___ ___ ___ ___ \
 \
 7  P_b P_b P_b ___ ___ ___ ___ P_b \
 \
@@ -56,7 +53,8 @@ static const char c_sigrist_result[] =
     A   B   C   D   E   F   G   H  \
 ";
 
-TEST_CASE("A board can be constructed from a pgn file" "[board]")
+TEST_CASE("A board can be constructed from a pgn file"
+          "[board]")
 {
   std::string const pgn_filename{"./data/fischer_spassky.pgn"};
   auto contents = read_file_contents(pgn_filename);
@@ -98,4 +96,3 @@ TEST_CASE("Another pgn file")
   // Compare ignoring whitespace
   REQUIRE(result == expected);
 }
-
