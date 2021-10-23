@@ -216,9 +216,9 @@ std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordi
   auto& pieces = get_friendly_pieces(m.from);
   auto& opposing_pieces = get_opposing_pieces(m.from);
 
-  if (square_at(m.to).is_occupied())
+  if (square_at(m.to).is_occupied() || capture_location != m.to)
   {
-    captured_piece = std::pair{m.to, square_at(capture_location).occupier()};
+    captured_piece = std::pair{capture_location, square_at(capture_location).occupier()};
     remove_piece_(opposing_pieces, capture_location);
     square_at(capture_location).remove_occupier();
   }
