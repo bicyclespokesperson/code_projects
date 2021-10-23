@@ -208,6 +208,10 @@ Board::Board() : m_white_king({0, 0}), m_black_king({0, 0})
   setup();
 }
 
+Board::Board(int) : m_white_king({0, 0}), m_black_king({0, 0})
+{
+}
+
 Board::~Board() = default;
 
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
@@ -1014,6 +1018,67 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
   }
 
   return result;
+}
+
+std::optional<Board> Board::from_fen(std::string_view fen)
+{
+  std::optional<Board> board = Board{};
+  
+  std::string fen_str{fen.substr(fen.find_first_not_of(" \n\t"))};
+
+  MY_ASSERT(false, "Not implemented");
+
+  int8_t y{c_board_dimension - 1};
+  int8_t x{0};
+
+  size_t str_index{0};
+  size_t board_index{0};
+  while (board_index < c_board_dimension && (fen_str[str_index] != ' '))
+  {
+    if (str_index >= fen_str.size())
+    {
+      std::cerr << "Fen str too short" << std::endl;
+      return {};
+    }
+
+    if (isdigit(fen_str[str_index]))
+    {
+      for (uint8_t i{0}; i < (fen_str[str_index] - '1'); ++i)
+      {
+        board->square_at({x, y}).set_occupier(Piece::empty);
+        x = (x + 1) % c_board_dimension;
+      }
+    }
+    else if (isalpha(fen_str[str_index]))
+    {
+      auto color = islower(fen_str[str_index]) ? Color::black : Color::white;
+      auto piece = from_char(toupper(fen_str[str_index]));
+      
+      board->square_at({x, y}).set_occupier_color(color);
+      board->square_at({x, y}).set_occupier(piece);
+      x = (x + 1) % c_board_dimension;
+
+      if (color == Color::black)
+      {
+        board->add_piece_(board->m_black_piece_locations, {x, y});
+      }
+      else
+      {
+        board->add_piece_(board->m_white_piece_locations, {x, y});
+      }
+    }
+    else if (fen_str[str_index] == '/')
+    {
+      if (x != 0)
+      {
+        std::cerr << "Badly formed fen string - not enough squares on row" << std::endl;
+        return {};
+      }
+      --y;
+    }
+  }
+
+  return board;
 }
 
 void Board::display(std::ostream& out) const

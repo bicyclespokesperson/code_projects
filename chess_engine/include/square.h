@@ -18,12 +18,6 @@ enum class Color : uint8_t
   white,
 };
 
-enum class Square_color : uint8_t
-{
-  dark = 0,
-  light,
-};
-
 Piece from_char(char c);
 
 class Square
@@ -31,8 +25,8 @@ class Square
 public:
   Square() = default;
 
-  Square(Piece piece, Color piece_color, Square_color sq_color)
-      : m_occupier(piece), m_color(piece_color), m_square_color(sq_color)
+  Square(Piece piece, Color piece_color)
+      : m_occupier(piece), m_color(piece_color)
   {
     static_assert(sizeof(Square) == 1);
   }
@@ -67,16 +61,6 @@ public:
     m_color = new_color;
   }
 
-  Square_color square_color() const
-  {
-    return m_square_color;
-  }
-
-  void set_square_color(Square_color new_color)
-  {
-    m_square_color = new_color;
-  }
-
   bool is_white() const;
 
   void display(std::ostream& out) const;
@@ -84,7 +68,6 @@ public:
 private:
   Piece m_occupier : 5;
   Color m_color : 1;
-  Square_color m_square_color : 1;
 };
 
 #endif

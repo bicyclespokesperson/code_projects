@@ -15,6 +15,8 @@ public:
 
   static std::optional<Board> from_pgn(std::string_view pgn);
 
+  static std::optional<Board> from_fen(std::string_view fen);
+
   Board();
 
   ~Board();
@@ -112,6 +114,12 @@ public:
 
   Color current_turn_color();
 private:
+
+  /**
+   * Private constructor that doesn't initialize pieces
+   */
+  Board(int);
+
   /**
    * Ensure that all the coordinates in black and white pieces point to valid
    * pieces on the board
