@@ -9,8 +9,14 @@ class Board
 public:
   struct Move
   {
+    Move(Coordinates from_coord, Coordinates to_coord, std::optional<Piece> promotion_piece = {})
+      : from(from_coord), to(to_coord), promotion(promotion_piece)
+    {
+    }
+
     Coordinates from;
     Coordinates to;
+    std::optional<Piece> promotion;
   };
 
   static std::optional<Board> from_pgn(std::string_view pgn);
@@ -19,7 +25,12 @@ public:
 
   Board();
 
-  ~Board();
+  Board(Board const& other) = default;
+  Board(Board&& other) = default;
+  Board& operator=(Board const& other) = default;
+  Board& operator=(Board& other) = default;
+
+  ~Board() = default;
 
   std::string to_fen() const;
 
@@ -83,7 +94,7 @@ public:
   /**
    * Return false on invalid move
    */
-  bool try_move(Move m, std::optional<Piece> promotion_result = {});
+  bool try_move(Move m);
 
   /**
    * Attempt to make a move encoded in uci format ("e2 e4")
@@ -128,9 +139,9 @@ private:
 
   bool is_in_check_(Color color) const;
 
-  std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_algebraic_(std::string_view move_param,
+  std::optional<Board::Move> move_from_algebraic_(std::string_view move_param,
                                                                                    Color color);
-  std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_uci_(std::string move_str);
+  std::optional<Board::Move> move_from_uci_(std::string move_str);
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);

@@ -214,8 +214,6 @@ Board::Board(int)
 {
 }
 
-Board::~Board() = default;
-
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
@@ -268,7 +266,7 @@ void Board::unperform_move_(Board::Move m, std::optional<std::pair<Coordinates, 
   update_king_locations_(m.from);
 }
 
-bool Board::try_move(Board::Move m, std::optional<Piece> promotion_result /* = {}*/)
+bool Board::try_move(Board::Move m)
 {
   auto piece_to_move = square_at(m.from).occupier();
   if (piece_to_move == Piece::empty)
@@ -288,13 +286,13 @@ bool Board::try_move(Board::Move m, std::optional<Piece> promotion_result /* = {
   }
 
   // Ensure that a promotion square is present iff we have a pawn move to the back rank
-  if ((piece_to_move == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) != promotion_result.has_value())
+  if ((piece_to_move == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) != m.promotion.has_value())
   {
     return false;
   }
 
-  if (promotion_result &&
-      (*promotion_result == Piece::empty || *promotion_result == Piece::king || *promotion_result == Piece::pawn))
+  if (m.promotion &&
+      (*m.promotion == Piece::empty || *m.promotion == Piece::king || *m.promotion== Piece::pawn))
   {
     // Cannot promote to king or pawn
     return false;
@@ -324,9 +322,9 @@ bool Board::try_move(Board::Move m, std::optional<Piece> promotion_result /* = {
   }
 
   // Promote pawn if it reached the last rank
-  if (promotion_result)
+  if (m.promotion)
   {
-    square_at(m.to).set_occupier(*promotion_result);
+    square_at(m.to).set_occupier(*m.promotion);
   }
 
   m_previous_move = Board::Move{m.from, m.to};
@@ -339,7 +337,7 @@ bool Board::try_move_algebraic(std::string_view move_str)
 {
   if (auto m = move_from_algebraic_(move_str, current_turn_color()))
   {
-    return try_move(m->first, m->second);
+    return try_move(*m);
   }
   return false;
 }
@@ -348,7 +346,7 @@ bool Board::try_move_uci(std::string_view move_str)
 {
   if (auto m = move_from_uci_(std::string{move_str}))
   {
-    return try_move(m->first, m->second);
+    return try_move(*m);
   }
   return false;
 }
@@ -783,7 +781,7 @@ std::vector<Coordinates> Board::find_pieces_that_can_move_to(Piece piece, Color 
   return candidates;
 }
 
-std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_uci_(std::string move_str)
+std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
 {
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
@@ -800,13 +798,13 @@ std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_uci
 
   if (from && to)
   {
-    return std::pair{Board::Move{*from, *to}, promotion_result};
+    return Board::Move{*from, *to, promotion_result};
   }
 
   return {};
 }
 
-std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_algebraic_(std::string_view move_param,
+std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param,
                                                                                         Color color)
 {
   std::string move_str{move_param};
@@ -832,11 +830,11 @@ std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_alg
   {
     if (color == Color::white)
     {
-      return std::pair{Board::Move{Coordinates{4, 0}, Coordinates{6, 0}}, promotion_result};
+      return Board::Move{Coordinates{4, 0}, Coordinates{6, 0}, promotion_result};
     }
     else
     {
-      return std::pair{Board::Move{Coordinates{4, 7}, Coordinates{6, 7}}, promotion_result};
+      return Board::Move{Coordinates{4, 7}, Coordinates{6, 7}, promotion_result};
     }
   }
 
@@ -844,11 +842,11 @@ std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_alg
   {
     if (color == Color::white)
     {
-      return std::pair{Board::Move{Coordinates{4, 0}, Coordinates{2, 0}}, promotion_result};
+      return Board::Move{Coordinates{4, 0}, Coordinates{2, 0}, promotion_result};
     }
     else
     {
-      return std::pair{Board::Move{Coordinates{4, 7}, Coordinates{2, 7}}, promotion_result};
+      return Board::Move{Coordinates{4, 7}, Coordinates{2, 7}, promotion_result};
     }
   }
 
@@ -886,7 +884,7 @@ std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_alg
   if (candidates.size() == 1)
   {
     // Exactly one piece can move to the target square
-    return std::pair{Board::Move{candidates.front(), *target_square}, promotion_result};
+    return Board::Move{candidates.front(), *target_square, promotion_result};
   }
 
   if (move_str.empty())
@@ -909,7 +907,7 @@ std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_alg
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return std::pair{Board::Move{candidates.front(), *target_square}, promotion_result};
+      return Board::Move{candidates.front(), *target_square, promotion_result};
     }
   }
 
@@ -933,7 +931,7 @@ std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_alg
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return std::pair{Board::Move{candidates.front(), *target_square}, promotion_result};
+      return Board::Move{candidates.front(), *target_square, promotion_result};
     }
   }
 
