@@ -233,7 +233,7 @@ TEST_CASE("A board should prevent illegal moves",
   REQUIRE(board.try_move_algebraic("Ke8"));
 
   REQUIRE(!board.try_move_algebraic("Qg5")); // Queens cannot move like Knights
-  REQUIRE(board.try_move_algebraic("Qg3"));  // Queens cannot move like Knights
+  REQUIRE(board.try_move_algebraic("Qg3"));
 
   REQUIRE(!board.try_move_algebraic("O-O")); // Cannot castle after the king has already moved
   REQUIRE(board.try_move_algebraic("Rf8"));
@@ -258,3 +258,20 @@ TEST_CASE("A board make moves in uci format",
   std::string expected{c_uci_moves_result};
   REQUIRE(expected == out.str());
 }
+
+TEST_CASE("Pawn promotion", "[board]")
+{
+  static const std::string fen{"r1b4r/p1kppPP1/2p5/1pP5/1B2N3/KP6/P2P2pp/R2Q4 w - - 0 1"};
+  auto board = Board::from_fen(fen);
+  REQUIRE(board.has_value()); // Pawn promotion is invalid without a specified promotion piece
+
+  REQUIRE(!board->try_move_uci("g7 g8")); // Pawn promotion is invalid without a specified promotion piece
+  REQUIRE(board->try_move_uci("g7 g8q"));
+  REQUIRE(!board->try_move_uci("h2h1k")); // Cannot promote to king
+  REQUIRE(!board->try_move_uci("h2h1p")); // Cannot promote to pawn
+  REQUIRE(board->try_move_uci("h2h1n"));
+  REQUIRE(board->try_move_algebraic("f8=R"));
+  REQUIRE(board->try_move_algebraic("g1=B"));
+}
+
+

@@ -82,7 +82,7 @@ public:
   /**
    * Return false on invalid move
    */
-  bool try_move(Move m);
+  bool try_move(Move m, std::optional<Piece> promotion_result = {});
 
   /**
    * Attempt to make a move encoded in uci format ("e2 e4")
@@ -134,8 +134,8 @@ private:
 
   Color opposite_color_(Color color);
 
-  std::optional<Board::Move> move_from_algebraic_(std::string_view move_param, Color color);
-  std::optional<Board::Move> move_from_uci_(std::string move_str);
+  std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_algebraic_(std::string_view move_param, Color color);
+  std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_uci_(std::string move_str);
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);

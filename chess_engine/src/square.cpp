@@ -22,50 +22,61 @@ Piece from_char(char c)
   }
 }
 
-void Square::display(std::ostream& out) const
+std::ostream& operator<<(std::ostream& os, Piece const& self)
 {
-  std::string result{"___ "};
-
-  switch (occupier())
+  switch (self)
   {
   case Piece::pawn:
-    result[0] = 'P';
+    os << 'P';
     break;
   case Piece::bishop:
-    result[0] = 'B';
+    os << 'B';
     break;
   case Piece::knight:
-    result[0] = 'N';
+    os << 'N';
     break;
   case Piece::rook:
-    result[0] = 'R';
+    os << 'R';
     break;
   case Piece::queen:
-    result[0] = 'Q';
+    os << 'Q';
     break;
   case Piece::king:
-    result[0] = 'K';
+    os << 'K';
     break;
   case Piece::empty:
-    [[fallthrough]];
+    os << '_';
   default:
     break;
   }
+
+  return os;
+}
+
+void Square::display(std::ostream& out) const
+{
+  out << occupier();
+
+  out << "_";
 
   if (is_occupied())
   {
     switch (occupier_color())
     {
     case Color::black:
-      result[2] = 'b';
+      out << 'b';
       break;
     case Color::white:
-      result[2] = 'w';
+      out << 'w';
       break;
     }
   }
+  else
+  {
+    out << "_";
+  }
 
-  out << result;
+  out << " ";
 }
 
 bool Square::is_white() const

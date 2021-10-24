@@ -20,6 +20,8 @@ enum class Color : uint8_t
 
 Piece from_char(char c);
 
+std::ostream& operator<<(std::ostream& os, Piece const& self);
+
 class Square
 {
 public:
