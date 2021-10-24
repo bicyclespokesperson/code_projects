@@ -154,8 +154,7 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
     }
     // En passent
     else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.previous_move() &&
-             board.previous_move()->from.x() == to.x() && 
-             std::abs(board.previous_move()->from.y() - to.y()) == 1 &&
+             board.previous_move()->from.x() == to.x() && std::abs(board.previous_move()->from.y() - to.y()) == 1 &&
              std::abs(board.previous_move()->to.y() - to.y()) == 1 &&
              board.square_at(board.previous_move()->to).occupier() == Piece::pawn)
     {
@@ -208,13 +207,9 @@ Board::Board() : m_white_king({0, 0}), m_black_king({0, 0})
   setup();
 }
 
-Board::Board(int) : 
-  m_white_king({0, 0}), 
-  m_black_king({0, 0}), 
-  m_white_can_short_castle(false),
-  m_white_can_long_castle(false),
-  m_black_can_short_castle(false),
-  m_black_can_long_castle(false)
+Board::Board(int)
+    : m_white_king({0, 0}), m_black_king({0, 0}), m_white_can_short_castle(false), m_white_can_long_castle(false),
+      m_black_can_short_castle(false), m_black_can_long_castle(false)
 {
 }
 
@@ -349,7 +344,7 @@ Color Board::current_turn_color()
   {
     return Color::white;
   }
-  
+
   return opposite_color_(square_at(previous_move()->to).occupier_color());
 }
 
@@ -806,28 +801,27 @@ std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
 
-
   // If any character does not  fall in the allowed range,
   // the string is invalid. (valid: "A2 A3")
   if (move_str.length() != 4 ||
 
-                         // 'A' <= move_str[0] <= 'H'
-                         move_str[0] < 'A' || move_str[0] > 'H' ||
+      // 'A' <= move_str[0] <= 'H'
+      move_str[0] < 'A' || move_str[0] > 'H' ||
 
-                         // '1' <= move_str[1] <= '8'
-                         move_str[1] < '1' || move_str[1] > '8' ||
+      // '1' <= move_str[1] <= '8'
+      move_str[1] < '1' || move_str[1] > '8' ||
 
-                         // 'A' <= move_str[2] <= 'H'
-                         move_str[2] < 'A' || move_str[2] > 'H' ||
+      // 'A' <= move_str[2] <= 'H'
+      move_str[2] < 'A' || move_str[2] > 'H' ||
 
-                         // '1' <= move_str[3] <= '8'
-                         move_str[3] < '1' || move_str[3] > '8')
+      // '1' <= move_str[3] <= '8'
+      move_str[3] < '1' || move_str[3] > '8')
   {
     return {};
   }
 
   return Board::Move{{static_cast<int8_t>(move_str[0] - 'A'), static_cast<int8_t>(move_str[1] - '1')},
-    {static_cast<int8_t>(move_str[2] - 'A'), static_cast<int8_t>(move_str[3] - '1')}};
+                     {static_cast<int8_t>(move_str[2] - 'A'), static_cast<int8_t>(move_str[3] - '1')}};
 }
 
 std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
@@ -1030,20 +1024,20 @@ bool Board::update_castling_rights_fen_(char c)
 {
   switch (c)
   {
-    case 'k':
-      m_black_can_short_castle = true;
-      break;
-    case 'q':
-      m_black_can_long_castle = true;
-      break;
-    case 'K':
-      m_white_can_long_castle = true;
-      break;
-    case 'Q':
-      m_white_can_long_castle = true;
-      break;
-    default:
-      return false;
+  case 'k':
+    m_black_can_short_castle = true;
+    break;
+  case 'q':
+    m_black_can_long_castle = true;
+    break;
+  case 'K':
+    m_white_can_long_castle = true;
+    break;
+  case 'Q':
+    m_white_can_long_castle = true;
+    break;
+  default:
+    return false;
   }
   return true;
 }
@@ -1051,7 +1045,7 @@ bool Board::update_castling_rights_fen_(char c)
 std::optional<Board> Board::from_fen(std::string_view fen)
 {
   std::optional<Board> board = Board{0};
-  
+
   std::string fen_str{fen.substr(fen.find_first_not_of(" \n\t"))};
 
   int8_t y{c_board_dimension - 1};
@@ -1072,7 +1066,7 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     {
       auto color = islower(fen_str[index]) ? Color::black : Color::white;
       auto piece = from_char(toupper(fen_str[index]));
-      
+
       board->square_at({x, y}).set_occupier_color(color);
       board->square_at({x, y}).set_occupier(piece);
 
@@ -1110,7 +1104,7 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   if (fen_str[index] != ' ')
   {
     std::cerr << "Badly formed fen string - Too many piece locations" << std::endl;
-    return  {};
+    return {};
   }
   ++index;
 
@@ -1118,26 +1112,29 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   if (tolower(fen_str[index]) == 'w')
   {
     // White to play - denote this be setting previous_move to a black piece
-    // The move being to and from the same square is irrelevent, the board will just check which color piece performed the previous move
-    board->m_previous_move = Board::Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
+    // The move being to and from the same square is irrelevent, the board will just check which color piece performed
+    // the previous move
+    board->m_previous_move =
+        Board::Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
   }
   else if (tolower(fen_str[index]) == 'b')
   {
     to_play = Color::black;
     // Black to play - denote this be setting previous_move to a white piece
-    board->m_previous_move = Board::Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
+    board->m_previous_move =
+        Board::Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
   }
   else
   {
     std::cerr << "Badly formed fen string - expected current move color" << std::endl;
-    return  {};
+    return {};
   }
 
   ++index;
   if (fen_str[index] != ' ')
   {
     std::cerr << "Badly formed fen string - expected space after current move" << std::endl;
-    return  {};
+    return {};
   }
 
   ++index;
@@ -1152,7 +1149,7 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   if (fen_str[index] != '-')
   {
     // En passent is possible, denote this by setting previous move to the pawn move that allowed en passent
-    
+
     auto capture_square = Coordinates::from_str(std::string_view{fen_str.c_str() + index, 2});
     if (!capture_square)
     {

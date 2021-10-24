@@ -114,7 +114,8 @@ TEST_CASE("Another pgn file")
   REQUIRE(result == expected);
 }
 
-TEST_CASE("A board should be initially setup" "[board]")
+TEST_CASE("A board should be initially setup"
+          "[board]")
 {
   Board board;
 
@@ -136,7 +137,8 @@ TEST_CASE("A board should be initially setup" "[board]")
   REQUIRE(board.square_at({5, 7}).occupier_color() == Color::black);
 }
 
-TEST_CASE("A board can be created from a FEN string" "[board]")
+TEST_CASE("A board can be created from a FEN string"
+          "[board]")
 {
   static const std::string fen_string{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 19"};
 
@@ -153,29 +155,30 @@ TEST_CASE("A board can be created from a FEN string" "[board]")
   REQUIRE(result == expected);
 
   REQUIRE(!board->try_move_algebraic("O-O-O")); // Should fail as black does not have queenside castling rights
-  REQUIRE(board->try_move_algebraic("axb3")); // En passent should succeed
-  REQUIRE(!board->try_move_algebraic("O-O")); // Should fail as white does not have kingside castling rights
+  REQUIRE(board->try_move_algebraic("axb3"));   // En passent should succeed
+  REQUIRE(!board->try_move_algebraic("O-O"));   // Should fail as white does not have kingside castling rights
   REQUIRE(board->try_move_algebraic("O-O-O"));
   REQUIRE(board->try_move_algebraic("O-O"));
 }
 
-TEST_CASE("A board should prevent illegal moves" "[board]")
+TEST_CASE("A board should prevent illegal moves"
+          "[board]")
 {
   Board board;
 
-  REQUIRE(!board.try_move_algebraic("d5")); // Black cannot move first
+  REQUIRE(!board.try_move_algebraic("d5"));  // Black cannot move first
   REQUIRE(!board.try_move_algebraic("Bc4")); // Bishops cannot jump over pieces
   REQUIRE(board.try_move_algebraic("e4"));
 
   REQUIRE(board.try_move_algebraic("e6"));
 
-  REQUIRE(!board.try_move_algebraic("e3")); // Pawns cannot move backwards
+  REQUIRE(!board.try_move_algebraic("e3"));   // Pawns cannot move backwards
   REQUIRE(!board.try_move_algebraic("exf5")); // Pawns cannot capture to an empty square
   REQUIRE(board.try_move_algebraic("e5"));
 
   REQUIRE(board.try_move_algebraic("f5"));
 
-  REQUIRE(!board.try_move_algebraic("e6")); // Pawns cannot capture forward
+  REQUIRE(!board.try_move_algebraic("e6"));   // Pawns cannot capture forward
   REQUIRE(!board.try_move_algebraic("exd6")); // Test en passent
   REQUIRE(board.try_move_algebraic("exf6"));
 
@@ -205,7 +208,7 @@ TEST_CASE("A board should prevent illegal moves" "[board]")
   REQUIRE(board.try_move_algebraic("Ke8"));
 
   REQUIRE(!board.try_move_algebraic("Qg5")); // Queens cannot move like Knights
-  REQUIRE(board.try_move_algebraic("Qg3")); // Queens cannot move like Knights
+  REQUIRE(board.try_move_algebraic("Qg3"));  // Queens cannot move like Knights
 
   REQUIRE(!board.try_move_algebraic("O-O")); // Cannot castle after the king has already moved
   REQUIRE(board.try_move_algebraic("Rf8"));
@@ -214,5 +217,3 @@ TEST_CASE("A board should prevent illegal moves" "[board]")
 
   REQUIRE(board.try_move_algebraic("xb5"));
 }
-
-
