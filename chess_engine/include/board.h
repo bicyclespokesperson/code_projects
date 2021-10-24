@@ -110,7 +110,7 @@ public:
 
   bool check_castling_rights(Coordinates dest) const;
 
-  std::vector<Coordinates> find_piece(Piece piece, Color color, Coordinates target_square) const;
+  std::vector<Coordinates> find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const;
 
   Color current_turn_color();
 private:
@@ -165,5 +165,7 @@ private:
   bool m_black_can_short_castle : 1 {true};
   bool m_black_can_long_castle : 1 {true};
 };
+
+std::ostream& operator<<(std::ostream& os, Board::Move const& self);
 
 #endif

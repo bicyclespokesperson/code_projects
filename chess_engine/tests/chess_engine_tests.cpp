@@ -70,7 +70,7 @@ static const char c_fen_test_result[] = R"(8  R_b ___ ___ ___ K_b ___ ___ R_b
 
     A   B   C   D   E   F   G   H  )";
 
-TEST_CASE("A board can be constructed from a pgn file"
+TEST_CASE("A board can be constructed from a pgn file",
           "[board]")
 {
   std::string const pgn_filename{"./data/fischer_spassky.pgn"};
@@ -93,7 +93,7 @@ TEST_CASE("A board can be constructed from a pgn file"
   REQUIRE(result == expected);
 }
 
-TEST_CASE("Another pgn file")
+TEST_CASE("A pgn file from chess.com", "[board]")
 {
   std::string const pgn_filename{"./data/sigrist.pgn"};
   auto contents = read_file_contents(pgn_filename);
@@ -137,12 +137,13 @@ TEST_CASE("A board should be initially setup"
   REQUIRE(board.square_at({5, 7}).occupier_color() == Color::black);
 }
 
-TEST_CASE("A board can be created from a FEN string"
-          "[board]")
+TEST_CASE("A board can be created from a FEN string", "[board]")
 {
   static const std::string fen_string{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 19"};
 
   auto board = Board::from_fen(fen_string);
+
+  std::cout << "Name: " << Catch::getResultCapture().getCurrentTestName() << std::endl;
 
   std::stringstream out;
   board->display(out);
@@ -161,7 +162,7 @@ TEST_CASE("A board can be created from a FEN string"
   REQUIRE(board->try_move_algebraic("O-O"));
 }
 
-TEST_CASE("A board should prevent illegal moves"
+TEST_CASE("A board should prevent illegal moves", 
           "[board]")
 {
   Board board;

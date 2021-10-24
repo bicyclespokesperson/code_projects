@@ -785,7 +785,7 @@ bool Board::validate_() const
   return verify_pieces(Color::black, m_black_piece_locations) && verify_pieces(Color::white, m_white_piece_locations);
 }
 
-std::vector<Coordinates> Board::find_piece(Piece piece, Color color, Coordinates target_square) const
+std::vector<Coordinates> Board::find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const
 {
   std::vector<Coordinates> candidates;
   auto const& locations = get_pieces(color);
@@ -801,27 +801,15 @@ std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
 
-  // If any character does not  fall in the allowed range,
-  // the string is invalid. (valid: "A2 A3")
-  if (move_str.length() != 4 ||
+  auto from = Coordinates::from_str(move_str);
+  auto to = Coordinates::from_str(move_str.c_str() + 2);
 
-      // 'A' <= move_str[0] <= 'H'
-      move_str[0] < 'A' || move_str[0] > 'H' ||
-
-      // '1' <= move_str[1] <= '8'
-      move_str[1] < '1' || move_str[1] > '8' ||
-
-      // 'A' <= move_str[2] <= 'H'
-      move_str[2] < 'A' || move_str[2] > 'H' ||
-
-      // '1' <= move_str[3] <= '8'
-      move_str[3] < '1' || move_str[3] > '8')
+  if (from && to)
   {
-    return {};
+    return Board::Move{*from, *to};
   }
-
-  return Board::Move{{static_cast<int8_t>(move_str[0] - 'A'), static_cast<int8_t>(move_str[1] - '1')},
-                     {static_cast<int8_t>(move_str[2] - 'A'), static_cast<int8_t>(move_str[3] - '1')}};
+  
+  return {};
 }
 
 std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
@@ -881,7 +869,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
     return {};
   }
 
-  auto candidates = find_piece(piece, color, target_square);
+  auto candidates = find_pieces_that_can_move_to(piece, color, target_square);
   if (candidates.empty())
   {
     std::cerr << "No piece can perform move " << move_param << "\n";
@@ -1197,3 +1185,10 @@ void display_piece_locations_(std::vector<Coordinates> const& piece_locations)
 {
   std::copy(piece_locations.cbegin(), piece_locations.cend(), std::ostream_iterator<Coordinates>(std::cerr, " "));
 }
+
+std::ostream& operator<<(std::ostream& os, Board::Move const& self)
+{
+  os << self.from << "->" << self.to;
+  return os;
+}
+
