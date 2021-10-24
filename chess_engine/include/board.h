@@ -99,12 +99,6 @@ public:
 
   std::optional<Move> previous_move() const;
 
-  std::vector<Coordinates>& get_opposing_pieces(Coordinates piece_location);
-  std::vector<Coordinates> const& get_opposing_pieces(Coordinates piece_location) const;
-
-  std::vector<Coordinates>& get_friendly_pieces(Coordinates piece_location);
-  std::vector<Coordinates> const& get_friendly_pieces(Coordinates piece_location) const;
-
   std::vector<Coordinates>& get_pieces(Color color);
   std::vector<Coordinates> const& get_pieces(Color color) const;
 
@@ -112,7 +106,8 @@ public:
 
   std::vector<Coordinates> find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const;
 
-  Color current_turn_color();
+  Color current_turn_color() const;
+  Color opposite_color(Color color) const;
 private:
 
   /**
@@ -132,16 +127,14 @@ private:
 
   bool is_in_check_(Color color) const;
 
-  Color opposite_color_(Color color);
-
   std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_algebraic_(std::string_view move_param, Color color);
   std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_uci_(std::string move_str);
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
 
-  static void remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove);
   static void add_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_add);
+  static void remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove);
 
   static void display_piece_locations_(std::vector<Coordinates> const& pieces);
 

@@ -101,7 +101,8 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
       return false;
     }
 
-    auto const& opposing_pieces = board.get_opposing_pieces(from);
+    auto color = board.square_at(from).occupier_color();
+    auto const& opposing_pieces = board.get_pieces(board.opposite_color(color));
     if (std::any_of(opposing_pieces.cbegin(), opposing_pieces.cend(), [&](Coordinates piece) {
           return piece_can_move(piece, from, board) || piece_can_move(piece, transit_square, board) ||
                  piece_can_move(piece, to, board);
@@ -218,8 +219,9 @@ Board::~Board() = default;
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
-  auto& pieces = get_friendly_pieces(m.from);
-  auto& opposing_pieces = get_opposing_pieces(m.from);
+  auto color = square_at(m.from).occupier_color();
+  auto& pieces = get_pieces(color);
+  auto& opposing_pieces = get_pieces(opposite_color(color));
 
   if (square_at(m.to).is_occupied() || capture_location != m.to)
   {
@@ -245,9 +247,9 @@ void Board::unperform_move_(Board::Move m, std::optional<std::pair<Coordinates, 
   MY_ASSERT(square_at(m.to).is_occupied() && !square_at(m.from).is_occupied(),
             "This function can only be called after a move has been performed");
 
-  auto& pieces = get_friendly_pieces(m.to);
-  auto& opposing_pieces = get_opposing_pieces(m.to);
-  bool white_move = square_at(m.to).is_white();
+  auto color = square_at(m.to).occupier_color();
+  auto& pieces = get_pieces(color);
+  auto& opposing_pieces = get_pieces(opposite_color(color));
 
   remove_piece_(pieces, m.to);
   add_piece_(pieces, m.from);
@@ -260,7 +262,7 @@ void Board::unperform_move_(Board::Move m, std::optional<std::pair<Coordinates, 
   {
     add_piece_(opposing_pieces, captured_piece->first);
     square_at(captured_piece->first).set_occupier(captured_piece->second);
-    square_at(captured_piece->first).set_occupier_color((white_move) ? Color::black : Color::white);
+    square_at(captured_piece->first).set_occupier_color(opposite_color(color));
   }
 
   update_king_locations_(m.from);
@@ -350,17 +352,17 @@ bool Board::try_move_uci(std::string_view move_str)
   return false;
 }
 
-Color Board::current_turn_color()
+Color Board::current_turn_color() const
 {
   if (!previous_move())
   {
     return Color::white;
   }
 
-  return opposite_color_(square_at(previous_move()->to).occupier_color());
+  return opposite_color(square_at(previous_move()->to).occupier_color());
 }
 
-Color Board::opposite_color_(Color color)
+Color Board::opposite_color(Color color) const
 {
   if (color == Color::white)
   {
@@ -676,24 +678,6 @@ std::optional<Board::Move> Board::previous_move() const
   return m_previous_move;
 }
 
-std::vector<Coordinates> const& Board::get_opposing_pieces(Coordinates piece_location) const
-{
-  if (square_at(piece_location).is_white())
-  {
-    return m_black_piece_locations;
-  }
-  return m_white_piece_locations;
-}
-
-std::vector<Coordinates> const& Board::get_friendly_pieces(Coordinates piece_location) const
-{
-  if (square_at(piece_location).is_white())
-  {
-    return m_white_piece_locations;
-  }
-  return m_black_piece_locations;
-}
-
 std::vector<Coordinates> const& Board::get_pieces(Color color) const
 {
   if (color == Color::white)
@@ -701,16 +685,6 @@ std::vector<Coordinates> const& Board::get_pieces(Color color) const
     return m_white_piece_locations;
   }
   return m_black_piece_locations;
-}
-
-std::vector<Coordinates>& Board::get_opposing_pieces(Coordinates piece_location)
-{
-  return const_cast<std::vector<Coordinates>&>(std::as_const(*this).get_opposing_pieces(piece_location));
-}
-
-std::vector<Coordinates>& Board::get_friendly_pieces(Coordinates piece_location)
-{
-  return const_cast<std::vector<Coordinates>&>(std::as_const(*this).get_friendly_pieces(piece_location));
 }
 
 std::vector<Coordinates>& Board::get_pieces(Color color)
@@ -721,7 +695,7 @@ std::vector<Coordinates>& Board::get_pieces(Color color)
 bool Board::is_in_check_(Color color) const
 {
   auto king_location = (color == Color::white) ? m_white_king : m_black_king;
-  auto const& pieces = get_opposing_pieces(king_location);
+  auto const& pieces = get_pieces(opposite_color(color));
 
   return std::any_of(pieces.cbegin(), pieces.cend(), [&](Coordinates piece_location) {
     return piece_can_move(piece_location, king_location, *this);
