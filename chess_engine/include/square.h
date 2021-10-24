@@ -20,8 +20,6 @@ enum class Color : uint8_t
 
 Piece from_char(char c);
 
-std::ostream& operator<<(std::ostream& os, Piece const& self);
-
 class Square
 {
 public:
@@ -65,11 +63,13 @@ public:
 
   bool is_white() const;
 
-  void display(std::ostream& out) const;
-
 private:
   Piece m_occupier : 5;
   Color m_color : 1;
 };
+
+std::ostream& operator<<(std::ostream& os, Piece const& self);
+
+std::ostream& operator<<(std::ostream& os, Square const& self);
 
 #endif

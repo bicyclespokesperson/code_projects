@@ -17,7 +17,7 @@ void Game::run()
 
   Board board;
 
-  board.display(std::cout);
+  std::cout << board;
 
   bool game_in_progress = true;
   auto* player = get_next_player();
@@ -39,7 +39,7 @@ void Game::run()
     {
       game_in_progress = false;
     }
-    board.display(std::cout);
+    std::cout << board;
   }
 }
 

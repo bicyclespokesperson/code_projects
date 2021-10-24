@@ -72,7 +72,6 @@ public:
    * Prints the square to the specified std::ostream
    * @param out_stream The stream to print to
    */
-  void display(std::ostream& out_stream) const;
 
   /**
    * Initializes the board with pieces in their standard positions
@@ -158,6 +157,8 @@ private:
   bool m_black_can_short_castle : 1 {true};
   bool m_black_can_long_castle : 1 {true};
 };
+
+std::ostream& operator<<(std::ostream& out, Board const& self);
 
 std::ostream& operator<<(std::ostream& os, Board::Move const& self);
 

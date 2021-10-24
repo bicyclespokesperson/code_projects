@@ -53,30 +53,31 @@ std::ostream& operator<<(std::ostream& os, Piece const& self)
   return os;
 }
 
-void Square::display(std::ostream& out) const
+std::ostream& operator<<(std::ostream& os, Square const& self)
 {
-  out << occupier();
+  os << self.occupier();
 
-  out << "_";
+  os << "_";
 
-  if (is_occupied())
+  if (self.is_occupied())
   {
-    switch (occupier_color())
+    switch (self.occupier_color())
     {
     case Color::black:
-      out << 'b';
+      os << 'b';
       break;
     case Color::white:
-      out << 'w';
+      os << 'w';
       break;
     }
   }
   else
   {
-    out << "_";
+    os << "_";
   }
 
-  out << " ";
+  os << " ";
+  return os;
 }
 
 bool Square::is_white() const

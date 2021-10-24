@@ -109,7 +109,7 @@ TEST_CASE("A board can be constructed from a pgn file",
   REQUIRE(board.has_value());
 
   std::stringstream out;
-  board->display(out);
+  out << *board;
 
   std::string result = out.str();
   std::string expected = c_fischer_spassky_result;
@@ -130,7 +130,7 @@ TEST_CASE("A pgn file from chess.com", "[board]")
   REQUIRE(board.has_value());
 
   std::stringstream out;
-  board->display(out);
+  out << *board;
 
   std::string result = out.str();
   std::string expected = c_sigrist_result;
@@ -171,7 +171,7 @@ TEST_CASE("A board can be created from a FEN string", "[board]")
   auto board = Board::from_fen(fen_string);
 
   std::stringstream out;
-  board->display(out);
+  out << *board;
 
   std::string result = out.str();
   std::string expected = c_fen_test_result;
@@ -253,7 +253,7 @@ TEST_CASE("A board make moves in uci format",
   REQUIRE(board.try_move_uci("a4a5"));
 
   std::stringstream out;
-  board.display(out);
+  out << board;
 
   std::string expected{c_uci_moves_result};
   REQUIRE(expected == out.str());

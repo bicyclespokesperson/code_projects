@@ -1165,27 +1165,6 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   return board;
 }
 
-void Board::display(std::ostream& out) const
-{
-  out << std::endl;
-  for (int i = c_board_dimension - 1; i >= 0; i--)
-  {
-    out << (i + 1) << "  ";
-    for (int j = 0; j < c_board_dimension; j++)
-    {
-      square_at({static_cast<int8_t>(j), static_cast<int8_t>(i)}).display(out);
-    }
-    out << std::endl << std::endl;
-  }
-
-  out << "   ";
-  for (int i = 0; i < c_board_dimension; i++)
-  {
-    out << " " << static_cast<char>(i + 'A') << "  ";
-  }
-  out << std::endl;
-}
-
 void display_piece_locations_(std::vector<Coordinates> const& piece_locations)
 {
   std::copy(piece_locations.cbegin(), piece_locations.cend(), std::ostream_iterator<Coordinates>(std::cerr, " "));
@@ -1196,3 +1175,27 @@ std::ostream& operator<<(std::ostream& os, Board::Move const& self)
   os << self.from << "->" << self.to;
   return os;
 }
+
+std::ostream& operator<<(std::ostream& out, Board const& self)
+{
+  out << std::endl;
+  for (int i = c_board_dimension - 1; i >= 0; i--)
+  {
+    out << (i + 1) << "  ";
+    for (int j = 0; j < c_board_dimension; j++)
+    {
+      out << self.square_at({static_cast<int8_t>(j), static_cast<int8_t>(i)});
+    }
+    out << std::endl << std::endl;
+  }
+
+  out << "   ";
+  for (int i = 0; i < c_board_dimension; i++)
+  {
+    out << " " << static_cast<char>(i + 'A') << "  ";
+  }
+  out << std::endl;
+
+  return out;
+}
+
