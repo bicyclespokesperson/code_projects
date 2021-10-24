@@ -21,6 +21,8 @@ public:
 
   ~Board();
 
+  std::string to_fen() const;
+
   /**
    * Returns the square at the xy location
    * @param x The column of the desired square (A letter)
@@ -123,6 +125,7 @@ private:
   void update_king_locations_(Coordinates dest);
   void update_castling_rights_(Coordinates dest);
   bool update_castling_rights_fen_(char c);
+  std::string castling_rights_to_fen_() const;
 
   bool is_in_check_(Color color) const;
 

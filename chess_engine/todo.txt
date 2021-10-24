@@ -1,7 +1,9 @@
-Goal: static Board::from_fen(str)
+Goal: std::string board.to_fen()
 
 Generate moves
 
 Add checkmate detection
 
 Integrate UCI protocol
+
+Implement engine functionality

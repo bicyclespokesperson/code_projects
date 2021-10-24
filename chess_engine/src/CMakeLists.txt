@@ -22,6 +22,7 @@ target_precompile_headers(chess_engine_lib
     <set>
     <span>
     <string>
+    <sstream>
     <unordered_map>
     <vector>
 )

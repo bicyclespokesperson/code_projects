@@ -1035,6 +1035,35 @@ bool Board::update_castling_rights_fen_(char c)
   return true;
 }
 
+std::string Board::castling_rights_to_fen_() const
+{
+  std::stringstream ss;
+  if (m_white_can_short_castle)
+  {
+    ss << 'K';
+  }
+  if (m_white_can_long_castle)
+  {
+    ss << 'Q';
+  }
+  if (m_black_can_short_castle)
+  {
+    ss << 'k';
+  }
+  if (m_black_can_long_castle)
+  {
+    ss << 'q';
+  }
+
+  auto result = ss.str();
+  if (result.empty())
+  {
+    return "-";
+  }
+  return result;
+}
+
+
 std::optional<Board> Board::from_fen(std::string_view fen)
 {
   std::optional<Board> board = Board{0};
@@ -1163,6 +1192,84 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");
 
   return board;
+}
+
+std::string Board::to_fen() const
+{
+  std::stringstream result;
+
+  auto to_char = [](Piece piece, Color color) -> char
+  {
+    std::stringstream ss;
+    ss << piece;
+
+    char result = ss.str().front();
+    return (color == Color::white) ? toupper(result) : tolower(result);
+  };
+
+  for (int8_t y = c_board_dimension - 1; y >= 0; --y)
+  {
+    int empty_counter{0};
+    for (int8_t x = 0; x < c_board_dimension; ++x)
+    {
+      auto& sq = square_at({x, y});
+      if (sq.is_occupied())
+      {
+        if (empty_counter > 0)
+        {
+          result << std::to_string(empty_counter);
+          empty_counter = 0;
+        }
+        result << to_char(sq.occupier(), sq.occupier_color());
+      }
+      else
+      {
+        ++empty_counter;
+      }
+    }
+    
+    if (empty_counter > 0)
+    {
+      result << std::to_string(empty_counter);
+      empty_counter = 0;
+    }
+    if (y > 0)
+    {
+      result << '/';
+    }
+  }
+  result << ' ';
+  result << ((current_turn_color() == Color::white) ? 'w' : 'b');
+  result << ' ';
+
+  result << castling_rights_to_fen_();
+  result << ' ';
+
+  auto en_passent_is_possible = [&]()
+  {
+    if (!previous_move())
+    {
+      return false;
+    }
+
+    return square_at(previous_move()->to).occupier() == Piece::pawn && 
+      std::abs(previous_move()->to.y() - previous_move()->from.y()) == 2;
+  };
+
+  if (en_passent_is_possible())
+  {
+    Coordinates en_passent_square{previous_move()->from.x(), static_cast<int8_t>((previous_move()->from.y() + previous_move()->to.y()) / 2)};
+    result << en_passent_square;
+  }
+  else
+  {
+    result << '-';
+  }
+
+  // We don't keep track of moves, so always write 0 and 1 for halfmove clock and fullmove clock
+  result << " 0 1";
+
+  return result.str();
 }
 
 void display_piece_locations_(std::vector<Coordinates> const& piece_locations)

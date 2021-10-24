@@ -19,6 +19,6 @@ std::optional<Coordinates> Coordinates::from_str(std::string_view str)
 
 std::ostream& operator<<(std::ostream& os, Coordinates const& self)
 {
-  os << "{" << std::to_string(self.x()) << ", " << std::to_string(self.y()) << "}";
+  os << static_cast<char>(self.x() + 'a') << static_cast<char>(self.y() + '1');
   return os;
 }

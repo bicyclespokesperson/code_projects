@@ -186,6 +186,33 @@ TEST_CASE("A board can be created from a FEN string", "[board]")
   REQUIRE(board->try_move_algebraic("O-O"));
 }
 
+TEST_CASE("Fen round trip", "[board]")
+{
+  static const std::string fen{"r1b4r/p1kppPP1/2p5/1pP5/1B2N3/KP6/P2P2pp/R2Q4 w - - 0 1"};
+  auto board1 = Board::from_fen(fen);
+
+  std::string generated_fen = board1->to_fen();
+  auto board2 = Board::from_fen(generated_fen);
+
+  REQUIRE(generated_fen == fen);
+
+  std::stringstream first;
+  first << *board1;
+  std::stringstream second;
+  second << *board2;
+
+  REQUIRE(first.str() == second.str());
+}
+
+TEST_CASE("Fen castling rights and en passent" "[]")
+{
+  static const std::string fen{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 1"};
+  auto board = Board::from_fen(fen);
+
+  std::string generated_fen = board->to_fen();
+  REQUIRE(generated_fen == fen);
+}
+
 TEST_CASE("A board should prevent illegal moves", 
           "[board]")
 {
