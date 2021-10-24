@@ -802,13 +802,13 @@ std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
 
   auto from = Coordinates::from_str(move_str);
-  auto to = Coordinates::from_str(move_str.c_str() + 2);
+  auto to = Coordinates::from_str({move_str.c_str() + 2, 2});
 
   if (from && to)
   {
     return Board::Move{*from, *to};
   }
-  
+
   return {};
 }
 
@@ -845,8 +845,8 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
     }
   }
 
-  Coordinates target_square{static_cast<int8_t>(toupper(move_str[move_str.size() - 2]) - 'A'),
-                            static_cast<int8_t>(move_str[move_str.size() - 1] - '1')};
+  // Read the square from the last two characters in the string
+  auto target_square = Coordinates::from_str({move_str.c_str() + move_str.size() - 2, 2});
   move_str.resize(move_str.size() - 2); // Drop target square from string
 
   auto const piece = [&] {
@@ -869,7 +869,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
     return {};
   }
 
-  auto candidates = find_pieces_that_can_move_to(piece, color, target_square);
+  auto candidates = find_pieces_that_can_move_to(piece, color, *target_square);
   if (candidates.empty())
   {
     std::cerr << "No piece can perform move " << move_param << "\n";
@@ -879,7 +879,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
   if (candidates.size() == 1)
   {
     // Exactly one piece can move to the target square
-    return Board::Move{candidates.front(), target_square};
+    return Board::Move{candidates.front(), *target_square};
   }
 
   if (move_str.empty())
@@ -902,7 +902,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return Board::Move{candidates.front(), target_square};
+      return Board::Move{candidates.front(), *target_square};
     }
   }
 
@@ -926,7 +926,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return Board::Move{candidates.front(), target_square};
+      return Board::Move{candidates.front(), *target_square};
     }
   }
 
@@ -1191,4 +1191,3 @@ std::ostream& operator<<(std::ostream& os, Board::Move const& self)
   os << self.from << "->" << self.to;
   return os;
 }
-

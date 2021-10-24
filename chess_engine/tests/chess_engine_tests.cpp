@@ -143,11 +143,8 @@ TEST_CASE("A board can be created from a FEN string", "[board]")
 
   auto board = Board::from_fen(fen_string);
 
-  std::cout << "Name: " << Catch::getResultCapture().getCurrentTestName() << std::endl;
-
   std::stringstream out;
   board->display(out);
-  board->display(std::cout);
 
   std::string result = out.str();
   std::string expected = c_fen_test_result;
