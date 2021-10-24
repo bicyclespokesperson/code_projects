@@ -76,7 +76,6 @@ static const char c_fen_test_result[] = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-
 static const char c_uci_moves_result[] = R"(
 8  R_b N_b B_b Q_b K_b B_b ___ R_b 
 
@@ -97,8 +96,7 @@ static const char c_uci_moves_result[] = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-TEST_CASE("A board can be constructed from a pgn file",
-          "[board]")
+TEST_CASE("A board can be constructed from a pgn file", "[board]")
 {
   std::string const pgn_filename{"./data/fischer_spassky.pgn"};
   auto contents = read_file_contents(pgn_filename);
@@ -204,7 +202,8 @@ TEST_CASE("Fen round trip", "[board]")
   REQUIRE(first.str() == second.str());
 }
 
-TEST_CASE("Fen castling rights and en passent" "[]")
+TEST_CASE("Fen castling rights and en passent"
+          "[board]")
 {
   static const std::string fen{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 1"};
   auto board = Board::from_fen(fen);
@@ -213,8 +212,7 @@ TEST_CASE("Fen castling rights and en passent" "[]")
   REQUIRE(generated_fen == fen);
 }
 
-TEST_CASE("A board should prevent illegal moves", 
-          "[board]")
+TEST_CASE("A board should prevent illegal moves", "[board]")
 {
   Board board;
 
@@ -270,8 +268,7 @@ TEST_CASE("A board should prevent illegal moves",
   REQUIRE(board.try_move_algebraic("xb5"));
 }
 
-TEST_CASE("A board make moves in uci format", 
-          "[board]")
+TEST_CASE("A board make moves in uci format", "[board]")
 {
   Board board;
   REQUIRE(board.try_move_uci("a2 a4"));
@@ -300,5 +297,3 @@ TEST_CASE("Pawn promotion", "[board]")
   REQUIRE(board->try_move_algebraic("f8=R"));
   REQUIRE(board->try_move_algebraic("g1=B"));
 }
-
-

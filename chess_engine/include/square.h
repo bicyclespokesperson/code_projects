@@ -25,8 +25,7 @@ class Square
 public:
   Square() = default;
 
-  Square(Piece piece, Color piece_color)
-      : m_occupier(piece), m_color(piece_color)
+  Square(Piece piece, Color piece_color) : m_occupier(piece), m_color(piece_color)
   {
     static_assert(sizeof(Square) == 1);
   }

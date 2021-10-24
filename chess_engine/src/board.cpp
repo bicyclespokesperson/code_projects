@@ -293,7 +293,8 @@ bool Board::try_move(Board::Move m, std::optional<Piece> promotion_result /* = {
     return false;
   }
 
-  if (promotion_result && (*promotion_result == Piece::empty || *promotion_result == Piece::king || *promotion_result == Piece::pawn))
+  if (promotion_result &&
+      (*promotion_result == Piece::empty || *promotion_result == Piece::king || *promotion_result == Piece::pawn))
   {
     // Cannot promote to king or pawn
     return false;
@@ -805,7 +806,8 @@ std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_uci
   return {};
 }
 
-std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_algebraic_(std::string_view move_param, Color color)
+std::optional<std::pair<Board::Move, std::optional<Piece>>> Board::move_from_algebraic_(std::string_view move_param,
+                                                                                        Color color)
 {
   std::string move_str{move_param};
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(),
@@ -1063,7 +1065,6 @@ std::string Board::castling_rights_to_fen_() const
   return result;
 }
 
-
 std::optional<Board> Board::from_fen(std::string_view fen)
 {
   std::optional<Board> board = Board{0};
@@ -1198,8 +1199,7 @@ std::string Board::to_fen() const
 {
   std::stringstream result;
 
-  auto to_char = [](Piece piece, Color color) -> char
-  {
+  auto to_char = [](Piece piece, Color color) -> char {
     std::stringstream ss;
     ss << piece;
 
@@ -1227,7 +1227,7 @@ std::string Board::to_fen() const
         ++empty_counter;
       }
     }
-    
+
     if (empty_counter > 0)
     {
       result << std::to_string(empty_counter);
@@ -1245,20 +1245,20 @@ std::string Board::to_fen() const
   result << castling_rights_to_fen_();
   result << ' ';
 
-  auto en_passent_is_possible = [&]()
-  {
+  auto en_passent_is_possible = [&]() {
     if (!previous_move())
     {
       return false;
     }
 
-    return square_at(previous_move()->to).occupier() == Piece::pawn && 
-      std::abs(previous_move()->to.y() - previous_move()->from.y()) == 2;
+    return square_at(previous_move()->to).occupier() == Piece::pawn &&
+           std::abs(previous_move()->to.y() - previous_move()->from.y()) == 2;
   };
 
   if (en_passent_is_possible())
   {
-    Coordinates en_passent_square{previous_move()->from.x(), static_cast<int8_t>((previous_move()->from.y() + previous_move()->to.y()) / 2)};
+    Coordinates en_passent_square{previous_move()->from.x(),
+                                  static_cast<int8_t>((previous_move()->from.y() + previous_move()->to.y()) / 2)};
     result << en_passent_square;
   }
   else
@@ -1305,4 +1305,3 @@ std::ostream& operator<<(std::ostream& out, Board const& self)
 
   return out;
 }
-

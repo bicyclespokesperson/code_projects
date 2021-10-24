@@ -97,7 +97,6 @@ public:
    */
   bool try_move_algebraic(std::string_view move_str);
 
-
   std::optional<Move> previous_move() const;
 
   std::vector<Coordinates>& get_pieces(Color color);
@@ -109,8 +108,8 @@ public:
 
   Color current_turn_color() const;
   Color opposite_color(Color color) const;
-private:
 
+private:
   /**
    * Private constructor that doesn't initialize pieces
    */
@@ -129,7 +128,8 @@ private:
 
   bool is_in_check_(Color color) const;
 
-  std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_algebraic_(std::string_view move_param, Color color);
+  std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_algebraic_(std::string_view move_param,
+                                                                                   Color color);
   std::optional<std::pair<Board::Move, std::optional<Piece>>> move_from_uci_(std::string move_str);
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
