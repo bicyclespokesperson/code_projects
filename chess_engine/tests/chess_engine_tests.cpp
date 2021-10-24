@@ -16,42 +16,59 @@ std::optional<std::string> read_file_contents(std::string const& filename)
 }
 } // namespace
 
-static const char c_fischer_spassky_result[] = " 8  ___ ___ ___ ___ ___ ___ ___ ___ \
-\
-7  ___ ___ ___ ___ ___ ___ ___ ___ \
-\
-6  ___ ___ ___ ___ R_w ___ P_b ___ \
-\
-5  ___ ___ K_b ___ ___ ___ P_b ___ \
-\
-4  ___ P_b ___ ___ ___ ___ P_w ___ \
-\
-3  ___ P_w ___ B_b ___ P_w ___ ___ \
-\
-2  ___ ___ ___ K_w ___ N_b ___ ___ \
-\
-1  ___ ___ ___ ___ ___ ___ ___ ___ \
-\
-    A   B   C   D   E   F   G   H  ";
+static const char c_fischer_spassky_result[] = R"(8  ___ ___ ___ ___ ___ ___ ___ ___ 
 
-static const char c_sigrist_result[] = " 8  R_b ___ ___ ___ ___ ___ ___ ___ \
-\
-7  P_b P_b P_b ___ ___ ___ ___ P_b \
-\
-6  ___ ___ ___ ___ B_w ___ ___ K_b \
-\
-5  ___ ___ ___ ___ ___ ___ ___ ___ \
-\
-4  ___ ___ ___ P_w ___ Q_w ___ ___ \
-\
-3  ___ ___ N_w ___ N_b ___ ___ ___ \
-\
-2  P_w P_w P_w ___ ___ ___ P_w P_w \
-\
-1  R_w ___ ___ ___ ___ ___ K_w ___ \
-\
-    A   B   C   D   E   F   G   H  \
-";
+7  ___ ___ ___ ___ ___ ___ ___ ___ 
+
+6  ___ ___ ___ ___ R_w ___ P_b ___ 
+
+5  ___ ___ K_b ___ ___ ___ P_b ___ 
+
+4  ___ P_b ___ ___ ___ ___ P_w ___ 
+
+3  ___ P_w ___ B_b ___ P_w ___ ___ 
+
+2  ___ ___ ___ K_w ___ N_b ___ ___ 
+
+1  ___ ___ ___ ___ ___ ___ ___ ___ 
+
+    A   B   C   D   E   F   G   H  )";
+
+static const char c_sigrist_result[] = R"(8  R_b ___ ___ ___ ___ ___ ___ ___ 
+
+7  P_b P_b P_b ___ ___ ___ ___ P_b 
+
+6  ___ ___ ___ ___ B_w ___ ___ K_b 
+
+5  ___ ___ ___ ___ ___ ___ ___ ___ 
+
+4  ___ ___ ___ P_w ___ Q_w ___ ___ 
+
+3  ___ ___ N_w ___ N_b ___ ___ ___ 
+
+2  P_w P_w P_w ___ ___ ___ P_w P_w 
+
+1  R_w ___ ___ ___ ___ ___ K_w ___ 
+
+    A   B   C   D   E   F   G   H  )";
+
+static const char c_fen_test_result[] = R"(8  R_b ___ ___ ___ K_b ___ ___ R_b 
+
+7  Q_b P_b P_b B_b ___ P_b P_b ___ 
+
+6  ___ ___ N_b B_b P_b N_b ___ ___ 
+
+5  ___ B_w ___ N_w ___ ___ ___ ___ 
+
+4  P_b P_w ___ P_w P_w ___ Q_b P_w 
+
+3  P_w ___ P_w ___ ___ ___ N_w ___ 
+
+2  ___ ___ ___ B_w Q_w P_w ___ ___ 
+
+1  R_w ___ ___ ___ K_w ___ ___ R_w 
+
+    A   B   C   D   E   F   G   H  )";
 
 TEST_CASE("A board can be constructed from a pgn file"
           "[board]")
@@ -119,6 +136,29 @@ TEST_CASE("A board should be initially setup" "[board]")
   REQUIRE(board.square_at({5, 7}).occupier_color() == Color::black);
 }
 
+TEST_CASE("A board can be created from a FEN string" "[board]")
+{
+  static const std::string fen_string{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 19"};
+
+  auto board = Board::from_fen(fen_string);
+
+  std::stringstream out;
+  board->display(out);
+  board->display(std::cout);
+
+  std::string result = out.str();
+  std::string expected = c_fen_test_result;
+  result.erase(std::remove_if(result.begin(), result.end(), isspace), result.end());
+  expected.erase(std::remove_if(expected.begin(), expected.end(), isspace), expected.end());
+  REQUIRE(result == expected);
+
+  REQUIRE(!board->try_move_algebraic("O-O-O")); // Should fail as black does not have queenside castling rights
+  REQUIRE(board->try_move_algebraic("axb3")); // En passent should succeed
+  REQUIRE(!board->try_move_algebraic("O-O")); // Should fail as white does not have kingside castling rights
+  REQUIRE(board->try_move_algebraic("O-O-O"));
+  REQUIRE(board->try_move_algebraic("O-O"));
+}
+
 TEST_CASE("A board should prevent illegal moves" "[board]")
 {
   Board board;
@@ -174,4 +214,5 @@ TEST_CASE("A board should prevent illegal moves" "[board]")
 
   REQUIRE(board.try_move_algebraic("xb5"));
 }
+
 

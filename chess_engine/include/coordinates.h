@@ -6,6 +6,8 @@
 class Coordinates
 {
 public:
+  static std::optional<Coordinates> from_str(std::string_view str);
+
   Coordinates(int8_t x, int8_t y)
   {
     MY_ASSERT(x < 8, "A board has coordinates 0-7");

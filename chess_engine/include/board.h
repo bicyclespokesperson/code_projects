@@ -126,8 +126,9 @@ private:
    */
   bool validate_() const;
 
-  void update_castling_rights_(Coordinates dest);
   void update_king_locations_(Coordinates dest);
+  void update_castling_rights_(Coordinates dest);
+  bool update_castling_rights_fen_(char c);
 
   bool is_in_check_(Color color) const;
 

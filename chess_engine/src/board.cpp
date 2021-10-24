@@ -208,7 +208,13 @@ Board::Board() : m_white_king({0, 0}), m_black_king({0, 0})
   setup();
 }
 
-Board::Board(int) : m_white_king({0, 0}), m_black_king({0, 0})
+Board::Board(int) : 
+  m_white_king({0, 0}), 
+  m_black_king({0, 0}), 
+  m_white_can_short_castle(false),
+  m_white_can_long_castle(false),
+  m_black_can_short_castle(false),
+  m_black_can_long_castle(false)
 {
 }
 
@@ -1020,54 +1026,75 @@ std::optional<Board> Board::from_pgn(std::string_view pgn)
   return result;
 }
 
+bool Board::update_castling_rights_fen_(char c)
+{
+  switch (c)
+  {
+    case 'k':
+      m_black_can_short_castle = true;
+      break;
+    case 'q':
+      m_black_can_long_castle = true;
+      break;
+    case 'K':
+      m_white_can_long_castle = true;
+      break;
+    case 'Q':
+      m_white_can_long_castle = true;
+      break;
+    default:
+      return false;
+  }
+  return true;
+}
+
 std::optional<Board> Board::from_fen(std::string_view fen)
 {
-  std::optional<Board> board = Board{};
+  std::optional<Board> board = Board{0};
   
   std::string fen_str{fen.substr(fen.find_first_not_of(" \n\t"))};
-
-  MY_ASSERT(false, "Not implemented");
 
   int8_t y{c_board_dimension - 1};
   int8_t x{0};
 
-  size_t str_index{0};
-  size_t board_index{0};
-  while (board_index < c_board_dimension && (fen_str[str_index] != ' '))
+  size_t index{0};
+  while (index < fen_str.size() && (fen_str[index] != ' ') && y >= 0)
   {
-    if (str_index >= fen_str.size())
+    if (isdigit(fen_str[index]))
     {
-      std::cerr << "Fen str too short" << std::endl;
-      return {};
-    }
-
-    if (isdigit(fen_str[str_index]))
-    {
-      for (uint8_t i{0}; i < (fen_str[str_index] - '1'); ++i)
+      for (uint8_t i{0}; i < (fen_str[index] - '0'); ++i)
       {
         board->square_at({x, y}).set_occupier(Piece::empty);
         x = (x + 1) % c_board_dimension;
       }
     }
-    else if (isalpha(fen_str[str_index]))
+    else if (isalpha(fen_str[index]))
     {
-      auto color = islower(fen_str[str_index]) ? Color::black : Color::white;
-      auto piece = from_char(toupper(fen_str[str_index]));
+      auto color = islower(fen_str[index]) ? Color::black : Color::white;
+      auto piece = from_char(toupper(fen_str[index]));
       
       board->square_at({x, y}).set_occupier_color(color);
       board->square_at({x, y}).set_occupier(piece);
-      x = (x + 1) % c_board_dimension;
 
       if (color == Color::black)
       {
         board->add_piece_(board->m_black_piece_locations, {x, y});
+        if (piece == Piece::king)
+        {
+          board->m_black_king = {x, y};
+        }
       }
       else
       {
         board->add_piece_(board->m_white_piece_locations, {x, y});
+        if (piece == Piece::king)
+        {
+          board->m_white_king = {x, y};
+        }
       }
+      x = (x + 1) % c_board_dimension;
     }
-    else if (fen_str[str_index] == '/')
+    else if (fen_str[index] == '/')
     {
       if (x != 0)
       {
@@ -1076,7 +1103,74 @@ std::optional<Board> Board::from_fen(std::string_view fen)
       }
       --y;
     }
+
+    ++index;
   }
+
+  if (fen_str[index] != ' ')
+  {
+    std::cerr << "Badly formed fen string - Too many piece locations" << std::endl;
+    return  {};
+  }
+  ++index;
+
+  Color to_play = Color::white;
+  if (tolower(fen_str[index]) == 'w')
+  {
+    // White to play - denote this be setting previous_move to a black piece
+    // The move being to and from the same square is irrelevent, the board will just check which color piece performed the previous move
+    board->m_previous_move = Board::Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
+  }
+  else if (tolower(fen_str[index]) == 'b')
+  {
+    to_play = Color::black;
+    // Black to play - denote this be setting previous_move to a white piece
+    board->m_previous_move = Board::Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
+  }
+  else
+  {
+    std::cerr << "Badly formed fen string - expected current move color" << std::endl;
+    return  {};
+  }
+
+  ++index;
+  if (fen_str[index] != ' ')
+  {
+    std::cerr << "Badly formed fen string - expected space after current move" << std::endl;
+    return  {};
+  }
+
+  ++index;
+
+  while (fen_str[index] != ' ')
+  {
+    board->update_castling_rights_fen_(fen_str[index]);
+    ++index;
+  }
+  ++index;
+
+  if (fen_str[index] != '-')
+  {
+    // En passent is possible, denote this by setting previous move to the pawn move that allowed en passent
+    
+    auto capture_square = Coordinates::from_str(std::string_view{fen_str.c_str() + index, 2});
+    if (!capture_square)
+    {
+      std::cerr << "Badly formed fen string - invalid en passent capture square" << std::endl;
+      return {};
+    }
+
+    auto from_y = static_cast<int8_t>(capture_square->y() + 1);
+    auto to_y = static_cast<int8_t>(capture_square->y() - 1);
+    if (to_play == Color::black)
+    {
+      std::swap(from_y, to_y);
+    }
+
+    board->m_previous_move = Board::Move{{capture_square->x(), from_y}, {capture_square->x(), to_y}};
+  }
+
+  MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");
 
   return board;
 }
