@@ -16,7 +16,8 @@ std::optional<std::string> read_file_contents(std::string const& filename)
 }
 } // namespace
 
-static const char c_fischer_spassky_result[] = R"(8  ___ ___ ___ ___ ___ ___ ___ ___ 
+static const char c_fischer_spassky_result[] = R"(
+8  ___ ___ ___ ___ ___ ___ ___ ___ 
 
 7  ___ ___ ___ ___ ___ ___ ___ ___ 
 
@@ -32,9 +33,11 @@ static const char c_fischer_spassky_result[] = R"(8  ___ ___ ___ ___ ___ ___ ___
 
 1  ___ ___ ___ ___ ___ ___ ___ ___ 
 
-    A   B   C   D   E   F   G   H  )";
+    A   B   C   D   E   F   G   H  
+)";
 
-static const char c_sigrist_result[] = R"(8  R_b ___ ___ ___ ___ ___ ___ ___ 
+static const char c_sigrist_result[] = R"(
+8  R_b ___ ___ ___ ___ ___ ___ ___ 
 
 7  P_b P_b P_b ___ ___ ___ ___ P_b 
 
@@ -50,9 +53,11 @@ static const char c_sigrist_result[] = R"(8  R_b ___ ___ ___ ___ ___ ___ ___
 
 1  R_w ___ ___ ___ ___ ___ K_w ___ 
 
-    A   B   C   D   E   F   G   H  )";
+    A   B   C   D   E   F   G   H  
+)";
 
-static const char c_fen_test_result[] = R"(8  R_b ___ ___ ___ K_b ___ ___ R_b 
+static const char c_fen_test_result[] = R"(
+8  R_b ___ ___ ___ K_b ___ ___ R_b 
 
 7  Q_b P_b P_b B_b ___ P_b P_b ___ 
 
@@ -68,7 +73,29 @@ static const char c_fen_test_result[] = R"(8  R_b ___ ___ ___ K_b ___ ___ R_b
 
 1  R_w ___ ___ ___ K_w ___ ___ R_w 
 
-    A   B   C   D   E   F   G   H  )";
+    A   B   C   D   E   F   G   H  
+)";
+
+
+static const char c_uci_moves_result[] = R"(
+8  R_b N_b B_b Q_b K_b B_b ___ R_b 
+
+7  P_b P_b P_b P_b P_b P_b P_b P_b 
+
+6  ___ ___ ___ ___ ___ N_b ___ ___ 
+
+5  P_w ___ ___ ___ ___ ___ ___ ___ 
+
+4  ___ ___ ___ ___ ___ ___ ___ ___ 
+
+3  ___ ___ ___ ___ ___ ___ ___ ___ 
+
+2  ___ P_w P_w P_w P_w P_w P_w P_w 
+
+1  R_w N_w B_w Q_w K_w B_w N_w R_w 
+
+    A   B   C   D   E   F   G   H  
+)";
 
 TEST_CASE("A board can be constructed from a pgn file",
           "[board]")
@@ -214,4 +241,20 @@ TEST_CASE("A board should prevent illegal moves",
   REQUIRE(board.try_move_algebraic("Bb5"));
 
   REQUIRE(board.try_move_algebraic("xb5"));
+}
+
+TEST_CASE("A board make moves in uci format", 
+          "[board]")
+{
+  Board board;
+  REQUIRE(board.try_move_uci("a2 a4"));
+  REQUIRE(!board.try_move_uci("a4 a5"));
+  REQUIRE(board.try_move_uci("g8 f6"));
+  REQUIRE(board.try_move_uci("a4a5"));
+
+  std::stringstream out;
+  board.display(out);
+
+  std::string expected{c_uci_moves_result};
+  REQUIRE(expected == out.str());
 }
