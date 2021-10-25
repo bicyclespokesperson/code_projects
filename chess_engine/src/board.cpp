@@ -17,6 +17,19 @@ bool occupied_by_friend(Coordinates from, Coordinates to, Board const& board)
   return false;
 }
 
+#if 0
+std::vector<Board::Move> pawn_generate_moves(Coordinates loc, Board const& board)
+{
+  std::vector<Board::Move> result;
+  auto color = board.square_at(loc).occupier_color();
+  auto direction = (color == Color::white) ? 1 : -1;
+
+  // Generate possible moves
+
+  return result;
+}
+#endif
+
 bool bishop_can_move(Coordinates from, Coordinates to, Board const& board)
 {
   if (!(board.is_clear_diagonal(from, to)))
@@ -699,6 +712,48 @@ bool Board::is_in_check_(Color color) const
   return std::any_of(pieces.cbegin(), pieces.cend(), [&](Coordinates piece_location) {
     return piece_can_move(piece_location, king_location, *this);
   });
+}
+
+bool Board::is_in_checkmate(Color color) const
+{
+  if (current_turn_color() != color)
+  {
+    // A player cannot be in checkmate if it is not their turn
+    return false;
+  }
+
+  if (!is_in_check_(color))
+  {
+    return false;
+  }
+
+  // We can cast this to non-const, since every change will be undone
+  auto non_const_this = const_cast<Board*>(this);
+
+  auto king_location = (color == Color::white) ? m_white_king : m_black_king;
+  bool result = true;
+  for (int8_t i{-1}; i <= 1 && result; ++i)
+  {
+    for (int8_t j{-1}; j <= 1 && result; ++j)
+    {
+      if (i != 0 || j != 0)
+      {
+        auto x = static_cast<int8_t>(king_location.x() + i);
+        auto y = static_cast<int8_t>(king_location.y() + j);
+        if (x > 0 && x < c_board_dimension && y > 0 && y < c_board_dimension)
+        {
+          Move m{king_location, {x, y}};
+          if (auto sq = square_at(m.to); sq.is_occupied() && sq.occupier_color() != color)
+          {
+            auto captured_piece = non_const_this->perform_move_(m, m.to);
+            result = is_in_check_(color);
+            non_const_this->unperform_move_(m, captured_piece);
+          }
+        }
+      }
+    }
+  }
+  return result;
 }
 
 void Board::remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove)

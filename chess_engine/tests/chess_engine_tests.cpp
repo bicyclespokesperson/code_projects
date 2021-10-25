@@ -297,3 +297,20 @@ TEST_CASE("Pawn promotion", "[board]")
   REQUIRE(board->try_move_algebraic("f8=R"));
   REQUIRE(board->try_move_algebraic("g1=B"));
 }
+
+TEST_CASE("Check for checkmate", "[board]")
+{
+  Board board;
+  board.try_move_algebraic("e4");
+  board.try_move_algebraic("e5");
+  board.try_move_algebraic("Bc4");
+  board.try_move_algebraic("Nc6");
+  board.try_move_algebraic("Qh5");
+  REQUIRE(!board.is_in_checkmate(Color::black));
+  board.try_move_algebraic("Nf6");
+  REQUIRE(!board.is_in_checkmate(Color::black));
+  board.try_move_algebraic("Qxf7#");
+
+  REQUIRE(!board.is_in_checkmate(Color::white));
+  REQUIRE(board.is_in_checkmate(Color::black));
+}

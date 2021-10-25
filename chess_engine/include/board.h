@@ -120,6 +120,8 @@ public:
   Color current_turn_color() const;
   Color opposite_color(Color color) const;
 
+  bool is_in_checkmate(Color color) const;
+
 private:
   /**
    * Private constructor that doesn't initialize pieces
