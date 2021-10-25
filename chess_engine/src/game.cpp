@@ -39,7 +39,14 @@ void Game::run()
     {
       game_in_progress = false;
     }
+
     std::cout << board;
+    auto color = board.current_turn_color();
+    if (board.is_in_checkmate(color))
+    {
+      game_in_progress = false;
+      std::cout << (color == Color::white ? "black" : "white") << " is victorious!" << std::endl;
+    }
   }
 }
 
