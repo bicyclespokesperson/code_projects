@@ -15,7 +15,9 @@ target_precompile_headers(chess_engine_lib
     <filesystem>
     <fstream>
     <iostream>
+    <limits>
     <map>
+    <numeric>
     <numeric>
     <random>
     <ranges>
