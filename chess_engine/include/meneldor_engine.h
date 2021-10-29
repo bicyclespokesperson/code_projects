@@ -1,0 +1,3 @@
+class Meneldor_engine
+{
+};

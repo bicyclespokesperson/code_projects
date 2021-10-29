@@ -1,0 +1,13 @@
+Generate moves
+
+This article is good, might also want to just look at the source code for the engine
+https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
+
+https://www.chessprogramming.org/Classical_Approach
+https://www.chessprogramming.org/Bitboard_Board-Definition
+https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#Bitboard_Board-Definition
+
+Integrate UCI protocol
+
+Implement engine functionality
+

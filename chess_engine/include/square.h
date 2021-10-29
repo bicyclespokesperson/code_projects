@@ -1,29 +1,15 @@
 #ifndef SQUARE_H
 #define SQUARE_H
 
-enum class Piece : uint8_t
-{
-  empty = 0,
-  pawn,
-  knight,
-  bishop,
-  rook,
-  queen,
-  king,
-};
-
-enum class Color : uint8_t
-{
-  black = 0,
-  white,
-};
-
-Piece from_char(char c);
+#include "chess_types.h"
 
 class Square
 {
 public:
-  Square() = default;
+  Square()
+  : m_occupier(Piece::empty), m_color(Color::black)
+  {
+  }
 
   Square(Piece piece, Color piece_color) : m_occupier(piece), m_color(piece_color)
   {
@@ -66,8 +52,6 @@ private:
   Piece m_occupier : 5;
   Color m_color : 1;
 };
-
-std::ostream& operator<<(std::ostream& os, Piece const& self);
 
 std::ostream& operator<<(std::ostream& os, Square const& self);
 

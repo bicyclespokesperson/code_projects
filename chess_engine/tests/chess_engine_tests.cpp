@@ -2,6 +2,7 @@
 #include <catch2/catch.hpp>
 
 #include "board.h"
+#include "bitboard.h"
 
 namespace
 {
@@ -313,4 +314,18 @@ TEST_CASE("Check for checkmate", "[board]")
 
   REQUIRE(!board.is_in_checkmate(Color::white));
   REQUIRE(board.is_in_checkmate(Color::black));
+}
+
+TEST_CASE("bitboard", "[bitboard]")
+{
+  Bitboard b{0};
+  b.set_square(9);
+  b.set_square(63);
+
+  Bitboard b2{0};
+  b2.set_square({1, 1});
+  b2.set_square({7, 7});
+
+  REQUIRE(b.val == b2.val);
+  REQUIRE(b.occupancy() == 2);
 }
