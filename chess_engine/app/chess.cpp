@@ -11,6 +11,7 @@
 #include "bitboard.h"
 #include "game.h"
 #include "my_assert.h"
+#include "meneldor_engine.h"
 #include "player.h"
 #include <sstream>
 
@@ -27,12 +28,7 @@ int main(int /* argc */, char* /* argv*/[])
   game.run();
 #endif
 
-  Bitboard b{0};
-  b.set_square(0);
-  b.set_square(1);
-  b.set_square(8);
-  b.set_square(63);
-  std::cout << b;
+  Meneldor_engine me;
 
   return 0;
 }

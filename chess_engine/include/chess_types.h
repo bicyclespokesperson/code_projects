@@ -5,7 +5,7 @@ enum class Color : uint8_t
 {
   black = 0,
   white,
-  num_colors,
+  _count,
 };
 
 enum class Piece : uint8_t
@@ -19,8 +19,55 @@ enum class Piece : uint8_t
   queen,
   king,
   empty,
-  num_pieces,
+  _count,
 };
+
+class Compass_dir
+{
+public:
+  enum Value : int32_t
+  {
+    north,
+    northwest,
+    west,
+    southwest,
+    south,
+    southeast,
+    east,
+    northeast,
+    _count,
+  };
+
+  constexpr Compass_dir(Value dir)
+    : m_value(dir)
+  {
+  }
+
+  constexpr operator Value() const
+  {
+    return m_value;
+  }
+
+  /*
+  constexpr operator int32_t() const
+  {
+    return static_cast<int32_t>(m_value);
+  }
+  */
+
+  Compass_dir& operator++()
+  {
+    m_value = static_cast<Value>(static_cast<int32_t>(m_value) + 1);
+    return *this;
+  }
+
+  explicit operator bool() = delete;
+
+private:
+  Value m_value;
+};
+
+
 
 constexpr Piece to_piece_enum(Color c);
 

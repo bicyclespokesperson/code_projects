@@ -5,6 +5,8 @@
 
 struct Bitboard
 {
+  Bitboard() = default;
+
   Bitboard(uint64_t val)
   : val(val)
   {
