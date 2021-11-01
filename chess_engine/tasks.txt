@@ -3,6 +3,18 @@ Generate moves
 This article is good, might also want to just look at the source code for the engine
 https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
 
+Pseudocode for shallow blue:
+  gen pseudo legal moves
+  array legal_moves
+  for each pseudo legal move
+    board tmpBoard(board)
+    tmpBoard.perform_move(move)
+    if !inCheck() // inCheck uses bitboards to check if a square is under attack
+      save move in legal_moves
+
+Another good look at move generation
+https://www.josherv.in/2021/03/19/chess-1/
+
 https://www.chessprogramming.org/Classical_Approach
 https://www.chessprogramming.org/Bitboard_Board-Definition
 https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#Bitboard_Board-Definition

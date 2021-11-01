@@ -5,64 +5,69 @@
 
 struct Bitboard
 {
-  Bitboard() = default;
+  constexpr Bitboard() = default;
 
-  Bitboard(uint64_t val)
+  constexpr Bitboard(uint64_t val)
   : val(val)
   {
   }
 
-  void set_square(Coordinates coords)
+  constexpr void set_square(Coordinates coords)
   {
     val |= (uint64_t{0x01} << (coords.y() * 8 + coords.x()));
   }
 
-  void set_square(size_t index)
+  constexpr void set_square(size_t index)
   {
     val |= (uint64_t{0x01} << index);
   }
 
-  void unset_square(Coordinates coords)
+  constexpr void unset_square(Coordinates coords)
   {
     val &= ~(uint64_t{0x01} << (coords.y() * 8 + coords.x()));
   }
 
-  void unset_square(size_t index)
+  constexpr void unset_square(size_t index)
   {
     val &= ~(uint64_t{0x01} << index);
   }
 
-  bool square_at(size_t index) const
+  constexpr bool square_at(size_t index) const
   {
     return static_cast<bool>(val & (uint64_t{0x01} << index));
   }
 
-  Bitboard operator&(Bitboard other) const
+  constexpr Bitboard operator&(Bitboard other) const
   {
     return Bitboard(this->val & other.val);
   }
 
-  Bitboard operator|(Bitboard other) const
+  constexpr Bitboard operator|(Bitboard other) const
   {
     return Bitboard(this->val & other.val);
   }
 
-  Bitboard operator<<(Bitboard other) const
+  constexpr Bitboard operator<<(Bitboard other) const
   {
     return Bitboard(this->val & other.val);
   }
 
-  Bitboard operator>>(Bitboard other) const
+  constexpr Bitboard operator>>(Bitboard other) const
   {
     return Bitboard(this->val & other.val);
   }
 
-  Bitboard operator~() const
+  constexpr Bitboard operator~() const
   {
     return ~Bitboard(this->val).val;
   }
 
-  Bitboard operator==(Bitboard other) const
+  constexpr Bitboard operator^(Bitboard other) const
+  {
+    return Bitboard(this->val ^ other.val);
+  }
+
+  constexpr Bitboard operator==(Bitboard other) const
   {
     return val == other.val;
   }
@@ -70,10 +75,10 @@ struct Bitboard
   /*
    * Return the number of one bits in the number
    */
-  size_t occupancy() const
+  constexpr int32_t occupancy() const
   {
     // Kernighan's algorithm
-    size_t count = 0;
+    int32_t count = 0;
     uint64_t value{this->val};
 
     while (value) {
@@ -81,6 +86,25 @@ struct Bitboard
        value &= value - 1; // reset LS1B
     }
     return count;
+  }
+
+  constexpr bool is_empty() const
+  {
+    return val != 0;
+  }
+
+  constexpr int32_t bitscan_forward() const {
+    if (val == 0) {
+      return -1;
+    }
+    return __builtin_ffsll(val) - 1;
+  }
+
+  constexpr int bitscan_reverse() {
+    if (val == 0) {
+      return -1;
+    }
+    return 63 - __builtin_clzll(val);
   }
 
   /*
@@ -91,6 +115,5 @@ struct Bitboard
 };
 
 std::ostream& operator<<(std::ostream& os, Bitboard const& self);
-
 
 #endif // BITBOARD_H

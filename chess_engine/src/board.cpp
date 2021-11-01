@@ -96,7 +96,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
       return false; // One of the pieces necessary for castling has already moved
     }
 
-    Coordinates transit_square{static_cast<int8_t>((from.x() + to.x()) / 2), from.y()};
+    Coordinates transit_square{static_cast<int32_t>((from.x() + to.x()) / 2), from.y()};
 
     if (board.square_at(transit_square).is_occupied())
     {
@@ -667,17 +667,17 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
   }
 
   // Assume that we are walking up
-  int8_t direction = 1;
+  int direction = 1;
   if (left.y() > right.y())
   {
     direction = -1;
   }
 
   // Walk from "left" to "right"
-  for (int8_t i = 1; i < right.x() - left.x(); i++)
+  for (int i = 1; i < right.x() - left.x(); i++)
   {
     // Check to see if square is occupied
-    if (square_at({static_cast<int8_t>(left.x() + i), static_cast<int8_t>(left.y() + direction * i)}).is_occupied())
+    if (square_at({left.x() + i, left.y() + direction * i}).is_occupied())
     {
       return false;
     }
@@ -732,14 +732,14 @@ bool Board::is_in_checkmate(Color color) const
 
   auto king_location = (color == Color::white) ? m_white_king : m_black_king;
   bool result = true;
-  for (int8_t i{-1}; i <= 1 && result; ++i)
+  for (int i{-1}; i <= 1 && result; ++i)
   {
-    for (int8_t j{-1}; j <= 1 && result; ++j)
+    for (int j{-1}; j <= 1 && result; ++j)
     {
       if (i != 0 || j != 0)
       {
-        auto x = static_cast<int8_t>(king_location.x() + i);
-        auto y = static_cast<int8_t>(king_location.y() + j);
+        auto x = king_location.x() + i;
+        auto y = king_location.y() + j;
         if (x > 0 && x < c_board_dimension && y > 0 && y < c_board_dimension)
         {
           Move m{king_location, {x, y}};
@@ -951,7 +951,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
   if (isalpha(move_str[0]))
   {
     // Drop candidates that are not on the correct column
-    auto start_column = static_cast<int8_t>(move_str[0] - 'a');
+    auto start_column = static_cast<int32_t>(move_str[0] - 'a');
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
                                     [start_column](Coordinates piece_loc) {
                                       return piece_loc.x() != start_column;
@@ -976,7 +976,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
   {
 
     // Drop candidates that are not on the correct column
-    auto start_row = static_cast<int8_t>(move_str[0] - '1');
+    auto start_row = static_cast<int32_t>(move_str[0] - '1');
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
                                     [start_row](Coordinates piece_loc) {
                                       return piece_loc.y() != start_row;
@@ -1233,8 +1233,8 @@ std::optional<Board> Board::from_fen(std::string_view fen)
       return {};
     }
 
-    auto from_y = static_cast<int8_t>(capture_square->y() + 1);
-    auto to_y = static_cast<int8_t>(capture_square->y() - 1);
+    auto from_y = capture_square->y() + 1;
+    auto to_y = capture_square->y() - 1;
     if (to_play == Color::black)
     {
       std::swap(from_y, to_y);
@@ -1311,7 +1311,7 @@ std::string Board::to_fen() const
   if (en_passent_is_possible())
   {
     Coordinates en_passent_square{previous_move()->from.x(),
-                                  static_cast<int8_t>((previous_move()->from.y() + previous_move()->to.y()) / 2)};
+                                  static_cast<int32_t>((previous_move()->from.y() + previous_move()->to.y()) / 2)};
     result << en_passent_square;
   }
   else
@@ -1344,7 +1344,7 @@ std::ostream& operator<<(std::ostream& out, Board const& self)
     out << (i + 1) << "  ";
     for (int j = 0; j < c_board_dimension; j++)
     {
-      out << self.square_at({static_cast<int8_t>(j), static_cast<int8_t>(i)});
+      out << self.square_at({j, i});
     }
     out << std::endl << std::endl;
   }

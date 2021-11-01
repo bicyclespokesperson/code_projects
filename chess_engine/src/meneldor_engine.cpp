@@ -4,7 +4,7 @@ static constexpr int32_t c_board_dimension{8};
 
 Meneldor_engine::Meneldor_engine()
 {
-  initialize_attacks();
+  initialize_ray_attacks_();
 
   std::cout << "Printing out all attacks for b1 square" << std::endl;
   for (Compass_dir dir = Compass_dir::north; dir < Compass_dir::_count; ++dir)
@@ -13,7 +13,7 @@ Meneldor_engine::Meneldor_engine()
   }
 }
 
-void Meneldor_engine::initialize_attacks()
+void Meneldor_engine::initialize_ray_attacks_()
 {
   for (int8_t x{0}; x < c_board_dimension; ++x)
   {
@@ -77,4 +77,24 @@ void Meneldor_engine::initialize_attacks()
       } // for each dir
     } // for each y
   } // for each x
+} // initialize_ray_attacks
+
+Bitboard Meneldor_engine::get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied) const
+{
+  Bitboard attacks = m_ray_attacks[square.square_index()][dir];
+  Bitboard blockers = attacks & occupied;
+  if (!blockers.is_empty())
+  {
+    auto first_blocker = blockers.bitscan_forward();
+    attacks = attacks ^ m_ray_attacks[first_blocker][dir];
+  }
+
+  return attacks;
+}
+
+Bitboard Meneldor_engine::gen_rook_moves_(Coordinates square, Bitboard occupied) const
+{
+  auto attacks = get_positive_ray_attacks_(square, Compass_dir::north, occupied);
+
+  return attacks;
 }

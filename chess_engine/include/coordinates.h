@@ -8,31 +8,36 @@ class Coordinates
 public:
   static std::optional<Coordinates> from_str(std::string_view str);
 
-  Coordinates(int8_t x, int8_t y)
+  constexpr Coordinates(int32_t x, int32_t y)
   {
-    MY_ASSERT(x < 8, "A board has coordinates 0-7");
-    MY_ASSERT(y < 8, "A board has coordinates 0-7");
+    MY_ASSERT(0 <= x && x < 8, "A board has coordinates 0-7");
+    MY_ASSERT(0 <= y && y < 8, "A board has coordinates 0-7");
     static_assert(sizeof(Coordinates) == 1);
 
     m_coords = static_cast<uint8_t>(x);
     m_coords |= static_cast<uint8_t>(y) << 4;
   }
 
-  Coordinates(Coordinates const& other) = default;
+  constexpr Coordinates(Coordinates const& other) = default;
 
-  Coordinates& operator=(Coordinates const& other) = default;
+  constexpr Coordinates& operator=(Coordinates const& other) = default;
 
-  int8_t x() const
+  constexpr int32_t x() const
   {
-    return static_cast<int8_t>(m_coords & 0x0f);
+    return static_cast<int32_t>(m_coords & 0x0f);
   }
 
-  int8_t y() const
+  constexpr int32_t y() const
   {
-    return static_cast<int8_t>((m_coords & 0xf0) >> 4);
+    return static_cast<int32_t>((m_coords & 0xf0) >> 4);
   }
 
-  auto operator<=>(Coordinates const& other) const = default;
+  constexpr uint64_t square_index() const
+  {
+    return 8 * y() + x();
+  }
+
+  constexpr auto operator<=>(Coordinates const& other) const = default;
 
 private:
   uint8_t m_coords{0};
