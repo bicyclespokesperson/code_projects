@@ -74,16 +74,13 @@ void Move_generator::initialize_ray_attacks_()
 
 Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const
 {
-  constexpr std::array valid_directions{Compass_dir::north, Compass_dir::east, Compass_dir::northwest,
-                                        Compass_dir::northeast};
-  MY_ASSERT(std::find(valid_directions.cbegin(), valid_directions.cend(), dir) != valid_directions.cend(),
-            "Only positive directions are supported");
+  MY_ASSERT(dir.is_positive(), "Only positive directions are supported");
 
   Bitboard attacks = m_ray_attacks[square.square_index()][dir];
   Bitboard blockers = attacks & occupied;
   if (!blockers.is_empty())
   {
-    auto first_blocker = blockers.bitscan_forward();
+    auto const first_blocker = blockers.bitscan_forward();
     attacks ^= m_ray_attacks[first_blocker][dir];
   }
 
@@ -92,23 +89,22 @@ Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_di
 
 Bitboard Move_generator::get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const
 {
-  constexpr std::array valid_directions{Compass_dir::south, Compass_dir::west, Compass_dir::southwest,
-                                        Compass_dir::southeast};
-  MY_ASSERT(std::find(valid_directions.cbegin(), valid_directions.cend(), dir) != valid_directions.cend(),
-            "Only positive directions are supported");
+  MY_ASSERT(!dir.is_positive(), "Only negative directions are supported");
 
   Bitboard attacks = m_ray_attacks[square.square_index()][dir];
   Bitboard blockers = attacks & occupied;
   if (!blockers.is_empty())
   {
-    auto first_blocker = blockers.bitscan_reverse();
+    auto const first_blocker = blockers.bitscan_reverse();
     attacks ^= m_ray_attacks[first_blocker][dir];
   }
 
   return attacks;
 }
 
-Bitboard Move_generator::gen_sliding_moves_(std::span<const Compass_dir> positive_directions, std::span<const Compass_dir> negative_directions, Coordinates square, Bitboard occupied) const
+Bitboard Move_generator::gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
+                                            std::span<const Compass_dir> negative_directions, Coordinates square,
+                                            Bitboard occupied) const
 {
   auto positive_attacks = std::accumulate(positive_directions.begin(), positive_directions.end(), Bitboard{0},
                                           [&](Bitboard result, Compass_dir dir) {
@@ -138,8 +134,25 @@ Bitboard Move_generator::gen_bishop_moves(Coordinates square, Bitboard occupied)
 
 Bitboard Move_generator::gen_queen_moves(Coordinates square, Bitboard occupied) const
 {
-  constexpr std::array<Compass_dir, 4> positive_directions{Compass_dir::north, Compass_dir::northeast, Compass_dir::northwest, Compass_dir::east};
-  constexpr std::array<Compass_dir, 4> negative_directions{Compass_dir::south, Compass_dir::southeast, Compass_dir::west, Compass_dir::southwest};
+  constexpr std::array<Compass_dir, 4> positive_directions{Compass_dir::north, Compass_dir::northeast,
+                                                           Compass_dir::northwest, Compass_dir::east};
+  constexpr std::array<Compass_dir, 4> negative_directions{Compass_dir::south, Compass_dir::southeast,
+                                                           Compass_dir::west, Compass_dir::southwest};
 
   return gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
+}
+
+Bitboard Move_generator::gen_pawn_moves(Coordinates square, Bitboard occupied) const
+{
+  return {};
+}
+
+Bitboard Move_generator::gen_knight_moves(Coordinates square, Bitboard occupied) const
+{
+  return {};
+}
+
+Bitboard Move_generator::gen_king_moves(Coordinates square, Bitboard occupied) const
+{
+  return {};
 }

@@ -56,13 +56,24 @@ public:
   }
   */
 
-  Compass_dir& operator++()
+  constexpr Compass_dir& operator++()
   {
     m_value = static_cast<Value>(static_cast<int32_t>(m_value) + 1);
     return *this;
   }
 
   explicit operator bool() = delete;
+
+  // These directions count as positive on this board representation
+  constexpr bool is_positive() const
+  {
+    constexpr std::array positive_directions{Compass_dir::north, Compass_dir::east, Compass_dir::northwest,
+                                             Compass_dir::northeast};
+
+    return std::any_of(positive_directions.cbegin(), positive_directions.cend(), [&](auto dir) {
+      return dir == this->m_value;
+    });
+  }
 
 private:
   Value m_value;

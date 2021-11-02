@@ -344,8 +344,10 @@ TEST_CASE("Rook moves", "Move_generator")
   Bitboard occupancy{0};
   for (int i{0}; i < 8; ++i)
   {
+    occupancy.set_square({i, 1});
     occupancy.set_square({i, 2});
     occupancy.set_square({i, 6});
+    occupancy.set_square({i, 7});
   }
 
   Bitboard expected_rook_moves{0x001010ef10100000};
