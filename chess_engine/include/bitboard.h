@@ -7,8 +7,8 @@ struct Bitboard
 {
   constexpr Bitboard() = default;
 
-  constexpr Bitboard(uint64_t val)
-  : val(val)
+  constexpr Bitboard(uint64_t value)
+  : val(value)
   {
   }
 
@@ -44,22 +44,22 @@ struct Bitboard
 
   constexpr Bitboard operator|(Bitboard other) const
   {
-    return Bitboard(this->val & other.val);
+    return Bitboard(this->val | other.val);
   }
 
   constexpr Bitboard operator<<(Bitboard other) const
   {
-    return Bitboard(this->val & other.val);
+    return Bitboard(this->val << other.val);
   }
 
   constexpr Bitboard operator>>(Bitboard other) const
   {
-    return Bitboard(this->val & other.val);
+    return Bitboard(this->val >> other.val);
   }
 
   constexpr Bitboard operator~() const
   {
-    return ~Bitboard(this->val).val;
+    return Bitboard(~this->val);
   }
 
   constexpr Bitboard operator^(Bitboard other) const
@@ -90,7 +90,7 @@ struct Bitboard
 
   constexpr bool is_empty() const
   {
-    return val != 0;
+    return val == 0;
   }
 
   constexpr int32_t bitscan_forward() const {
@@ -111,7 +111,7 @@ struct Bitboard
    * A bitboard is stored with LSB = a1, up to MSB = h8
    * Order: a1, b1, c1, ..., h1, a2, b2, ... h8
    */
-  uint64_t val;
+  uint64_t val{0};
 };
 
 std::ostream& operator<<(std::ostream& os, Bitboard const& self);

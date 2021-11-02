@@ -1,6 +1,8 @@
 #ifndef CHESS_TYPES_H
 #define CHESS_TYPES_H
 
+static constexpr int32_t c_board_dimension{8};
+
 enum class Color : uint8_t
 {
   black = 0,

@@ -1,8 +1,6 @@
 #include "board.h"
 #include "my_assert.h"
 
-constexpr int c_board_dimension{8};
-
 namespace
 {
 bool piece_can_move(Coordinates from, Coordinates to, Board const& board);

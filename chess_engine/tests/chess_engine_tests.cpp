@@ -3,6 +3,7 @@
 
 #include "board.h"
 #include "bitboard.h"
+#include "move_generator.h"
 
 namespace
 {
@@ -328,4 +329,16 @@ TEST_CASE("bitboard", "[bitboard]")
 
   REQUIRE(b.val == b2.val);
   REQUIRE(b.occupancy() == 2);
+
+  Bitboard b3{0x0ff0};
+  Bitboard b4{0x00ff};
+  REQUIRE((b3 & b4).val == 0x00f0);
+  REQUIRE((b3 | b4).val == 0x0fff);
+  REQUIRE((~b3).val == ~(b3.val));
+}
+
+TEST_CASE("Rook moves", "Move_generator")
+{
+  Move_generator mg;
+  
 }

@@ -1,7 +1,8 @@
 #ifndef COORDINATES_H
 #define COORDINATES_H
 
-#include <my_assert.h>
+#include "chess_types.h"
+#include "my_assert.h"
 
 class Coordinates
 {
@@ -13,6 +14,17 @@ public:
     MY_ASSERT(0 <= x && x < 8, "A board has coordinates 0-7");
     MY_ASSERT(0 <= y && y < 8, "A board has coordinates 0-7");
     static_assert(sizeof(Coordinates) == 1);
+
+    m_coords = static_cast<uint8_t>(x);
+    m_coords |= static_cast<uint8_t>(y) << 4;
+  }
+
+  constexpr Coordinates(int32_t square_index)
+  {
+    MY_ASSERT(0 < square_index && square_index < c_board_dimension * c_board_dimension, "A board has 64 squares");
+
+    auto x = static_cast<uint8_t>(square_index % 8);
+    auto y = static_cast<uint8_t>(square_index / 8);
 
     m_coords = static_cast<uint8_t>(x);
     m_coords |= static_cast<uint8_t>(y) << 4;
@@ -32,7 +44,7 @@ public:
     return static_cast<int32_t>((m_coords & 0xf0) >> 4);
   }
 
-  constexpr uint64_t square_index() const
+  constexpr int32_t square_index() const
   {
     return 8 * y() + x();
   }

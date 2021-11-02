@@ -1,5 +1,7 @@
 Generate moves
 
+  Make Move_generator class to hold logic (more testable)?
+
 This article is good, might also want to just look at the source code for the engine
 https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
 
