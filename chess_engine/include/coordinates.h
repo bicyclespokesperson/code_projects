@@ -21,10 +21,10 @@ public:
 
   constexpr Coordinates(int32_t square_index)
   {
-    MY_ASSERT(0 < square_index && square_index < c_board_dimension * c_board_dimension, "A board has 64 squares");
+    MY_ASSERT(0 < square_index && square_index < c_board_dimension_squared, "A board has 64 squares");
 
-    auto x = static_cast<uint8_t>(square_index % 8);
-    auto y = static_cast<uint8_t>(square_index / 8);
+    auto x = static_cast<uint8_t>(square_index % c_board_dimension);
+    auto y = static_cast<uint8_t>(square_index / c_board_dimension);
 
     m_coords = static_cast<uint8_t>(x);
     m_coords |= static_cast<uint8_t>(y) << 4;
@@ -46,7 +46,7 @@ public:
 
   constexpr int32_t square_index() const
   {
-    return 8 * y() + x();
+    return c_board_dimension * y() + x();
   }
 
   constexpr auto operator<=>(Coordinates const& other) const = default;

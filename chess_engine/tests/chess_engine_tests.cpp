@@ -352,4 +352,10 @@ TEST_CASE("Rook moves", "Move_generator")
 
   Bitboard expected_rook_moves{0x001010ef10100000};
   REQUIRE(mg.gen_rook_moves({4, 4}, occupancy) == expected_rook_moves);
+
+  Bitboard expected_knight_moves{0x0000142200221400 };
+  REQUIRE(mg.gen_knight_moves({3, 3}, occupancy) == expected_knight_moves);
+
+  Bitboard expected_king_moves{0x0000001c141c0000};
+  REQUIRE(mg.gen_king_moves({3, 3}, occupancy) == expected_king_moves);
 }

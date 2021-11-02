@@ -154,7 +154,7 @@ private:
 
   Move find_castling_rook_move_(Coordinates king_destination);
 
-  constexpr static size_t c_board_size{64};
+  constexpr static size_t c_board_size{c_board_dimension_squared};
   constexpr static size_t c_initial_piece_count{20};
 
   std::array<Square, c_board_size> m_squares{};

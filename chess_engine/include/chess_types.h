@@ -2,6 +2,7 @@
 #define CHESS_TYPES_H
 
 static constexpr int32_t c_board_dimension{8};
+static constexpr int32_t c_board_dimension_squared{c_board_dimension * c_board_dimension};
 
 enum class Color : uint8_t
 {

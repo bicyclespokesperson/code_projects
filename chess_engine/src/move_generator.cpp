@@ -1,9 +1,24 @@
 #include "move_generator.h"
 #include "my_assert.h"
 
+namespace
+{
+
+void update_if_in_bounds_(Bitboard& bb, int x, int y)
+{
+  if (0 <= x && x < c_board_dimension && 0 <= y && y < c_board_dimension)
+  {
+    bb.set_square(Coordinates{x, y}.square_index());
+  }
+}
+
+} // namespace
+
 Move_generator::Move_generator()
 {
   initialize_ray_attacks_();
+  initialize_knight_attacks_();
+  initialize_king_attacks_();
 }
 
 void Move_generator::initialize_ray_attacks_()
@@ -14,9 +29,7 @@ void Move_generator::initialize_ray_attacks_()
     {
       for (Compass_dir dir = Compass_dir::north; dir < Compass_dir::_count; ++dir)
       {
-        // https://www.chessprogramming.org/Classical_Approach
-
-        int square_index = y * c_board_dimension + x;
+        auto square_index = Coordinates{x, y}.square_index();
         Bitboard& bb = m_ray_attacks[square_index][dir];
 
         int8_t square_x{x};
@@ -71,6 +84,52 @@ void Move_generator::initialize_ray_attacks_()
     }     // for each y
   }       // for each x
 } // initialize_ray_attacks
+
+
+void Move_generator::initialize_knight_attacks_()
+{
+  for (int8_t x{0}; x < c_board_dimension; ++x)
+  {
+    for (int8_t y{0}; y < c_board_dimension; ++y)
+    {
+      auto square_index = Coordinates{x, y}.square_index();
+      auto& bb = m_knight_attacks[square_index];
+      
+      update_if_in_bounds_(bb, x+1, y+2);
+      update_if_in_bounds_(bb, x-1, y+2);
+      update_if_in_bounds_(bb, x+1, y-2);
+      update_if_in_bounds_(bb, x-1, y-2);
+      update_if_in_bounds_(bb, x+2, y+1);
+      update_if_in_bounds_(bb, x-2, y+1);
+      update_if_in_bounds_(bb, x+2, y-1);
+      update_if_in_bounds_(bb, x-2, y-1);
+    }
+  }
+}
+
+void Move_generator::initialize_king_attacks_()
+{
+  for (int8_t x{0}; x < c_board_dimension; ++x)
+  {
+    for (int8_t y{0}; y < c_board_dimension; ++y)
+    {
+      auto square_index = Coordinates{x, y}.square_index();
+      auto& bb = m_king_attacks[square_index];
+      
+      for (int i = -1; i <= 1; ++i)
+      {
+        for (int j = -1; j <= 1; ++j)
+        {
+          if (i != 0 || j != 0)
+          {
+            update_if_in_bounds_(bb, x+i, y+j);
+          }
+        }
+      }
+    }
+  }
+}
+
 
 Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const
 {
@@ -147,12 +206,12 @@ Bitboard Move_generator::gen_pawn_moves(Coordinates square, Bitboard occupied) c
   return {};
 }
 
-Bitboard Move_generator::gen_knight_moves(Coordinates square, Bitboard occupied) const
+Bitboard Move_generator::gen_knight_moves(Coordinates square, Bitboard /* occupied */) const
 {
-  return {};
+  return m_knight_attacks[square.square_index()];
 }
 
-Bitboard Move_generator::gen_king_moves(Coordinates square, Bitboard occupied) const
+Bitboard Move_generator::gen_king_moves(Coordinates square, Bitboard /* occupied */) const
 {
-  return {};
+  return m_king_attacks[square.square_index()];
 }
