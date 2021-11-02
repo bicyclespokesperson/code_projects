@@ -7,8 +7,7 @@ struct Bitboard
 {
   constexpr Bitboard() = default;
 
-  constexpr Bitboard(uint64_t value)
-  : val(value)
+  constexpr Bitboard(uint64_t value) : val(value)
   {
   }
 
@@ -99,9 +98,10 @@ struct Bitboard
     int32_t count = 0;
     uint64_t value{this->val};
 
-    while (value) {
-       ++count;
-       value &= value - 1; // reset LS1B
+    while (value)
+    {
+      ++count;
+      value &= value - 1; // reset LS1B
     }
     return count;
   }
@@ -111,15 +111,19 @@ struct Bitboard
     return val == 0;
   }
 
-  constexpr int32_t bitscan_forward() const {
-    if (val == 0) {
+  constexpr int32_t bitscan_forward() const
+  {
+    if (val == 0)
+    {
       return -1;
     }
     return __builtin_ffsll(val) - 1;
   }
 
-  constexpr int bitscan_reverse() {
-    if (val == 0) {
+  constexpr int bitscan_reverse()
+  {
+    if (val == 0)
+    {
       return -1;
     }
     return 63 - __builtin_clzll(val);

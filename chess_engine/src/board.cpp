@@ -302,8 +302,7 @@ bool Board::try_move(Board::Move m)
     return false;
   }
 
-  if (m.promotion &&
-      (*m.promotion == Piece::empty || *m.promotion == Piece::king || *m.promotion== Piece::pawn))
+  if (m.promotion && (*m.promotion == Piece::empty || *m.promotion == Piece::king || *m.promotion == Piece::pawn))
   {
     // Cannot promote to king or pawn
     return false;
@@ -857,8 +856,7 @@ std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
   return {};
 }
 
-std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param,
-                                                                                        Color color)
+std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
 {
   std::string move_str{move_param};
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(),

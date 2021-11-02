@@ -1,8 +1,8 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "board.h"
 #include "bitboard.h"
+#include "board.h"
 #include "move_generator.h"
 
 namespace
@@ -340,7 +340,7 @@ TEST_CASE("bitboard", "[bitboard]")
 TEST_CASE("Rook moves", "Move_generator")
 {
   Move_generator mg;
-  
+
   Bitboard occupancy{0};
   for (int i{0}; i < 8; ++i)
   {

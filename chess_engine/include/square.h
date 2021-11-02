@@ -6,8 +6,7 @@
 class Square
 {
 public:
-  Square()
-  : m_occupier(Piece::empty), m_color(Color::black)
+  Square() : m_occupier(Piece::empty), m_color(Color::black)
   {
   }
 

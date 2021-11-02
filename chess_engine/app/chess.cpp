@@ -7,11 +7,11 @@
  */
 
 #include "chess.h"
-#include "board.h"
 #include "bitboard.h"
+#include "board.h"
 #include "game.h"
-#include "my_assert.h"
 #include "meneldor_engine.h"
+#include "my_assert.h"
 #include "player.h"
 #include <sstream>
 

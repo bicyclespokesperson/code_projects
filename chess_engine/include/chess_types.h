@@ -40,8 +40,7 @@ public:
     _count,
   };
 
-  constexpr Compass_dir(Value dir)
-    : m_value(dir)
+  constexpr Compass_dir(Value dir) : m_value(dir)
   {
   }
 
@@ -69,13 +68,10 @@ private:
   Value m_value;
 };
 
-
-
 constexpr Piece to_piece_enum(Color c);
 
 Piece from_char(char c);
 
 std::ostream& operator<<(std::ostream& os, Piece const& self);
-
 
 #endif // CHESS_TYPES_H

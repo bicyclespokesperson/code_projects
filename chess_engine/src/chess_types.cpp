@@ -58,4 +58,3 @@ std::ostream& operator<<(std::ostream& os, Piece const& self)
 
   return os;
 }
-

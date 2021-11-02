@@ -15,4 +15,3 @@ std::ostream& operator<<(std::ostream& os, Bitboard const& self)
 
   return os;
 }
-

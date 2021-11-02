@@ -10,7 +10,7 @@ public:
   struct Move
   {
     Move(Coordinates from_coord, Coordinates to_coord, std::optional<Piece> promotion_piece = {})
-      : from(from_coord), to(to_coord), promotion(promotion_piece)
+        : from(from_coord), to(to_coord), promotion(promotion_piece)
     {
     }
 
@@ -141,8 +141,7 @@ private:
 
   bool is_in_check_(Color color) const;
 
-  std::optional<Board::Move> move_from_algebraic_(std::string_view move_param,
-                                                                                   Color color);
+  std::optional<Board::Move> move_from_algebraic_(std::string_view move_param, Color color);
   std::optional<Board::Move> move_from_uci_(std::string move_str);
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);

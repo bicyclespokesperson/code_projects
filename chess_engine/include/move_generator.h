@@ -17,7 +17,7 @@ public:
 
 private:
   void initialize_ray_attacks_();
-  
+
   // [square][direction]
   std::array<std::array<Bitboard, 8>, 64> m_ray_attacks{};
 };
