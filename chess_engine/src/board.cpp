@@ -373,11 +373,7 @@ Color Board::current_turn_color() const
 
 Color Board::opposite_color(Color color) const
 {
-  if (color == Color::white)
-  {
-    return Color::black;
-  }
-  return Color::white;
+  return static_cast<Color>(1 - static_cast<uint8_t>(color));
 }
 
 Board::Move Board::find_castling_rook_move_(Coordinates king_destination)

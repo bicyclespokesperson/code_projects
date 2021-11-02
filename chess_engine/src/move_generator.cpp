@@ -85,7 +85,6 @@ void Move_generator::initialize_ray_attacks_()
   }       // for each x
 } // initialize_ray_attacks
 
-
 void Move_generator::initialize_knight_attacks_()
 {
   for (int8_t x{0}; x < c_board_dimension; ++x)
@@ -94,15 +93,15 @@ void Move_generator::initialize_knight_attacks_()
     {
       auto square_index = Coordinates{x, y}.square_index();
       auto& bb = m_knight_attacks[square_index];
-      
-      update_if_in_bounds_(bb, x+1, y+2);
-      update_if_in_bounds_(bb, x-1, y+2);
-      update_if_in_bounds_(bb, x+1, y-2);
-      update_if_in_bounds_(bb, x-1, y-2);
-      update_if_in_bounds_(bb, x+2, y+1);
-      update_if_in_bounds_(bb, x-2, y+1);
-      update_if_in_bounds_(bb, x+2, y-1);
-      update_if_in_bounds_(bb, x-2, y-1);
+
+      update_if_in_bounds_(bb, x + 1, y + 2);
+      update_if_in_bounds_(bb, x - 1, y + 2);
+      update_if_in_bounds_(bb, x + 1, y - 2);
+      update_if_in_bounds_(bb, x - 1, y - 2);
+      update_if_in_bounds_(bb, x + 2, y + 1);
+      update_if_in_bounds_(bb, x - 2, y + 1);
+      update_if_in_bounds_(bb, x + 2, y - 1);
+      update_if_in_bounds_(bb, x - 2, y - 1);
     }
   }
 }
@@ -115,21 +114,20 @@ void Move_generator::initialize_king_attacks_()
     {
       auto square_index = Coordinates{x, y}.square_index();
       auto& bb = m_king_attacks[square_index];
-      
+
       for (int i = -1; i <= 1; ++i)
       {
         for (int j = -1; j <= 1; ++j)
         {
           if (i != 0 || j != 0)
           {
-            update_if_in_bounds_(bb, x+i, y+j);
+            update_if_in_bounds_(bb, x + i, y + j);
           }
         }
       }
     }
   }
 }
-
 
 Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const
 {
@@ -193,12 +191,7 @@ Bitboard Move_generator::gen_bishop_moves(Coordinates square, Bitboard occupied)
 
 Bitboard Move_generator::gen_queen_moves(Coordinates square, Bitboard occupied) const
 {
-  constexpr std::array<Compass_dir, 4> positive_directions{Compass_dir::north, Compass_dir::northeast,
-                                                           Compass_dir::northwest, Compass_dir::east};
-  constexpr std::array<Compass_dir, 4> negative_directions{Compass_dir::south, Compass_dir::southeast,
-                                                           Compass_dir::west, Compass_dir::southwest};
-
-  return gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
+  return gen_bishop_moves(square, occupied) | gen_rook_moves(square, occupied);
 }
 
 Bitboard Move_generator::gen_pawn_moves(Coordinates square, Bitboard occupied) const
