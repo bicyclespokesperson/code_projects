@@ -67,9 +67,27 @@ struct Bitboard
     return Bitboard(this->val ^ other.val);
   }
 
-  constexpr Bitboard operator==(Bitboard other) const
+  constexpr bool operator==(Bitboard other) const
   {
     return val == other.val;
+  }
+
+  constexpr Bitboard& operator&=(Bitboard other)
+  {
+    this->val &= other.val;
+    return *this;
+  }
+
+  constexpr Bitboard& operator|=(Bitboard other)
+  {
+    this->val |= other.val;
+    return *this;
+  }
+
+  constexpr Bitboard& operator^=(Bitboard other)
+  {
+    this->val ^= other.val;
+    return *this;
   }
 
   /*

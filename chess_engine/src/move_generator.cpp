@@ -4,24 +4,6 @@
 Move_generator::Move_generator()
 {
   initialize_ray_attacks_();
-
-#if 0
-  std::cout << "Printing out all attacks for b1 square" << std::endl;
-  for (Compass_dir dir = Compass_dir::north; dir < Compass_dir::_count; ++dir)
-  {
-    std::cout << m_ray_attacks[28][dir] << std::endl;
-  }
-#endif
-
-  Bitboard occupancy{0};
-  for (int i{0}; i < 8; ++i)
-  {
-    occupancy.set_square({i, 1});
-    occupancy.set_square({i, 5});
-  }
-  std::cout << "Occupancy bitboard: \n" << occupancy << std::endl;
-
-  std::cout << "Rook moves for a rook on d4\n" << gen_rook_moves({3, 3}, occupancy) << std::endl;
 }
 
 void Move_generator::initialize_ray_attacks_()
@@ -100,7 +82,23 @@ Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_di
   if (!blockers.is_empty())
   {
     auto first_blocker = blockers.bitscan_forward();
-    attacks = attacks ^ m_ray_attacks[first_blocker][dir];
+    attacks ^= m_ray_attacks[first_blocker][dir];
+  }
+
+  return attacks;
+}
+
+Bitboard Move_generator::get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const
+{
+  constexpr std::array valid_directions{Compass_dir::south, Compass_dir::west, Compass_dir::southwest, Compass_dir::southeast};
+  MY_ASSERT(std::find(valid_directions.cbegin(), valid_directions.cend(), dir) != valid_directions.cend(), "Only positive directions are supported");
+
+  Bitboard attacks = m_ray_attacks[square.square_index()][dir];
+  Bitboard blockers = attacks & occupied;
+  if (!blockers.is_empty())
+  {
+    auto first_blocker = blockers.bitscan_forward();
+    attacks ^= m_ray_attacks[first_blocker][dir];
   }
 
   return attacks;
@@ -108,8 +106,16 @@ Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_di
 
 Bitboard Move_generator::gen_rook_moves(Coordinates square, Bitboard occupied) const
 {
-  auto attacks = get_positive_ray_attacks(square, Compass_dir::north, occupied);
+  constexpr std::array positive_directions{Compass_dir::north, Compass_dir::east};
+  constexpr std::array negative_directions{Compass_dir::south, Compass_dir::west};
 
-  return attacks;
+  auto positive_attacks = std::accumulate(positive_directions.cbegin(), positive_directions.cend(), Bitboard{0}, [&](Bitboard result, Compass_dir dir)
+                                          {
+                                            return result | get_positive_ray_attacks(square, dir, occupied);
+                                          });
+  return  std::accumulate(negative_directions.cbegin(), negative_directions.cend(), positive_attacks, [&](Bitboard result, Compass_dir dir)
+                          {
+                            return result | get_negative_ray_attacks(square, dir, occupied);
+                          });
 }
 

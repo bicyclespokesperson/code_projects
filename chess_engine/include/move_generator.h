@@ -13,6 +13,7 @@ public:
   Bitboard gen_rook_moves(Coordinates square, Bitboard occupied) const;
 
   Bitboard get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
+  Bitboard get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
 
 private:
   void initialize_ray_attacks_();
