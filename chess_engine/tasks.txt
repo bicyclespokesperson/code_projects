@@ -15,7 +15,17 @@ Pseudocode for shallow blue:
       save move in legal_moves
 
 Another good look at move generation
+  Contains pesudocode for bitboard -> move function
 https://www.josherv.in/2021/03/19/chess-1/
+
+Pseudocode for purple:
+  for piece in get_white_rooks():
+    gen_rook_moves()
+  
+  // separate function
+  extract_pawn_moves(Bitboard of pawn pushes, int pawn_direction) -> list of moves
+
+  // Useful to be able to iterate through 1 bits in bitboard?
 
 https://www.chessprogramming.org/Classical_Approach
 https://www.chessprogramming.org/Bitboard_Board-Definition

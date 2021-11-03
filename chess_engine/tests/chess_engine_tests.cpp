@@ -359,3 +359,15 @@ TEST_CASE("Rook moves", "Move_generator")
   Bitboard expected_king_moves{0x0000001c141c0000};
   REQUIRE(mg.gen_king_moves({3, 3}, occupancy) == expected_king_moves);
 }
+
+TEST_CASE("Bitboard iterator", "[bitboard]")
+{
+  Bitboard b;
+  b.set_square(1);
+  b.set_square(2);
+  b.set_square(4);
+  b.set_square(9);
+  b.set_square(63);
+  auto total = std::accumulate(b.begin(), b.end(), 0);
+  REQUIRE(total == 79);
+}

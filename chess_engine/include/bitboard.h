@@ -3,8 +3,12 @@
 
 #include "coordinates.h"
 
+struct Bitboard_iterator;
+
 struct Bitboard
 {
+  using Iterator = Bitboard_iterator;
+
   constexpr Bitboard() = default;
 
   constexpr Bitboard(uint64_t value) : val(value)
@@ -61,12 +65,12 @@ struct Bitboard
     return Bitboard(~this->val);
   }
 
-  constexpr Bitboard operator^(Bitboard other) const
+  constexpr Bitboard operator^(Bitboard const& other) const
   {
     return Bitboard(this->val ^ other.val);
   }
 
-  constexpr bool operator==(Bitboard other) const
+  constexpr bool operator==(Bitboard const& other) const
   {
     return val == other.val;
   }
@@ -129,12 +133,90 @@ struct Bitboard
     return 63 - __builtin_clzll(val);
   }
 
+  constexpr Iterator begin() const;
+
+  constexpr Iterator end() const;
+
   /*
    * A bitboard is stored with LSB = a1, up to MSB = h8
    * Order: a1, b1, c1, ..., h1, a2, b2, ... h8
    */
   uint64_t val{0};
 };
+
+struct Bitboard_iterator
+{
+  using iterator_category = std::input_iterator_tag;
+  using difference_type = int32_t;
+  using value_type = int32_t;
+  using pointer = int32_t*;
+  using reference = int32_t const&;
+
+  constexpr Bitboard_iterator(Bitboard bb)
+  {
+    m_bitboard = bb;
+    operator++();
+  }
+
+  constexpr reference operator*() const
+  {
+    return m_val;
+  }
+
+  /*
+  pointer operator->()
+  {
+    return &m_val;
+  }
+  */
+
+  // Prefix increment
+  constexpr Bitboard_iterator& operator++()
+  {
+    if (!m_bitboard.is_empty())
+    {
+      m_val = m_bitboard.bitscan_forward();
+      m_bitboard.unset_square(m_val);
+    }
+    else
+    {
+      m_val = -1;
+    }
+    return *this;
+  }
+
+  // Postfix increment
+  constexpr Bitboard_iterator operator++(int)
+  {
+    Bitboard_iterator tmp = *this;
+    ++(*this);
+    return tmp;
+  }
+
+  constexpr bool operator==(const Bitboard_iterator& other) const
+  {
+    return m_bitboard == other.m_bitboard && m_val == other.m_val;
+  }
+
+  constexpr bool operator!=(const Bitboard_iterator& other) const
+  {
+    return !(*this == other);
+  }
+
+private:
+  Bitboard m_bitboard{};
+  int32_t m_val{-1};
+};
+
+constexpr Bitboard::Iterator Bitboard::begin() const
+{
+  return Iterator(*this);
+}
+
+constexpr Bitboard::Iterator Bitboard::end() const
+{
+  return Iterator(Bitboard{0});
+}
 
 std::ostream& operator<<(std::ostream& os, Bitboard const& self);
 
