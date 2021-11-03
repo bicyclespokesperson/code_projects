@@ -20,7 +20,7 @@ public:
 private:
   // Store one bitboard for each piece type (e.g. all pawns, regardless of color)
   // Also store one for all white pieces and one for all black pieces
-  std::array<Bitboard, static_cast<size_t>(Piece::num_pieces)> m_bitboards;
+  std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
 };
 
 #endif // POSITION_H
