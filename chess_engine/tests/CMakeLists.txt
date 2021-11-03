@@ -29,6 +29,7 @@ target_precompile_headers(testlib
     <set>
     <span>
     <string>
+    <sstream>
     <unordered_map>
     <vector>
 )

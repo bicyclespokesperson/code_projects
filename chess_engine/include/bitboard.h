@@ -136,6 +136,14 @@ struct Bitboard
     return 63 - __builtin_clzll(val);
   }
 
+  std::string hex_str() const
+  {
+    std::stringstream ss;
+    int chars_per_byte{2};
+    ss << "0x" << std::hex << std::setfill('0') << std::setw(sizeof(uint64_t) * chars_per_byte) << val;
+    return ss.str();
+  }
+
   constexpr Iterator begin() const;
 
   constexpr Iterator end() const;

@@ -337,7 +337,7 @@ TEST_CASE("bitboard", "[bitboard]")
   REQUIRE((~b3).val == ~(b3.val));
 }
 
-TEST_CASE("Rook moves", "Move_generator")
+TEST_CASE("Piece moves", "[Move_generator]")
 {
   Move_generator mg;
 
@@ -358,6 +358,33 @@ TEST_CASE("Rook moves", "Move_generator")
 
   Bitboard expected_king_moves{0x0000001c141c0000};
   REQUIRE(mg.king_attacks({3, 3}, occupancy) == expected_king_moves);
+}
+
+TEST_CASE("Pawn attacks", "[Move_generator}")
+{
+  Move_generator mg;
+  Bitboard pawns{0};
+  pawns.set_square(*Coordinates::from_str("a2"));
+  pawns.set_square(*Coordinates::from_str("b3"));
+  pawns.set_square(*Coordinates::from_str("c2"));
+  pawns.set_square(*Coordinates::from_str("g7"));
+  pawns.set_square(*Coordinates::from_str("h4"));
+
+  Bitboard occupancy{0};
+  occupancy.set_square(*Coordinates::from_str("c3"));
+  occupancy.set_square(*Coordinates::from_str("h5"));
+
+  auto white_pawn_pushes = mg.pawn_short_advances(Color::white, pawns, occupancy);
+  Bitboard expected_white_pawn_pushes{0x0000000002010000};
+  REQUIRE(expected_white_pawn_pushes == white_pawn_pushes);
+
+  auto black_pawn_pushes = mg.pawn_short_advances(Color::black, pawns, occupancy);
+  Bitboard expected_black_pawn_pushes{0x0000400000800200};
+  REQUIRE(expected_black_pawn_pushes == black_pawn_pushes);
+
+  auto white_pawn_attacks = mg.pawn_potential_attacks(Color::white, pawns);
+  Bitboard expected_white_pawn_attacks(0xa0000040050a0000);
+  REQUIRE(expected_white_pawn_attacks == white_pawn_attacks);
 }
 
 TEST_CASE("Bitboard iterator", "[bitboard]")

@@ -4,7 +4,7 @@
 namespace
 {
 
-void update_if_in_bounds_(Bitboard& bb, int x, int y)
+constexpr void update_if_in_bounds_(Bitboard& bb, int x, int y)
 {
   if (0 <= x && x < c_board_dimension && 0 <= y && y < c_board_dimension)
   {
@@ -15,14 +15,27 @@ void update_if_in_bounds_(Bitboard& bb, int x, int y)
 using shift_fn = Bitboard (Bitboard::*)(int32_t) const;
 
 // This array can be indexed by Color, so the operator to be used for black pawns is first
-constexpr std::array<shift_fn, 2> shift_functions{&Bitboard::operator<<, &Bitboard::operator>>};
+constexpr std::array shift_functions{&Bitboard::operator>>, &Bitboard::operator<< };
 constexpr shift_fn get_pawn_shift_fn(Color color)
 {
   return shift_functions[static_cast<int32_t>(color)];
 }
 
-} // namespace
+// This array can be indexed by Color, so the operator to be used for black pawns is first
+constexpr std::array start_ranks{Bitboard_constants::seventh_rank, Bitboard_constants::second_rank};
+constexpr Bitboard get_pawn_start_rank(Color color)
+{
+  return start_ranks[static_cast<int32_t>(color)];
+}
 
+// This array can be indexed by Color, so the operator to be used for black pawns is first
+constexpr std::array promotion_ranks{Bitboard_constants::first_rank, Bitboard_constants::eighth_rank};
+constexpr Bitboard get_pawn_promotion_rank(Color color)
+{
+  return promotion_ranks[static_cast<int32_t>(color)];
+}
+
+} // namespace
 
 Move_generator::Move_generator()
 {
@@ -216,25 +229,35 @@ Bitboard Move_generator::king_attacks(Coordinates square, Bitboard /* occupied *
 
 Bitboard Move_generator::pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied) const
 {
-  auto bitshift_fn = get_pawn_shift_fn(color);
-  auto one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
-  return one_space_moves;
+  auto const bitshift_fn = get_pawn_shift_fn(color);
+  auto const one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
+  auto const promotion_rank = get_pawn_promotion_rank(color); // Handle pawn promotions separately
+  return one_space_moves & ~promotion_rank;
 }
 
 Bitboard Move_generator::pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied) const
 {
-  auto bitshift_fn = get_pawn_shift_fn(color);
-  auto one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
-  auto two_space_moves = (one_space_moves.*bitshift_fn)(c_board_dimension) & ~occupied;
+  auto const bitshift_fn = get_pawn_shift_fn(color);
+  auto const start_rank = get_pawn_start_rank(color);
+  auto const eligible_pawns = pawns & start_rank;
+  auto const one_space_moves = (eligible_pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
+  auto const two_space_moves = (one_space_moves.*bitshift_fn)(c_board_dimension) & ~occupied;
   return two_space_moves;
 }
 
 Bitboard Move_generator::pawn_promotions(Color color, Bitboard pawns, Bitboard occupied) const
 {
+  auto const bitshift_fn = get_pawn_shift_fn(color);
+  auto const one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
+  auto const promotion_rank = get_pawn_promotion_rank(color); // Handle pawn promotions separately
+  return one_space_moves & promotion_rank;
 }
 
 Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns) const
 {
+  auto const bitshift_fn = get_pawn_shift_fn(color);
+  auto const west_attacks = (pawns.*bitshift_fn)(7) & ~Bitboard_constants::h_file;
+
+  auto const east_attacks = (pawns.*bitshift_fn)(9) & ~Bitboard_constants::a_file;
+  return west_attacks | east_attacks;
 }
-
-

@@ -18,6 +18,7 @@ target_precompile_headers(chess_game
     <set>
     <span>
     <string>
+    <sstream>
     <unordered_map>
     <vector>
 )

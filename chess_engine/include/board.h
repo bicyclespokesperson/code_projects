@@ -2,8 +2,8 @@
 #define BOARD_H
 
 #include "coordinates.h"
-#include "square.h"
 #include "move.h"
+#include "square.h"
 
 class Board
 {

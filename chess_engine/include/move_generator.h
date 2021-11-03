@@ -6,27 +6,6 @@
 #include "coordinates.h"
 #include "move.h"
 
-struct Bitboard_constants
-{
-  constexpr Bitboard_constants()
-  : all(std::numeric_limits<uint64_t>::max()),
-    none(0)
-{
-  for (int i{0}; i < c_board_dimension; ++i)
-  {
-    second_rank.set_square({i, 6});
-    third_rank.set_square({i, 2});
-    seventh_rank.set_square({i, 1});
-  }
-}
-
-  Bitboard second_rank;
-  Bitboard third_rank;
-  Bitboard seventh_rank;
-  Bitboard all;
-  Bitboard none;
-};
-
 class Move_generator
 {
 public:
@@ -63,7 +42,22 @@ private:
   std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks{};
   std::array<Bitboard, c_board_dimension_squared> m_knight_attacks{};
   std::array<Bitboard, c_board_dimension_squared> m_king_attacks{};
-  Bitboard_constants bitboard_constants{};
+};
+
+struct Bitboard_constants
+{
+  static constexpr Bitboard first_rank{0x00000000000000ff};
+  static constexpr Bitboard second_rank{0x000000000000ff00};
+  static constexpr Bitboard third_rank{0x0000000000ff0000};
+  static constexpr Bitboard forth_rank{0x00000000ff000000};
+  static constexpr Bitboard fifth_rank{0x000000ff00000000};
+  static constexpr Bitboard sixth_rank{0x0000ff0000000000};
+  static constexpr Bitboard seventh_rank{0x00ff000000000000};
+  static constexpr Bitboard eighth_rank{0xff00000000000000};
+  static constexpr Bitboard a_file{0x0101010101010101};
+  static constexpr Bitboard h_file{0x8080808080808080};
+  static constexpr Bitboard all{std::numeric_limits<uint64_t>::max()};
+  static constexpr Bitboard none{0};
 };
 
 #endif // MOVE_GENERATOR_H

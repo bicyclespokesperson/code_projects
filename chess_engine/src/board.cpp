@@ -1182,15 +1182,13 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     // White to play - denote this be setting previous_move to a black piece
     // The move being to and from the same square is irrelevent, the board will just check which color piece performed
     // the previous move
-    board->m_previous_move =
-        Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
+    board->m_previous_move = Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
   }
   else if (tolower(fen_str[index]) == 'b')
   {
     to_play = Color::black;
     // Black to play - denote this be setting previous_move to a white piece
-    board->m_previous_move =
-        Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
+    board->m_previous_move = Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
   }
   else
   {
