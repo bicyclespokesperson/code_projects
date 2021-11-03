@@ -16,9 +16,9 @@ bool occupied_by_friend(Coordinates from, Coordinates to, Board const& board)
 }
 
 #if 0
-std::vector<Board::Move> pawn_generate_moves(Coordinates loc, Board const& board)
+std::vector<Move> pawn_generate_moves(Coordinates loc, Board const& board)
 {
-  std::vector<Board::Move> result;
+  std::vector<Move> result;
   auto color = board.square_at(loc).occupier_color();
   auto direction = (color == Color::white) ? 1 : -1;
 
@@ -251,7 +251,7 @@ std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordi
   return captured_piece;
 }
 
-void Board::unperform_move_(Board::Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece)
+void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece)
 {
   MY_ASSERT(square_at(m.to).is_occupied() && !square_at(m.from).is_occupied(),
             "This function can only be called after a move has been performed");
@@ -277,7 +277,7 @@ void Board::unperform_move_(Board::Move m, std::optional<std::pair<Coordinates, 
   update_king_locations_(m.from);
 }
 
-bool Board::try_move(Board::Move m)
+bool Board::try_move(Move m)
 {
   auto piece_to_move = square_at(m.from).occupier();
   if (piece_to_move == Piece::empty)
@@ -337,7 +337,7 @@ bool Board::try_move(Board::Move m)
     square_at(m.to).set_occupier(*m.promotion);
   }
 
-  m_previous_move = Board::Move{m.from, m.to};
+  m_previous_move = Move{m.from, m.to};
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
   return true;
@@ -376,7 +376,7 @@ Color Board::opposite_color(Color color) const
   return static_cast<Color>(1 - static_cast<uint8_t>(color));
 }
 
-Board::Move Board::find_castling_rook_move_(Coordinates king_destination)
+Move Board::find_castling_rook_move_(Coordinates king_destination)
 {
   if (king_destination == Coordinates{2, 0})
   {
@@ -678,7 +678,7 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
   return true;
 }
 
-std::optional<Board::Move> Board::previous_move() const
+std::optional<Move> Board::previous_move() const
 {
   return m_previous_move;
 }
@@ -829,7 +829,7 @@ std::vector<Coordinates> Board::find_pieces_that_can_move_to(Piece piece, Color 
   return candidates;
 }
 
-std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
+std::optional<Move> Board::move_from_uci_(std::string move_str)
 {
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
@@ -846,13 +846,13 @@ std::optional<Board::Move> Board::move_from_uci_(std::string move_str)
 
   if (from && to)
   {
-    return Board::Move{*from, *to, promotion_result};
+    return Move{*from, *to, promotion_result};
   }
 
   return {};
 }
 
-std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
+std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
 {
   std::string move_str{move_param};
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(),
@@ -877,11 +877,11 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
   {
     if (color == Color::white)
     {
-      return Board::Move{Coordinates{4, 0}, Coordinates{6, 0}, promotion_result};
+      return Move{Coordinates{4, 0}, Coordinates{6, 0}, promotion_result};
     }
     else
     {
-      return Board::Move{Coordinates{4, 7}, Coordinates{6, 7}, promotion_result};
+      return Move{Coordinates{4, 7}, Coordinates{6, 7}, promotion_result};
     }
   }
 
@@ -889,11 +889,11 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
   {
     if (color == Color::white)
     {
-      return Board::Move{Coordinates{4, 0}, Coordinates{2, 0}, promotion_result};
+      return Move{Coordinates{4, 0}, Coordinates{2, 0}, promotion_result};
     }
     else
     {
-      return Board::Move{Coordinates{4, 7}, Coordinates{2, 7}, promotion_result};
+      return Move{Coordinates{4, 7}, Coordinates{2, 7}, promotion_result};
     }
   }
 
@@ -931,7 +931,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
   if (candidates.size() == 1)
   {
     // Exactly one piece can move to the target square
-    return Board::Move{candidates.front(), *target_square, promotion_result};
+    return Move{candidates.front(), *target_square, promotion_result};
   }
 
   if (move_str.empty())
@@ -954,7 +954,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return Board::Move{candidates.front(), *target_square, promotion_result};
+      return Move{candidates.front(), *target_square, promotion_result};
     }
   }
 
@@ -978,7 +978,7 @@ std::optional<Board::Move> Board::move_from_algebraic_(std::string_view move_par
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return Board::Move{candidates.front(), *target_square, promotion_result};
+      return Move{candidates.front(), *target_square, promotion_result};
     }
   }
 
@@ -1183,14 +1183,14 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     // The move being to and from the same square is irrelevent, the board will just check which color piece performed
     // the previous move
     board->m_previous_move =
-        Board::Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
+        Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
   }
   else if (tolower(fen_str[index]) == 'b')
   {
     to_play = Color::black;
     // Black to play - denote this be setting previous_move to a white piece
     board->m_previous_move =
-        Board::Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
+        Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
   }
   else
   {
@@ -1232,7 +1232,7 @@ std::optional<Board> Board::from_fen(std::string_view fen)
       std::swap(from_y, to_y);
     }
 
-    board->m_previous_move = Board::Move{{capture_square->x(), from_y}, {capture_square->x(), to_y}};
+    board->m_previous_move = Move{{capture_square->x(), from_y}, {capture_square->x(), to_y}};
   }
 
   MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");
@@ -1320,12 +1320,6 @@ std::string Board::to_fen() const
 void display_piece_locations_(std::vector<Coordinates> const& piece_locations)
 {
   std::copy(piece_locations.cbegin(), piece_locations.cend(), std::ostream_iterator<Coordinates>(std::cerr, " "));
-}
-
-std::ostream& operator<<(std::ostream& os, Board::Move const& self)
-{
-  os << self.from << "->" << self.to;
-  return os;
 }
 
 std::ostream& operator<<(std::ostream& out, Board const& self)

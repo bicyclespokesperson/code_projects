@@ -1,24 +1,13 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <coordinates.h>
-#include <square.h>
+#include "coordinates.h"
+#include "square.h"
+#include "move.h"
 
 class Board
 {
 public:
-  struct Move
-  {
-    Move(Coordinates from_coord, Coordinates to_coord, std::optional<Piece> promotion_piece = {})
-        : from(from_coord), to(to_coord), promotion(promotion_piece)
-    {
-    }
-
-    Coordinates from;
-    Coordinates to;
-    std::optional<Piece> promotion;
-  };
-
   static std::optional<Board> from_pgn(std::string_view pgn);
 
   static std::optional<Board> from_fen(std::string_view fen);
@@ -141,8 +130,8 @@ private:
 
   bool is_in_check_(Color color) const;
 
-  std::optional<Board::Move> move_from_algebraic_(std::string_view move_param, Color color);
-  std::optional<Board::Move> move_from_uci_(std::string move_str);
+  std::optional<Move> move_from_algebraic_(std::string_view move_param, Color color);
+  std::optional<Move> move_from_uci_(std::string move_str);
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
@@ -174,7 +163,5 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& out, Board const& self);
-
-std::ostream& operator<<(std::ostream& os, Board::Move const& self);
 
 #endif
