@@ -14,7 +14,7 @@ struct Bitboard
 
   constexpr Bitboard() = default;
 
-  constexpr Bitboard(uint64_t value) : val(value)
+  constexpr explicit Bitboard(uint64_t value) : val(value)
   {
   }
 
@@ -53,14 +53,14 @@ struct Bitboard
     return Bitboard(this->val | other.val);
   }
 
-  constexpr Bitboard operator<<(Bitboard other) const
+  constexpr Bitboard operator<<(int32_t value) const
   {
-    return Bitboard(this->val << other.val);
+    return Bitboard(this->val << value);
   }
 
-  constexpr Bitboard operator>>(Bitboard other) const
+  constexpr Bitboard operator>>(int32_t value) const
   {
-    return Bitboard(this->val >> other.val);
+    return Bitboard(this->val >> value);
   }
 
   constexpr Bitboard operator~() const

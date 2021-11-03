@@ -43,6 +43,7 @@ public:
   Bitboard pawn_promotions(Color color, Bitboard pawns, Bitboard occupied) const;
   Bitboard pawn_potential_attacks(Color color, Bitboard pawns) const;
 
+  // TODO: Parameter list
   std::vector<Move> generate_piece_moves() const;
   std::vector<Move> generate_pawn_moves() const;
 
