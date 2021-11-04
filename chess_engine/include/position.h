@@ -4,7 +4,8 @@
 #include "bitboard.h"
 #include "chess_types.h"
 
-// TODO: Integrate this with the Board class. May mean keeping a position object on the board, or maybe just adding these methods directly to the board
+// TODO: Integrate this with the Board class. May mean keeping a position object on the board, or maybe just adding
+// these methods directly to the board
 class Position
 {
 public:

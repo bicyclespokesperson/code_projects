@@ -301,7 +301,9 @@ std::vector<Move> Move_generator::generate_piece_moves(Position const& position,
 
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
   constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
-  constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks, &Move_generator::bishop_attacks, &Move_generator::queen_attacks, &Move_generator::king_attacks};
+  constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
+                                                   &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
+                                                   &Move_generator::king_attacks};
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
     for (auto piece_location : position.get_piece_set(color, piece_types[i]))
@@ -315,9 +317,9 @@ std::vector<Move> Move_generator::generate_piece_moves(Position const& position,
     }
   }
 
-  //TODO: How to handle check?
-  
-  //TODO: Generate castling moves
+  // TODO: How to handle check?
+
+  // TODO: Generate castling moves
 
   return result;
 }
@@ -334,28 +336,30 @@ std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, 
   {
     result.emplace_back(Coordinates{position + offset_from_end_square}, Coordinates{position});
   }
-  
+
   // Handle long advances
   for (auto position : pawn_long_advances(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
   {
     result.emplace_back(Coordinates{position + 2 * offset_from_end_square}, Coordinates{position});
   }
 
-  // Handle east captures 
+  // Handle east captures
   auto east_offset = get_east_capture_offset(color);
-  for (auto position : pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
+  for (auto position :
+       pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
   {
     result.emplace_back(Coordinates{position + east_offset}, Coordinates{position});
   }
 
-  // Handle west captures 
+  // Handle west captures
   auto west_offset = get_west_capture_offset(color);
-  for (auto position : pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
+  for (auto position :
+       pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
   {
     result.emplace_back(Coordinates{position + west_offset}, Coordinates{position});
   }
 
-  // Handle promotions 
+  // Handle promotions
   for (auto position : pawn_promotions(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
   {
     Coordinates from{position + offset_from_end_square};
@@ -367,14 +371,16 @@ std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, 
   }
 
   // Handle en passant
-  for (auto position : pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
+  for (auto position :
+       pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
   {
     result.emplace_back(Coordinates{position + east_offset}, Coordinates{position}, Move_type::en_passant);
   }
-  for (auto position : pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
+  for (auto position :
+       pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
   {
     result.emplace_back(Coordinates{position + west_offset}, Coordinates{position}, Move_type::en_passant);
   }
-  
+
   return result;
 }
