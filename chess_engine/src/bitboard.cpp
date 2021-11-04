@@ -6,8 +6,7 @@ std::ostream& operator<<(std::ostream& os, Bitboard const& self)
   {
     for (int x{0}; x < 8; ++x)
     {
-      auto square_index = static_cast<size_t>(y * 8 + x);
-      char result = self.square_at(square_index) ? '1' : '.';
+      char result = self.is_set({x, y}) ? '1' : '.';
       os << result << ' ';
     }
     os << "\n";

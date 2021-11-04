@@ -147,21 +147,21 @@ TEST_CASE("A board should be initially setup"
   Board board;
 
   // Sampling of pieces to ensure the board is setup initially
-  REQUIRE(board.square_at({0, 0}).occupier() == Piece::rook);
-  REQUIRE(board.square_at({0, 0}).occupier_color() == Color::white);
-  REQUIRE(board.square_at({4, 0}).occupier() == Piece::king);
-  REQUIRE(board.square_at({4, 0}).occupier_color() == Color::white);
-  REQUIRE(board.square_at({3, 0}).occupier() == Piece::queen);
-  REQUIRE(board.square_at({3, 0}).occupier_color() == Color::white);
+  REQUIRE(board.get_piece({0, 0}) == Piece::rook);
+  REQUIRE(board.get_piece_color({0, 0}) == Color::white);
+  REQUIRE(board.get_piece({4, 0}) == Piece::king);
+  REQUIRE(board.get_piece_color({4, 0}) == Color::white);
+  REQUIRE(board.get_piece({3, 0}) == Piece::queen);
+  REQUIRE(board.get_piece_color({3, 0}) == Color::white);
 
-  REQUIRE(board.square_at({3, 3}).occupier() == Piece::empty);
+  REQUIRE(board.get_piece({3, 3}) == Piece::empty);
 
-  REQUIRE(board.square_at({6, 6}).occupier() == Piece::pawn);
-  REQUIRE(board.square_at({6, 6}).occupier_color() == Color::black);
-  REQUIRE(board.square_at({6, 7}).occupier() == Piece::knight);
-  REQUIRE(board.square_at({6, 7}).occupier_color() == Color::black);
-  REQUIRE(board.square_at({5, 7}).occupier() == Piece::bishop);
-  REQUIRE(board.square_at({5, 7}).occupier_color() == Color::black);
+  REQUIRE(board.get_piece({6, 6}) == Piece::pawn);
+  REQUIRE(board.get_piece_color({6, 6}) == Color::black);
+  REQUIRE(board.get_piece({6, 7}) == Piece::knight);
+  REQUIRE(board.get_piece_color({6, 7}) == Color::black);
+  REQUIRE(board.get_piece({5, 7}) == Piece::bishop);
+  REQUIRE(board.get_piece_color({5, 7}) == Color::black);
 }
 
 TEST_CASE("A board can be created from a FEN string", "[board]")

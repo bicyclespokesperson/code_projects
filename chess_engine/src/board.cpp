@@ -1,10 +1,12 @@
 #include "board.h"
+#include "move_generator.h"
 #include "my_assert.h"
 
 namespace
 {
 bool piece_can_move(Coordinates from, Coordinates to, Board const& board);
 
+#if 0
 bool occupied_by_friend(Coordinates from, Coordinates to, Board const& board)
 {
   if (auto const& square = board.square_at(to);
@@ -14,6 +16,7 @@ bool occupied_by_friend(Coordinates from, Coordinates to, Board const& board)
   }
   return false;
 }
+#endif
 
 bool bishop_can_move(Coordinates from, Coordinates to, Board const& board)
 {
@@ -83,28 +86,26 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
 
     Coordinates transit_square{static_cast<int32_t>((from.x() + to.x()) / 2), from.y()};
 
-    if (board.square_at(transit_square).is_occupied())
+    if (board.is_occupied(transit_square))
     {
       return false;
     }
 
     // Make sure the knight is out of the way when long castling
-    if (to == Coordinates{2, 0} && board.square_at(Coordinates{1, 0}).is_occupied())
+    if (to == Coordinates{2, 0} && board.is_occupied(Coordinates{1, 0}))
     {
       return false;
     }
 
-    if (to == Coordinates{2, 7} && board.square_at(Coordinates{1, 7}).is_occupied())
+    if (to == Coordinates{2, 7} && board.is_occupied(Coordinates{1, 7}))
     {
       return false;
     }
 
-    auto color = board.square_at(from).occupier_color();
-    auto const& opposing_pieces = board.get_pieces(opposite_color(color));
-    if (std::any_of(opposing_pieces.cbegin(), opposing_pieces.cend(), [&](Coordinates piece) {
-          return piece_can_move(piece, from, board) || piece_can_move(piece, transit_square, board) ||
-                 piece_can_move(piece, to, board);
-        }))
+    Move_generator mg; //TODO: Should this be shared somehow? Probably don't want to initalized it here every time
+    Bitboard attacked_squares; //TODO: Populate with move generator once it accepts a board instead of a position
+
+    if (attacked_squares.is_set(from) || attacked_squares.is_set(to) || attacked_squares.is_set(transit_square))
     {
       return false; // Illegal to castle out of, through, or into check
     }
@@ -117,7 +118,8 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
 
 bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
 {
-  bool const is_white = board.square_at(from).is_white();
+  auto const color = board.get_piece_color(from);
+  bool const is_white = color == Color::white;
 
   // A pawn can move two spaces on its first move
   int const max_distance = [&] {
@@ -142,12 +144,12 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
     // Ensure the space ahead of the pawn is clear and vertical
     // This also prevents moves of zero spaces, since it cannot move to
     // a space occupied by itself.
-    if (board.is_clear_vertical(from, to) && !(board.square_at(to).is_occupied()))
+    if (board.is_clear_vertical(from, to) && !(board.is_occupied(to)))
     {
       return true;
     }
     // If the square is diagonally forward and occupied by an opponent
-    else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.square_at(to).is_occupied())
+    else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.is_occupied(to))
     {
       return true;
     }
@@ -155,7 +157,7 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
     else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.previous_move() &&
              board.previous_move()->from.x() == to.x() && std::abs(board.previous_move()->from.y() - to.y()) == 1 &&
              std::abs(board.previous_move()->to.y() - to.y()) == 1 &&
-             board.square_at(board.previous_move()->to).occupier() == Piece::pawn)
+             board.get_piece_set(opposite_color(color), Piece::pawn).is_set(board.previous_move()->to))
     {
       return true;
     }
@@ -166,22 +168,22 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
 
 bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
 {
-  if (!board.square_at(from).is_occupied())
+  if (!board.is_occupied(from))
   {
     return false;
   }
 
-  if (occupied_by_friend(from, to, board))
+  auto const color = board.get_piece_color(from);
+
+  if (board.get_all(color).is_set(to))
   {
     return false;
   }
 
-  switch (board.square_at(from).occupier())
+  switch (board.get_piece(from))
   {
-  case Piece::pawn: {
-    auto result = pawn_can_move(from, to, board);
-    return result;
-  }
+  case Piece::pawn:
+    return pawn_can_move(from, to, board);
   case Piece::knight:
     return knight_can_move(from, to, board);
   case Piece::bishop:
@@ -199,7 +201,7 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
 
 } // namespace
 
-Board::Board() : m_white_king({0, 0}), m_black_king({0, 0})
+Board::Board()
 {
   static_assert(sizeof(Square) == 1);
 
@@ -207,72 +209,107 @@ Board::Board() : m_white_king({0, 0}), m_black_king({0, 0})
 }
 
 Board::Board(int)
-    : m_white_king({0, 0}), m_black_king({0, 0}), m_white_can_short_castle(false), m_white_can_long_castle(false),
+    : m_white_can_short_castle(false), m_white_can_long_castle(false),
       m_black_can_short_castle(false), m_black_can_long_castle(false)
 {
+}
+
+Bitboard Board::get_piece_set(Color color, Piece piece) const
+{
+  return m_bitboards[static_cast<uint8_t>(color)] & m_bitboards[static_cast<uint8_t>(piece)];
+}
+
+Bitboard Board::get_all(Piece piece) const
+{
+  return m_bitboards[static_cast<uint8_t>(piece)];
+}
+
+Bitboard Board::get_all(Color color) const
+{
+  return m_bitboards[static_cast<uint8_t>(color)];
+}
+
+Bitboard Board::get_en_passant_square() const
+{
+  return m_en_passant_square;
+}
+
+Bitboard Board::get_occupied_squares() const
+{
+  return m_bitboards[static_cast<uint8_t>(Color::white)] | m_bitboards[static_cast<uint8_t>(Color::black)];
+}
+
+bool Board::is_occupied(Coordinates square) const
+{
+  return get_occupied_squares().is_set(square);
+}
+
+Color Board::get_piece_color(Coordinates square) const
+{
+  MY_ASSERT(is_occupied(square), "This function can only be called for occupied squares");
+
+  return get_all(Color::white).is_set(square) ? Color::white : Color::black;
+}
+
+Piece Board::get_piece(Coordinates square) const
+{
+  constexpr static std::array piece_types{Piece::pawn, Piece::bishop, Piece::knight, Piece::rook, Piece::queen, Piece::king};
+  auto const search = std::find_if(piece_types.cbegin(), piece_types.cend(), [&](Piece piece)
+                                   {
+                                     return get_all(piece).is_set(square);
+                                   });
+
+  return (search == piece_types.cend()) ? Piece::empty : *search;
 }
 
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
-  auto color = square_at(m.from).occupier_color();
-  auto& pieces = get_pieces(color);
-  auto& opposing_pieces = get_pieces(opposite_color(color));
+  auto const piece = get_piece(m.from);
+  auto const color = get_piece_color(m.from);
+  //auto& pieces = get_pieces(color);
+  //auto& opposing_pieces = get_pieces(opposite_color(color));
 
-  if (square_at(m.to).is_occupied() || capture_location != m.to)
+  if (is_occupied(m.to) || capture_location != m.to)
   {
-    captured_piece = std::pair{capture_location, square_at(capture_location).occupier()};
-    remove_piece_(opposing_pieces, capture_location);
-    square_at(capture_location).remove_occupier();
+    captured_piece = std::pair{capture_location, get_piece(capture_location)};
+    remove_piece_(opposite_color(color), captured_piece->second, capture_location);
   }
 
-  square_at(m.to).set_occupier(square_at(m.from).occupier());
-  square_at(m.to).set_occupier_color(square_at(m.from).occupier_color());
-  square_at(m.from).remove_occupier();
-
-  remove_piece_(pieces, m.from);
-  add_piece_(pieces, m.to);
-
-  update_king_locations_(m.to);
+  add_piece_(color, piece, m.to);
+  remove_piece_(color, piece, m.from);
 
   return captured_piece;
 }
 
 void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece)
 {
-  MY_ASSERT(square_at(m.to).is_occupied() && !square_at(m.from).is_occupied(),
+  MY_ASSERT(is_occupied(m.to) && !is_occupied(m.from),
             "This function can only be called after a move has been performed");
 
-  auto color = square_at(m.to).occupier_color();
-  auto& pieces = get_pieces(color);
-  auto& opposing_pieces = get_pieces(opposite_color(color));
+  auto const piece = get_piece(m.to);
+  auto const color = get_piece_color(m.to);
 
-  remove_piece_(pieces, m.to);
-  add_piece_(pieces, m.from);
-
-  square_at(m.from).set_occupier(square_at(m.to).occupier());
-  square_at(m.from).set_occupier_color(square_at(m.to).occupier_color());
-  square_at(m.to).remove_occupier();
+  remove_piece_(color, piece, m.to);
+  add_piece_(color, piece, m.from);
 
   if (captured_piece)
   {
-    add_piece_(opposing_pieces, captured_piece->first);
-    square_at(captured_piece->first).set_occupier(captured_piece->second);
-    square_at(captured_piece->first).set_occupier_color(opposite_color(color));
+    add_piece_(opposite_color(color), captured_piece->second, captured_piece->first);
   }
-
-  update_king_locations_(m.from);
 }
 
 bool Board::try_move(Move m)
 {
-  auto piece_to_move = square_at(m.from).occupier();
+  auto const piece_to_move = get_piece(m.from);
   if (piece_to_move == Piece::empty)
   {
     return false;
   }
 
-  if (current_turn_color() != square_at(m.from).occupier_color())
+  auto const color = get_piece_color(m.from);
+
+  if (current_turn_color() != color)
   {
     // Make sure the correct color is moving
     return false;
@@ -284,26 +321,26 @@ bool Board::try_move(Move m)
   }
 
   // Ensure that a promotion square is present iff we have a pawn move to the back rank
-  if ((piece_to_move == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) != m.promotion.has_value())
+  if ((piece_to_move == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) != (m.promotion != Piece::empty))
   {
     return false;
   }
 
-  if (m.promotion && (*m.promotion == Piece::empty || *m.promotion == Piece::king || *m.promotion == Piece::pawn))
+  if (m.promotion == Piece::empty || m.promotion == Piece::king || m.promotion == Piece::pawn)
   {
     // Cannot promote to king or pawn
     return false;
   }
 
   auto capture_location = m.to;
-  if (piece_to_move == Piece::pawn && is_clear_diagonal(m.from, m.to) && !square_at(m.to).is_occupied())
+  if (piece_to_move == Piece::pawn && is_clear_diagonal(m.from, m.to) && !is_occupied(m.to))
   {
     // Update capture location for En passant case
     capture_location = previous_move()->to;
   }
 
   auto captured_piece = perform_move_(m, capture_location);
-  if (is_in_check_(square_at(m.to).occupier_color()))
+  if (is_in_check_(color))
   {
     unperform_move_(m, captured_piece);
     return false;
@@ -312,16 +349,17 @@ bool Board::try_move(Move m)
   update_castling_rights_(m.to);
 
   // Move rook if the move was a castle
-  if (square_at(m.to).occupier() == Piece::king && distance_between(m.from, m.to) == 2)
+  if (get_piece(m.to) == Piece::king && distance_between(m.from, m.to) == 2)
   {
     auto rook_move = find_castling_rook_move_(m.to);
     perform_move_(rook_move, rook_move.to);
   }
 
   // Promote pawn if it reached the last rank
-  if (m.promotion)
+  if (m.promotion != Piece::empty)
   {
-    square_at(m.to).set_occupier(*m.promotion);
+    remove_piece_(color, Piece::pawn, m.to);
+    add_piece_(color, m.promotion, m.to);
   }
 
   m_previous_move = Move{m.from, m.to};
@@ -355,7 +393,7 @@ Color Board::current_turn_color() const
     return Color::white;
   }
 
-  return opposite_color(square_at(previous_move()->to).occupier_color());
+  return opposite_color(get_piece_color(previous_move()->to));
 }
 
 Move Board::find_castling_rook_move_(Coordinates king_destination)
@@ -406,26 +444,11 @@ bool Board::check_castling_rights(Coordinates dest) const
   return false;
 }
 
-void Board::update_king_locations_(Coordinates dest)
-{
-  if (auto sq = square_at(dest); sq.occupier() == Piece::king)
-  {
-    if (sq.is_white())
-    {
-      m_white_king = dest;
-    }
-    else
-    {
-      m_black_king = dest;
-    }
-  }
-}
-
 void Board::update_castling_rights_(Coordinates dest)
 {
-  if (square_at(dest).occupier() == Piece::king)
+  if (get_piece(dest) == Piece::king)
   {
-    if (square_at(dest).occupier_color() == Color::black)
+    if (get_piece_color(dest) == Color::black)
     {
       m_black_can_short_castle = false;
       m_black_can_long_castle = false;
@@ -437,7 +460,7 @@ void Board::update_castling_rights_(Coordinates dest)
     }
   }
 
-  if (square_at(dest).occupier() == Piece::rook)
+  if (get_piece(dest) == Piece::rook)
   {
     if (dest == Coordinates{0, 0})
     {
@@ -492,6 +515,7 @@ int Board::distance_between(Coordinates from, Coordinates to) const
 
 void Board::setup()
 {
+#if 0
   m_white_piece_locations.clear();
   m_black_piece_locations.clear();
   m_white_piece_locations.reserve(c_initial_piece_count);
@@ -513,8 +537,8 @@ void Board::setup()
     square_at({i, 1}).set_occupier(Piece::pawn);
     square_at({i, 1}).set_occupier_color(Color::white);
 
-    m_white_piece_locations.push_back({i, 0});
-    m_white_piece_locations.push_back({i, 1});
+    //m_white_piece_locations.push_back({i, 0});
+    //m_white_piece_locations.push_back({i, 1});
   }
 
   // Black pieces
@@ -533,15 +557,16 @@ void Board::setup()
     square_at({i, 6}).set_occupier(Piece::pawn);
     square_at({i, 6}).set_occupier_color(Color::black);
 
-    m_black_piece_locations.push_back({i, 7});
-    m_black_piece_locations.push_back({i, 6});
+    //m_black_piece_locations.push_back({i, 7});
+    //m_black_piece_locations.push_back({i, 6});
   }
 
-  std::sort(m_white_piece_locations.begin(), m_white_piece_locations.end());
-  std::sort(m_black_piece_locations.begin(), m_black_piece_locations.end());
+  //std::sort(m_white_piece_locations.begin(), m_white_piece_locations.end());
+  //std::sort(m_black_piece_locations.begin(), m_black_piece_locations.end());
+#endif
 
-  m_white_king = {4, 0};
-  m_black_king = {4, 7};
+  //m_white_king = {4, 0};
+  //m_black_king = {4, 7};
   m_white_can_short_castle = true;
   m_white_can_long_castle = true;
   m_black_can_short_castle = true;
@@ -549,16 +574,6 @@ void Board::setup()
   m_previous_move = {};
 
   MY_ASSERT(validate_(), "Board is in an incorrect state");
-}
-
-Square const& Board::square_at(Coordinates coords) const
-{
-  return m_squares.at(c_board_dimension * coords.x() + coords.y());
-}
-
-Square& Board::square_at(Coordinates coords)
-{
-  return const_cast<Square&>(std::as_const(*this).square_at(coords));
 }
 
 bool Board::is_clear_vertical(Coordinates from, Coordinates to) const
@@ -585,7 +600,7 @@ bool Board::is_clear_vertical(Coordinates from, Coordinates to) const
   // and return false.
   for (int8_t i = bottom.y() + 1; i < top.y(); i++)
   {
-    if (square_at({from.x(), i}).is_occupied())
+    if (is_occupied({from.x(), i}))
     {
       return false;
     }
@@ -618,7 +633,7 @@ bool Board::is_clear_horizontal(Coordinates from, Coordinates to) const
   // and return false.
   for (int8_t i = left.x() + 1; i < right.x(); i++)
   {
-    if (square_at({i, from.y()}).is_occupied())
+    if (is_occupied({i, from.y()}))
     {
       return false;
     }
@@ -652,7 +667,7 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
   for (int i = 1; i < right.x() - left.x(); i++)
   {
     // Check to see if square is occupied
-    if (square_at({left.x() + i, left.y() + direction * i}).is_occupied())
+    if (is_occupied({left.x() + i, left.y() + direction * i}))
     {
       return false;
     }
@@ -665,28 +680,10 @@ std::optional<Move> Board::previous_move() const
   return m_previous_move;
 }
 
-std::vector<Coordinates> const& Board::get_pieces(Color color) const
-{
-  if (color == Color::white)
-  {
-    return m_white_piece_locations;
-  }
-  return m_black_piece_locations;
-}
-
-std::vector<Coordinates>& Board::get_pieces(Color color)
-{
-  return const_cast<std::vector<Coordinates>&>(std::as_const(*this).get_pieces(color));
-}
-
 bool Board::is_in_check_(Color color) const
 {
-  auto king_location = (color == Color::white) ? m_white_king : m_black_king;
-  auto const& pieces = get_pieces(opposite_color(color));
-
-  return std::any_of(pieces.cbegin(), pieces.cend(), [&](Coordinates piece_location) {
-    return piece_can_move(piece_location, king_location, *this);
-  });
+  //TODO: Implement based on move generation
+  return false;
 }
 
 bool Board::is_in_checkmate(Color color) const
@@ -705,7 +702,7 @@ bool Board::is_in_checkmate(Color color) const
   // We can cast this to non-const, since every change will be undone
   auto non_const_this = const_cast<Board*>(this);
 
-  auto king_location = (color == Color::white) ? m_white_king : m_black_king;
+  auto king_location = Coordinates{get_piece_set(color, Piece::king).bitscan_forward()};
   bool result = true;
   for (int i{-1}; i <= 1 && result; ++i)
   {
@@ -718,7 +715,7 @@ bool Board::is_in_checkmate(Color color) const
         if (x > 0 && x < c_board_dimension && y > 0 && y < c_board_dimension)
         {
           Move m{king_location, {x, y}};
-          if (auto sq = square_at(m.to); sq.is_occupied() && sq.occupier_color() != color)
+          if (is_occupied(m.to) && get_piece_color(m.to) != color)
           {
             auto captured_piece = non_const_this->perform_move_(m, m.to);
             result = is_in_check_(color);
@@ -731,82 +728,36 @@ bool Board::is_in_checkmate(Color color) const
   return result;
 }
 
-void Board::remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove)
+void Board::remove_piece_(Color color, Piece piece, Coordinates to_remove)
 {
-  MY_ASSERT(std::binary_search(piece_locations.cbegin(), piece_locations.cend(), to_remove),
-            "Cannot remove piece that is not present");
-  piece_locations.erase(std::upper_bound(piece_locations.begin(), piece_locations.end(), to_remove) - 1);
+  //TODO: implement
 }
 
-void Board::add_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_add)
+void Board::add_piece_(Color color, Piece piece, Coordinates to_add)
 {
-  MY_ASSERT(!std::binary_search(piece_locations.cbegin(), piece_locations.cend(), to_add),
-            "Cannot add piece that is already present");
-  piece_locations.insert(std::upper_bound(piece_locations.begin(), piece_locations.end(), to_add), to_add);
+  //TODO: implement
 }
 
 bool Board::validate_() const
 {
-  // Count how many pieces of each color are on the board
-  auto verify_pieces = [&](auto color, auto const& pieces) {
-    auto const pieces_count = std::count_if(m_squares.cbegin(), m_squares.cend(), [&](auto const& square) {
-      return square.is_occupied() && square.occupier_color() == color;
-    });
-
-    if (static_cast<size_t>(pieces_count) != pieces.size())
-    {
-      std::cerr << "Incorrect piece count for " << ((color == Color::black) ? "black" : "white") << ": " << pieces_count
-                << "!=" << pieces.size() << std::endl;
-      return false;
-    }
-
-    for (auto const& coord : pieces)
-    {
-      if (!square_at(coord).is_occupied() || !(square_at(coord).occupier_color() == color))
-      {
-        std::cerr << "Square {" << std::to_string(coord.x()) << ", " << std::to_string(coord.y())
-                  << "} has incorrect color, expected: " << ((color == Color::black) ? "black" : "white")
-                  << ", occupier: " << std::to_string(static_cast<uint8_t>(square_at(coord).occupier())) << std::endl;
-        return false;
-      }
-    }
-
-    if (!std::is_sorted(pieces.cbegin(), pieces.cend()))
-    {
-      std::cerr << "Pieces are not sorted for " << ((color == Color::black) ? "black" : "white") << std::endl;
-      return false;
-    }
-
-    if (std::adjacent_find(pieces.cbegin(), pieces.cend()) != pieces.cend())
-    {
-      std::cerr << "Pieces are not unique for " << ((color == Color::black) ? "black" : "white") << std::endl;
-      return false;
-    }
-
-    return true;
-  };
-
-  if (auto sq = square_at(m_white_king); sq.occupier() != Piece::king || !sq.is_white())
-  {
-    std::cerr << "White king not found at " << m_white_king << std::endl;
-    return false;
-  }
-  if (auto sq = square_at(m_black_king); sq.occupier() != Piece::king || sq.is_white())
-  {
-    std::cerr << "Black king not found at " << m_black_king << std::endl;
-    return false;
-  }
-
-  return verify_pieces(Color::black, m_black_piece_locations) && verify_pieces(Color::white, m_white_piece_locations);
+  //TODO: Populate this
+  return true;
 }
 
 std::vector<Coordinates> Board::find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const
 {
   std::vector<Coordinates> candidates;
-  auto const& locations = get_pieces(color);
-  std::copy_if(locations.cbegin(), locations.cend(), std::back_inserter(candidates), [&](Coordinates piece_loc) {
-    return square_at(piece_loc).occupier() == piece && piece_can_move(piece_loc, target_square, *this);
-  });
+  auto locations = get_piece_set(color, piece);
+
+  //TODO: Should the iterator return coordinates instead of locations?
+  for (auto index : locations)
+  {
+    Coordinates location{index};
+    if (piece_can_move(location, target_square, *this))
+    {
+      candidates.push_back(location);
+    }
+  }
 
   return candidates;
 }
@@ -816,7 +767,7 @@ std::optional<Move> Board::move_from_uci_(std::string move_str)
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
 
-  std::optional<Piece> promotion_result;
+  Piece promotion_result{Piece::empty};
   if (move_str.size() == 5 && !isdigit(move_str.back()))
   {
     promotion_result = from_char(toupper(move_str.back()));
@@ -828,7 +779,8 @@ std::optional<Move> Board::move_from_uci_(std::string move_str)
 
   if (from && to)
   {
-    return Move{*from, *to, promotion_result};
+    //TODO: Check for castling and en passant
+    return Move{*from, *to, Move_type::normal, promotion_result};
   }
 
   return {};
@@ -843,7 +795,7 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
                                 }),
                  move_str.end());
 
-  std::optional<Piece> promotion_result;
+  Piece promotion_result{Piece::empty};
   if (auto index = move_str.find('='); index != std::string::npos)
   {
     if (index + 1 >= move_str.size())
@@ -859,11 +811,11 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
   {
     if (color == Color::white)
     {
-      return Move{Coordinates{4, 0}, Coordinates{6, 0}, promotion_result};
+      return Move{Coordinates{4, 0}, Coordinates{6, 0}, Move_type::kingside_castle, promotion_result};
     }
     else
     {
-      return Move{Coordinates{4, 7}, Coordinates{6, 7}, promotion_result};
+      return Move{Coordinates{4, 7}, Coordinates{6, 7}, Move_type::kingside_castle, promotion_result};
     }
   }
 
@@ -871,11 +823,11 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
   {
     if (color == Color::white)
     {
-      return Move{Coordinates{4, 0}, Coordinates{2, 0}, promotion_result};
+      return Move{Coordinates{4, 0}, Coordinates{2, 0}, Move_type::queenside_castle, promotion_result};
     }
     else
     {
-      return Move{Coordinates{4, 7}, Coordinates{2, 7}, promotion_result};
+      return Move{Coordinates{4, 7}, Coordinates{2, 7}, Move_type::queenside_castle, promotion_result};
     }
   }
 
@@ -913,7 +865,9 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
   if (candidates.size() == 1)
   {
     // Exactly one piece can move to the target square
-    return Move{candidates.front(), *target_square, promotion_result};
+
+    //TODO: Check for en passent
+    return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
   }
 
   if (move_str.empty())
@@ -936,7 +890,8 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      return Move{candidates.front(), *target_square, promotion_result};
+      //TODO: Check for en passent
+      return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
     }
   }
 
@@ -959,8 +914,10 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
     move_str = move_str.substr(1);
     if (candidates.size() == 1)
     {
+      //TODO: Check for en passent
+
       // Exactly one piece can move to the target square
-      return Move{candidates.front(), *target_square, promotion_result};
+      return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
     }
   }
 
@@ -1108,7 +1065,7 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     {
       for (uint8_t i{0}; i < (fen_str[index] - '0'); ++i)
       {
-        board->square_at({x, y}).set_occupier(Piece::empty);
+        //board->square_at({x, y}).set_occupier(Piece::empty); // TODO: Don't think I need to do anything here as squares default to empty
         x = (x + 1) % c_board_dimension;
       }
     }
@@ -1117,25 +1074,10 @@ std::optional<Board> Board::from_fen(std::string_view fen)
       auto color = islower(fen_str[index]) ? Color::black : Color::white;
       auto piece = from_char(toupper(fen_str[index]));
 
-      board->square_at({x, y}).set_occupier_color(color);
-      board->square_at({x, y}).set_occupier(piece);
+      //board->square_at({x, y}).set_occupier_color(color);
+      //board->square_at({x, y}).set_occupier(piece);
+      board->add_piece_(color, piece, {x, y});
 
-      if (color == Color::black)
-      {
-        board->add_piece_(board->m_black_piece_locations, {x, y});
-        if (piece == Piece::king)
-        {
-          board->m_black_king = {x, y};
-        }
-      }
-      else
-      {
-        board->add_piece_(board->m_white_piece_locations, {x, y});
-        if (piece == Piece::king)
-        {
-          board->m_white_king = {x, y};
-        }
-      }
       x = (x + 1) % c_board_dimension;
     }
     else if (fen_str[index] == '/')
@@ -1161,16 +1103,19 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   Color to_play = Color::white;
   if (tolower(fen_str[index]) == 'w')
   {
-    // White to play - denote this be setting previous_move to a black piece
+    // White to play - denote this by setting previous_move to a black piece
     // The move being to and from the same square is irrelevent, the board will just check which color piece performed
     // the previous move
-    board->m_previous_move = Move{board->m_black_piece_locations.front(), board->m_black_piece_locations.front()};
+    Coordinates black_location{*board->get_all(Color::black).begin()};
+    board->m_previous_move = Move{black_location, black_location};
   }
   else if (tolower(fen_str[index]) == 'b')
   {
     to_play = Color::black;
-    // Black to play - denote this be setting previous_move to a white piece
-    board->m_previous_move = Move{board->m_white_piece_locations.front(), board->m_white_piece_locations.front()};
+
+    // Black to play - denote this by setting previous_move to a white piece
+    Coordinates white_location{*board->get_all(Color::white).begin()};
+    board->m_previous_move = Move{white_location, white_location};
   }
   else
   {
@@ -1237,15 +1182,15 @@ std::string Board::to_fen() const
     int empty_counter{0};
     for (int8_t x = 0; x < c_board_dimension; ++x)
     {
-      auto& sq = square_at({x, y});
-      if (sq.is_occupied())
+      Coordinates sq{x, y};
+      if (is_occupied(sq))
       {
         if (empty_counter > 0)
         {
           result << std::to_string(empty_counter);
           empty_counter = 0;
         }
-        result << to_char(sq.occupier(), sq.occupier_color());
+        result << to_char(get_piece(sq), get_piece_color(sq));
       }
       else
       {
@@ -1276,7 +1221,7 @@ std::string Board::to_fen() const
       return false;
     }
 
-    return square_at(previous_move()->to).occupier() == Piece::pawn &&
+    return get_piece(previous_move()->to) == Piece::pawn &&
            std::abs(previous_move()->to.y() - previous_move()->from.y()) == 2;
   };
 
@@ -1302,6 +1247,39 @@ void display_piece_locations_(std::vector<Coordinates> const& piece_locations)
   std::copy(piece_locations.cbegin(), piece_locations.cend(), std::ostream_iterator<Coordinates>(std::cerr, " "));
 }
 
+std::string square_str(Coordinates location, Board const& board)
+{
+  auto const piece = board.get_piece(location);
+
+  std::stringstream ss;
+  ss << piece;
+
+  ss << "_";
+
+  if (piece != Piece::empty)
+  {
+    switch (board.get_piece_color(location))
+    {
+    case Color::black:
+      ss << 'b';
+      break;
+    case Color::white:
+      ss << 'w';
+      break;
+    default:
+      MY_ASSERT(false, "Square occupier should be black or white");
+      break;
+    }
+  }
+  else
+  {
+    ss << "_";
+  }
+
+  ss << " ";
+  return ss.str();
+}
+
 std::ostream& operator<<(std::ostream& out, Board const& self)
 {
   out << std::endl;
@@ -1310,7 +1288,7 @@ std::ostream& operator<<(std::ostream& out, Board const& self)
     out << (i + 1) << "  ";
     for (int j = 0; j < c_board_dimension; j++)
     {
-      out << self.square_at({j, i});
+      out << square_str({j, i}, self);
     }
     out << std::endl << std::endl;
   }

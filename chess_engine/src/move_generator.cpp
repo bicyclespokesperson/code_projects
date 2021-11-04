@@ -324,6 +324,26 @@ std::vector<Move> Move_generator::generate_piece_moves(Position const& position,
   return result;
 }
 
+Bitboard Move_generator::get_all_attacked_squares(Position const& position, Color attacking_color) const
+{
+  constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
+  constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
+                                                   &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
+                                                   &Move_generator::king_attacks};
+  Bitboard attacked_squares;
+  for (size_t i{0}; i < piece_types.size(); ++i)
+  {
+    for (auto piece_location : position.get_piece_set(attacking_color, piece_types[i]))
+    {
+      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied());
+      attacks &= ~position.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
+      attacked_squares |= attacks;
+    }
+  }
+
+  return attacked_squares | pawn_potential_attacks(attacking_color, position.get_piece_set(attacking_color, Piece::pawn));
+}
+
 std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, Color color) const
 {
   std::vector<Move> result;
@@ -364,10 +384,10 @@ std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, 
   {
     Coordinates from{position + offset_from_end_square};
     Coordinates to{position};
-    result.emplace_back(from, to, Piece::bishop);
-    result.emplace_back(from, to, Piece::knight);
-    result.emplace_back(from, to, Piece::rook);
-    result.emplace_back(from, to, Piece::queen);
+    result.emplace_back(from, to, Move_type::normal, Piece::bishop);
+    result.emplace_back(from, to, Move_type::normal, Piece::knight);
+    result.emplace_back(from, to, Move_type::normal, Piece::rook);
+    result.emplace_back(from, to, Move_type::normal, Piece::queen);
   }
 
   // Handle en passant

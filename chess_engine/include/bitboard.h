@@ -20,7 +20,7 @@ struct Bitboard
 
   constexpr void set_square(Coordinates coords)
   {
-    val |= (uint64_t{0x01} << (coords.y() * 8 + coords.x()));
+    val |= (uint64_t{0x01} << coords.square_index());
   }
 
   constexpr void set_square(size_t index)
@@ -30,7 +30,7 @@ struct Bitboard
 
   constexpr void unset_square(Coordinates coords)
   {
-    val &= ~(uint64_t{0x01} << (coords.y() * 8 + coords.x()));
+    val &= ~(uint64_t{0x01} << coords.square_index());
   }
 
   constexpr void unset_square(size_t index)
@@ -38,9 +38,9 @@ struct Bitboard
     val &= ~(uint64_t{0x01} << index);
   }
 
-  constexpr bool square_at(size_t index) const
+  constexpr bool is_set(Coordinates coords) const
   {
-    return static_cast<bool>(val & (uint64_t{0x01} << index));
+    return static_cast<bool>(val & (uint64_t{0x01} << coords.square_index()));
   }
 
   constexpr Bitboard operator&(Bitboard other) const

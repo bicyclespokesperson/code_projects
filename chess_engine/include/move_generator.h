@@ -32,6 +32,8 @@ public:
   Bitboard get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
   Bitboard get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
 
+  Bitboard get_all_attacked_squares(Position const& position, Color attacking_color) const;
+
 private:
   void initialize_ray_attacks_();
   void initialize_knight_attacks_();

@@ -1,6 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include "bitboard.h"
 #include "coordinates.h"
 #include "move.h"
 #include "square.h"
@@ -22,16 +23,6 @@ public:
   ~Board() = default;
 
   std::string to_fen() const;
-
-  /**
-   * Returns the square at the xy location
-   * @param x The column of the desired square (A letter)
-   * @param y The row coordinate of the desired square
-   * @return The square at the desired location
-   */
-  Square const& square_at(Coordinates coords) const;
-
-  Square& square_at(Coordinates coords);
 
   /**
    * Checks if every square in between squares from and to are empty,
@@ -99,9 +90,6 @@ public:
 
   std::optional<Move> previous_move() const;
 
-  std::vector<Coordinates>& get_pieces(Color color);
-  std::vector<Coordinates> const& get_pieces(Color color) const;
-
   bool check_castling_rights(Coordinates dest) const;
 
   std::vector<Coordinates> find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const;
@@ -109,6 +97,22 @@ public:
   Color current_turn_color() const;
 
   bool is_in_checkmate(Color color) const;
+
+  Bitboard get_piece_set(Color color, Piece piece) const;
+
+  Bitboard get_all(Piece piece) const;
+
+  Bitboard get_all(Color color) const;
+
+  Bitboard get_en_passant_square() const;
+
+  Bitboard get_occupied_squares() const;
+
+  bool is_occupied(Coordinates square) const;
+
+  Color get_piece_color(Coordinates square) const;
+
+  Piece get_piece(Coordinates square) const;
 
 private:
   /**
@@ -135,8 +139,8 @@ private:
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
 
-  static void add_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_add);
-  static void remove_piece_(std::vector<Coordinates>& piece_locations, Coordinates to_remove);
+  static void add_piece_(Color color, Piece piece, Coordinates to_add);
+  static void remove_piece_(Color color, Piece piece, Coordinates to_remove);
 
   static void display_piece_locations_(std::vector<Coordinates> const& pieces);
 
@@ -145,15 +149,10 @@ private:
   constexpr static size_t c_board_size{c_board_dimension_squared};
   constexpr static size_t c_initial_piece_count{20};
 
-  std::array<Square, c_board_size> m_squares{};
   std::optional<Move> m_previous_move;
 
-  // TODO(jere9309): Should these be arrays? Would that improve copying performance?
-  std::vector<Coordinates> m_black_piece_locations{};
-  std::vector<Coordinates> m_white_piece_locations{};
-
-  Coordinates m_white_king;
-  Coordinates m_black_king;
+  std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
+  Bitboard m_en_passant_square{0};
 
   bool m_white_can_short_castle : 1 {true};
   bool m_white_can_long_castle : 1 {true};
