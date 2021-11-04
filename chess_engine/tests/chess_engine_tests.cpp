@@ -269,6 +269,30 @@ TEST_CASE("A board should prevent illegal moves", "[board]")
   REQUIRE(board.try_move_algebraic("xb5"));
 }
 
+TEST_CASE("Castling rights", "[board]")
+{
+  Board board;
+  REQUIRE(board.try_move_algebraic("h4"));
+  REQUIRE(board.try_move_algebraic("a5"));
+
+  REQUIRE(board.try_move_algebraic("Rh3"));
+  REQUIRE(board.try_move_algebraic("Ra7"));
+
+  REQUIRE(board.try_move_algebraic("g3"));
+  REQUIRE(board.try_move_algebraic("b6"));
+
+  REQUIRE(board.try_move_algebraic("Bg2"));
+  REQUIRE(board.try_move_algebraic("Rb7"));
+
+  REQUIRE(board.try_move_algebraic("Nf3"));
+  REQUIRE(board.try_move_algebraic("Nc6"));
+
+  REQUIRE(!board.try_move_algebraic("O-O")); // Cannot castle kingside if the rook has already moved
+  REQUIRE(board.try_move_algebraic("a3")); // Cannot castle kingside if the rook has already moved
+
+  REQUIRE(!board.try_move_algebraic("O-O-O")); // Cannot castle queenside if the rook has already moved
+}
+
 TEST_CASE("A board make moves in uci format", "[board]")
 {
   Board board;

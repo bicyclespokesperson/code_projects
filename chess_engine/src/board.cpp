@@ -331,7 +331,7 @@ bool Board::try_move(Move m)
     return false;
   }
 
-  update_castling_rights_(m.to);
+  update_castling_rights_(color, piece_to_move, m.from);
 
   // Move rook if the move was a castle
   if (piece_to_move == Piece::king && distance_between(m.from, m.to) == 2)
@@ -440,11 +440,11 @@ bool Board::check_castling_rights(Coordinates dest) const
   return false;
 }
 
-void Board::update_castling_rights_(Coordinates dest)
+void Board::update_castling_rights_(Color color, Piece piece, Coordinates from)
 {
-  if (get_piece(dest) == Piece::king)
+  if (piece == Piece::king)
   {
-    if (get_piece_color(dest) == Color::black)
+    if (color == Color::black)
     {
       m_black_can_short_castle = false;
       m_black_can_long_castle = false;
@@ -456,21 +456,21 @@ void Board::update_castling_rights_(Coordinates dest)
     }
   }
 
-  if (get_piece(dest) == Piece::rook)
+  if (piece == Piece::rook)
   {
-    if (dest == Coordinates{0, 0})
+    if (from == Coordinates{0, 0})
     {
       m_white_can_long_castle = false;
     }
-    else if (dest == Coordinates{7, 0})
+    else if (from == Coordinates{7, 0})
     {
       m_white_can_short_castle = false;
     }
-    else if (dest == Coordinates{0, 7})
+    else if (from == Coordinates{0, 7})
     {
       m_black_can_long_castle = false;
     }
-    else if (dest == Coordinates{7, 7})
+    else if (from == Coordinates{7, 7})
     {
       m_black_can_short_castle = false;
     }
