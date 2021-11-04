@@ -180,7 +180,7 @@ TEST_CASE("A board can be created from a FEN string", "[board]")
   REQUIRE(result == expected);
 
   REQUIRE(!board->try_move_algebraic("O-O-O")); // Should fail as black does not have queenside castling rights
-  REQUIRE(board->try_move_algebraic("axb3"));   // En passent should succeed
+  REQUIRE(board->try_move_algebraic("axb3"));   // En passant should succeed
   REQUIRE(!board->try_move_algebraic("O-O"));   // Should fail as white does not have kingside castling rights
   REQUIRE(board->try_move_algebraic("O-O-O"));
   REQUIRE(board->try_move_algebraic("O-O"));
@@ -204,7 +204,7 @@ TEST_CASE("Fen round trip", "[board]")
   REQUIRE(first.str() == second.str());
 }
 
-TEST_CASE("Fen castling rights and en passent"
+TEST_CASE("Fen castling rights and en passant"
           "[board]")
 {
   static const std::string fen{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 1"};
@@ -231,7 +231,7 @@ TEST_CASE("A board should prevent illegal moves", "[board]")
   REQUIRE(board.try_move_algebraic("f5"));
 
   REQUIRE(!board.try_move_algebraic("e6"));   // Pawns cannot capture forward
-  REQUIRE(!board.try_move_algebraic("exd6")); // Test en passent
+  REQUIRE(!board.try_move_algebraic("exd6")); // Test en passant
   REQUIRE(board.try_move_algebraic("exf6"));
 
   REQUIRE(board.try_move_algebraic("a6"));

@@ -15,19 +15,6 @@ bool occupied_by_friend(Coordinates from, Coordinates to, Board const& board)
   return false;
 }
 
-#if 0
-std::vector<Move> pawn_generate_moves(Coordinates loc, Board const& board)
-{
-  std::vector<Move> result;
-  auto color = board.square_at(loc).occupier_color();
-  auto direction = (color == Color::white) ? 1 : -1;
-
-  // Generate possible moves
-
-  return result;
-}
-#endif
-
 bool bishop_can_move(Coordinates from, Coordinates to, Board const& board)
 {
   if (!(board.is_clear_diagonal(from, to)))
@@ -113,7 +100,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
     }
 
     auto color = board.square_at(from).occupier_color();
-    auto const& opposing_pieces = board.get_pieces(board.opposite_color(color));
+    auto const& opposing_pieces = board.get_pieces(opposite_color(color));
     if (std::any_of(opposing_pieces.cbegin(), opposing_pieces.cend(), [&](Coordinates piece) {
           return piece_can_move(piece, from, board) || piece_can_move(piece, transit_square, board) ||
                  piece_can_move(piece, to, board);
@@ -164,7 +151,7 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
     {
       return true;
     }
-    // En passent
+    // En passant
     else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.previous_move() &&
              board.previous_move()->from.x() == to.x() && std::abs(board.previous_move()->from.y() - to.y()) == 1 &&
              std::abs(board.previous_move()->to.y() - to.y()) == 1 &&
@@ -311,7 +298,7 @@ bool Board::try_move(Move m)
   auto capture_location = m.to;
   if (piece_to_move == Piece::pawn && is_clear_diagonal(m.from, m.to) && !square_at(m.to).is_occupied())
   {
-    // Update capture location for En passent case
+    // Update capture location for En passant case
     capture_location = previous_move()->to;
   }
 
@@ -369,11 +356,6 @@ Color Board::current_turn_color() const
   }
 
   return opposite_color(square_at(previous_move()->to).occupier_color());
-}
-
-Color Board::opposite_color(Color color) const
-{
-  return static_cast<Color>(1 - static_cast<uint8_t>(color));
 }
 
 Move Board::find_castling_rook_move_(Coordinates king_destination)
@@ -1214,12 +1196,12 @@ std::optional<Board> Board::from_fen(std::string_view fen)
 
   if (fen_str[index] != '-')
   {
-    // En passent is possible, denote this by setting previous move to the pawn move that allowed en passent
+    // En passant is possible, denote this by setting previous move to the pawn move that allowed en passant
 
     auto capture_square = Coordinates::from_str(std::string_view{fen_str.c_str() + index, 2});
     if (!capture_square)
     {
-      std::cerr << "Badly formed fen string - invalid en passent capture square" << std::endl;
+      std::cerr << "Badly formed fen string - invalid en passant capture square" << std::endl;
       return {};
     }
 
@@ -1288,7 +1270,7 @@ std::string Board::to_fen() const
   result << castling_rights_to_fen_();
   result << ' ';
 
-  auto en_passent_is_possible = [&]() {
+  auto en_passant_is_possible = [&]() {
     if (!previous_move())
     {
       return false;
@@ -1298,11 +1280,11 @@ std::string Board::to_fen() const
            std::abs(previous_move()->to.y() - previous_move()->from.y()) == 2;
   };
 
-  if (en_passent_is_possible())
+  if (en_passant_is_possible())
   {
-    Coordinates en_passent_square{previous_move()->from.x(),
+    Coordinates en_passant_square{previous_move()->from.x(),
                                   static_cast<int32_t>((previous_move()->from.y() + previous_move()->to.y()) / 2)};
-    result << en_passent_square;
+    result << en_passant_square;
   }
   else
   {

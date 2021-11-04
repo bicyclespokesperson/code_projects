@@ -21,11 +21,6 @@ Piece from_char(char c)
   }
 }
 
-constexpr Piece to_piece_enum(Color c)
-{
-  return static_cast<Piece>(c);
-}
-
 std::ostream& operator<<(std::ostream& os, Piece const& self)
 {
   switch (self)

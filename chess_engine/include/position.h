@@ -4,17 +4,28 @@
 #include "bitboard.h"
 #include "chess_types.h"
 
+// TODO: Integrate this with the Board class. May mean keeping a position object on the board, or maybe just adding these methods directly to the board
 class Position
 {
 public:
-  Bitboard get_piece_set(Piece piece, Color color) const
+  Bitboard get_piece_set(Color color, Piece piece) const
   {
-    return m_bitboards[static_cast<size_t>(piece)].val & m_bitboards[static_cast<size_t>(color)].val;
+    return m_bitboards[static_cast<int32_t>(piece)] & m_bitboards[static_cast<int32_t>(color)];
   }
 
-  Bitboard get_all(Piece piece)
+  Bitboard get_all(Piece piece) const
   {
-    return m_bitboards[static_cast<size_t>(piece)];
+    return m_bitboards[static_cast<int32_t>(piece)];
+  }
+
+  Bitboard get_all(Color color) const
+  {
+    return m_bitboards[static_cast<int32_t>(color)];
+  }
+
+  Bitboard get_occupied() const
+  {
+    return m_bitboards[static_cast<int32_t>(Color::white)] | m_bitboards[static_cast<int32_t>(Color::black)];
   }
 
 private:

@@ -5,6 +5,7 @@
 #include "chess_types.h"
 #include "coordinates.h"
 #include "move.h"
+#include "position.h"
 
 class Move_generator
 {
@@ -21,10 +22,11 @@ public:
   Bitboard pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied) const;
   Bitboard pawn_promotions(Color color, Bitboard pawns, Bitboard occupied) const;
   Bitboard pawn_potential_attacks(Color color, Bitboard pawns) const;
+  std::vector<Move> pawn_valid_attack_moves(Color color, Bitboard pawns, Bitboard enemies) const;
 
   // TODO: Parameter list
-  std::vector<Move> generate_piece_moves() const;
-  std::vector<Move> generate_pawn_moves() const;
+  std::vector<Move> generate_piece_moves(Position const& position, Color color) const;
+  std::vector<Move> generate_pawn_moves(Position const& position, Color color) const;
 
   Bitboard get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
   Bitboard get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;

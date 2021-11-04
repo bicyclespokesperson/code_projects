@@ -107,7 +107,6 @@ public:
   std::vector<Coordinates> find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const;
 
   Color current_turn_color() const;
-  Color opposite_color(Color color) const;
 
   bool is_in_checkmate(Color color) const;
 

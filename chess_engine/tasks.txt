@@ -15,6 +15,8 @@ Pseudocode for shallow blue:
     tmpBoard.perform_move(move)
     if !inCheck() // inCheck uses bitboards to check if a square is under attack
       save move in legal_moves
+  
+  # Purple has move logic related to whether or not a move is legal (check if piece is pinned, etc)
 
 Another good look at move generation
   Contains pesudocode for bitboard -> move function

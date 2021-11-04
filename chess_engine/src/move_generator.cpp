@@ -261,3 +261,59 @@ Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns) con
   auto const east_attacks = (pawns.*bitshift_fn)(9) & ~Bitboard_constants::a_file;
   return west_attacks | east_attacks;
 }
+
+#if 0
+std::vector<Move> Move_generator::pawn_valid_attack_moves(Color color, Bitboard pawns, Bitboard enemies) const
+{
+  auto const bitshift_fn = get_pawn_shift_fn(color);
+  auto const west_attacks = (pawns.*bitshift_fn)(7) & ~Bitboard_constants::h_file & enemies;
+
+  auto const east_attacks = (pawns.*bitshift_fn)(9) & ~Bitboard_constants::a_file & enemies;
+}
+#endif
+
+
+std::vector<Move> Move_generator::generate_piece_moves(Position const& position, Color color) const
+{
+  std::vector<Move> result;
+  result.reserve(218); // Theoretical max possible number of moves in a position
+
+  // Parallel arrays that can be iterated together to get the piece type and the function that matches it
+  constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
+  constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks, &Move_generator::bishop_attacks, &Move_generator::queen_attacks, &Move_generator::king_attacks};
+  for (size_t i{0}; i < piece_types.size(); ++i)
+  {
+    for (auto piece_location : position.get_piece_set(color, piece_types[i]))
+    {
+      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied());
+      attacks &= ~position.get_all(color); // Throw out any moves to a square that is already occupied by our color
+      for (auto end_location : attacks)
+      {
+        result.emplace_back(Coordinates{piece_location}, Coordinates{end_location});
+      }
+    }
+  }
+
+  //TODO: How to handle check?
+
+  return result;
+}
+
+std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, Color color) const
+{
+  std::vector<Move> result;
+
+  // Handle short advances
+  
+  // Handle long advances
+
+  // Handle captures advances
+
+  // Handle promotions 
+
+  //TODO: How should a position object represent en passant?
+  // Handle en passant
+  
+
+  return {};
+}

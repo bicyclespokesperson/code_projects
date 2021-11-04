@@ -50,13 +50,6 @@ public:
     return m_value;
   }
 
-  /*
-  constexpr operator int32_t() const
-  {
-    return static_cast<int32_t>(m_value);
-  }
-  */
-
   constexpr Compass_dir& operator++()
   {
     m_value = static_cast<Value>(static_cast<int32_t>(m_value) + 1);
@@ -80,7 +73,15 @@ private:
   Value m_value;
 };
 
-constexpr Piece to_piece_enum(Color c);
+constexpr Piece to_piece_enum(Color c)
+{
+  return static_cast<Piece>(c);
+}
+
+constexpr Color opposite_color(Color color)
+{
+  return static_cast<Color>(1 - static_cast<uint8_t>(color));
+}
 
 Piece from_char(char c);
 
