@@ -40,7 +40,7 @@ void Game::run()
     }
 
     std::cout << board;
-    auto color = board.current_turn_color();
+    auto color = board.active_color();
     if (board.is_in_checkmate(color))
     {
       game_in_progress = false;

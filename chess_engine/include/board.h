@@ -93,7 +93,7 @@ public:
 
   std::vector<Coordinates> find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const;
 
-  Color current_turn_color() const;
+  Color active_color() const;
 
   bool is_in_checkmate(Color color) const;
 
@@ -120,20 +120,18 @@ private:
   Board(int);
 
   /**
-   * Ensure that all the coordinates in black and white pieces point to valid
-   * pieces on the board
+   * Ensure that the piece sets are internally consistent
    */
   bool validate_() const;
 
-  void update_king_locations_(Coordinates dest);
   void update_castling_rights_(Color color, Piece piece, Coordinates from);
   bool update_castling_rights_fen_(char c);
   std::string castling_rights_to_fen_() const;
 
   bool is_in_check_(Color color) const;
 
-  std::optional<Move> move_from_algebraic_(std::string_view move_param, Color color);
-  std::optional<Move> move_from_uci_(std::string move_str);
+  std::optional<Move> move_from_algebraic_(std::string_view move_param, Color color) const;
+  std::optional<Move> move_from_uci_(std::string move_str) const;
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
@@ -141,17 +139,11 @@ private:
   void add_piece_(Color color, Piece piece, Coordinates to_add);
   void remove_piece_(Color color, Piece piece, Coordinates to_remove);
 
-  static void display_piece_locations_(std::vector<Coordinates> const& pieces);
-
-  Move find_castling_rook_move_(Coordinates king_destination);
-
-  constexpr static size_t c_board_size{c_board_dimension_squared};
-  constexpr static size_t c_initial_piece_count{20};
-
-  std::optional<Move> m_previous_move;
+  Move find_castling_rook_move_(Coordinates king_destination) const;
 
   std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
   Bitboard m_en_passant_square{0};
+  std::optional<Move> m_previous_move;
 
   bool m_white_can_short_castle : 1 {true};
   bool m_white_can_long_castle : 1 {true};

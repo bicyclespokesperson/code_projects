@@ -91,11 +91,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
     }
 
     auto const color = board.get_piece_color(from);
-
-    // TODO: Should the generator live on the board? This feels clumsy. At least it isn't initialized twice though
-    // This makes a board pretty heavy to copy, too. A move generator is quite large.
-    Bitboard attacked_squares = Move_generator::get_all_attacked_squares(board, opposite_color(color));
-
+    auto attacked_squares = Move_generator::get_all_attacked_squares(board, opposite_color(color));
     if (attacked_squares.is_set(from) || attacked_squares.is_set(to) || attacked_squares.is_set(transit_square))
     {
       return false; // Illegal to castle out of, through, or into check
@@ -297,7 +293,7 @@ bool Board::try_move(Move m)
 
   auto const color = get_piece_color(m.from);
 
-  if (current_turn_color() != color)
+  if (active_color() != color)
   {
     // Make sure the correct color is moving
     return false;
@@ -369,7 +365,7 @@ bool Board::try_move(Move m)
 
 bool Board::try_move_algebraic(std::string_view move_str)
 {
-  if (auto m = move_from_algebraic_(move_str, current_turn_color()))
+  if (auto m = move_from_algebraic_(move_str, active_color()))
   {
     return try_move(*m);
   }
@@ -385,7 +381,7 @@ bool Board::try_move_uci(std::string_view move_str)
   return false;
 }
 
-Color Board::current_turn_color() const
+Color Board::active_color() const
 {
   if (!previous_move())
   {
@@ -395,7 +391,7 @@ Color Board::current_turn_color() const
   return opposite_color(get_piece_color(previous_move()->to));
 }
 
-Move Board::find_castling_rook_move_(Coordinates king_destination)
+Move Board::find_castling_rook_move_(Coordinates king_destination) const
 {
   if (king_destination == Coordinates{2, 0})
   {
@@ -664,7 +660,7 @@ bool Board::is_in_check_(Color color) const
 
 bool Board::is_in_checkmate(Color color) const
 {
-  if (current_turn_color() != color)
+  if (active_color() != color)
   {
     // A player cannot be in checkmate if it is not their turn
     return false;
@@ -775,7 +771,7 @@ std::vector<Coordinates> Board::find_pieces_that_can_move_to(Piece piece, Color 
   return candidates;
 }
 
-std::optional<Move> Board::move_from_uci_(std::string move_str)
+std::optional<Move> Board::move_from_uci_(std::string move_str) const
 {
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
@@ -799,7 +795,7 @@ std::optional<Move> Board::move_from_uci_(std::string move_str)
   return {};
 }
 
-std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Color color)
+std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Color color) const
 {
   std::string move_str{move_param};
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(),
@@ -1224,7 +1220,7 @@ std::string Board::to_fen() const
     }
   }
   result << ' ';
-  result << ((current_turn_color() == Color::white) ? 'w' : 'b');
+  result << ((active_color() == Color::white) ? 'w' : 'b');
   result << ' ';
 
   result << castling_rights_to_fen_();
@@ -1244,11 +1240,6 @@ std::string Board::to_fen() const
   result << " 0 1";
 
   return result.str();
-}
-
-void display_piece_locations_(std::vector<Coordinates> const& piece_locations)
-{
-  std::copy(piece_locations.cbegin(), piece_locations.cend(), std::ostream_iterator<Coordinates>(std::cerr, " "));
 }
 
 std::string square_str(Coordinates location, Board const& board)
