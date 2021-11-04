@@ -15,24 +15,42 @@ constexpr void update_if_in_bounds_(Bitboard& bb, int x, int y)
 using shift_fn = Bitboard (Bitboard::*)(int32_t) const;
 
 // This array can be indexed by Color, so the operator to be used for black pawns is first
-constexpr std::array shift_functions{&Bitboard::operator>>, &Bitboard::operator<< };
+constexpr std::array c_shift_functions{&Bitboard::operator>>, &Bitboard::operator<< };
 constexpr shift_fn get_pawn_shift_fn(Color color)
 {
-  return shift_functions[static_cast<int32_t>(color)];
+  return c_shift_functions[static_cast<int32_t>(color)];
 }
 
 // This array can be indexed by Color, so the operator to be used for black pawns is first
-constexpr std::array start_ranks{Bitboard_constants::seventh_rank, Bitboard_constants::second_rank};
+constexpr std::array c_start_ranks{Bitboard_constants::seventh_rank, Bitboard_constants::second_rank};
 constexpr Bitboard get_pawn_start_rank(Color color)
 {
-  return start_ranks[static_cast<int32_t>(color)];
+  return c_start_ranks[static_cast<int32_t>(color)];
 }
 
 // This array can be indexed by Color, so the operator to be used for black pawns is first
-constexpr std::array promotion_ranks{Bitboard_constants::first_rank, Bitboard_constants::eighth_rank};
+constexpr std::array c_promotion_ranks{Bitboard_constants::first_rank, Bitboard_constants::eighth_rank};
 constexpr Bitboard get_pawn_promotion_rank(Color color)
 {
-  return promotion_ranks[static_cast<int32_t>(color)];
+  return c_promotion_ranks[static_cast<int32_t>(color)];
+}
+
+constexpr std::array c_square_offsets{c_board_dimension, -c_board_dimension};
+constexpr int32_t get_start_square_offset(Color color)
+{
+  return c_square_offsets[static_cast<int32_t>(color)];
+}
+
+constexpr std::array c_east_offsets{9, -9};
+constexpr int32_t get_east_capture_offset(Color color)
+{
+  return c_east_offsets[static_cast<int32_t>(color)];
+}
+
+constexpr std::array c_west_offsets{7, -7};
+constexpr int32_t get_west_capture_offset(Color color)
+{
+  return c_west_offsets[static_cast<int32_t>(color)];
 }
 
 } // namespace
@@ -262,16 +280,19 @@ Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns) con
   return west_attacks | east_attacks;
 }
 
-#if 0
-std::vector<Move> Move_generator::pawn_valid_attack_moves(Color color, Bitboard pawns, Bitboard enemies) const
+Bitboard Move_generator::pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies) const
+{
+  auto const bitshift_fn = get_pawn_shift_fn(color);
+  auto const east_attacks = (pawns.*bitshift_fn)(9) & ~Bitboard_constants::a_file & enemies;
+  return east_attacks;
+}
+
+Bitboard Move_generator::pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies) const
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const west_attacks = (pawns.*bitshift_fn)(7) & ~Bitboard_constants::h_file & enemies;
-
-  auto const east_attacks = (pawns.*bitshift_fn)(9) & ~Bitboard_constants::a_file & enemies;
+  return west_attacks;
 }
-#endif
-
 
 std::vector<Move> Move_generator::generate_piece_moves(Position const& position, Color color) const
 {
@@ -295,6 +316,8 @@ std::vector<Move> Move_generator::generate_piece_moves(Position const& position,
   }
 
   //TODO: How to handle check?
+  
+  //TODO: Generate castling moves
 
   return result;
 }
@@ -302,18 +325,56 @@ std::vector<Move> Move_generator::generate_piece_moves(Position const& position,
 std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, Color color) const
 {
   std::vector<Move> result;
+  result.reserve(32);
 
-  // Handle short advances
+  // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
+  auto offset_from_end_square = get_start_square_offset(color);
+
+  for (auto position : pawn_short_advances(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
+  {
+    result.emplace_back(Coordinates{position + offset_from_end_square}, Coordinates{position});
+  }
   
   // Handle long advances
+  for (auto position : pawn_long_advances(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
+  {
+    result.emplace_back(Coordinates{position + 2 * offset_from_end_square}, Coordinates{position});
+  }
 
-  // Handle captures advances
+  // Handle east captures 
+  auto east_offset = get_east_capture_offset(color);
+  for (auto position : pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
+  {
+    result.emplace_back(Coordinates{position + east_offset}, Coordinates{position});
+  }
+
+  // Handle west captures 
+  auto west_offset = get_west_capture_offset(color);
+  for (auto position : pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
+  {
+    result.emplace_back(Coordinates{position + west_offset}, Coordinates{position});
+  }
 
   // Handle promotions 
+  for (auto position : pawn_promotions(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
+  {
+    Coordinates from{position + offset_from_end_square};
+    Coordinates to{position};
+    result.emplace_back(from, to, Piece::bishop);
+    result.emplace_back(from, to, Piece::knight);
+    result.emplace_back(from, to, Piece::rook);
+    result.emplace_back(from, to, Piece::queen);
+  }
 
-  //TODO: How should a position object represent en passant?
   // Handle en passant
+  for (auto position : pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
+  {
+    result.emplace_back(Coordinates{position + east_offset}, Coordinates{position}, Move_type::en_passant);
+  }
+  for (auto position : pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
+  {
+    result.emplace_back(Coordinates{position + west_offset}, Coordinates{position}, Move_type::en_passant);
+  }
   
-
-  return {};
+  return result;
 }

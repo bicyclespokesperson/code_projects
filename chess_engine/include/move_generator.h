@@ -22,9 +22,10 @@ public:
   Bitboard pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied) const;
   Bitboard pawn_promotions(Color color, Bitboard pawns, Bitboard occupied) const;
   Bitboard pawn_potential_attacks(Color color, Bitboard pawns) const;
-  std::vector<Move> pawn_valid_attack_moves(Color color, Bitboard pawns, Bitboard enemies) const;
 
-  // TODO: Parameter list
+  Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies) const;
+  Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies) const;
+
   std::vector<Move> generate_piece_moves(Position const& position, Color color) const;
   std::vector<Move> generate_pawn_moves(Position const& position, Color color) const;
 

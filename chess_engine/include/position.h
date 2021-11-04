@@ -28,10 +28,16 @@ public:
     return m_bitboards[static_cast<int32_t>(Color::white)] | m_bitboards[static_cast<int32_t>(Color::black)];
   }
 
+  Bitboard get_en_passant_square() const
+  {
+    return m_en_passant_square;
+  }
+
 private:
   // Store one bitboard for each piece type (e.g. all pawns, regardless of color)
   // Also store one for all white pieces and one for all black pieces
   std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
+  Bitboard m_en_passant_square{0};
 };
 
 #endif // POSITION_H

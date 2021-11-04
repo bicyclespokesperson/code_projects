@@ -25,6 +25,15 @@ enum class Piece : uint8_t
   _count,
 };
 
+enum class Move_type : uint8_t
+{
+  normal = 0,
+  en_passant,
+  kingside_castle,
+  queenside_castle,
+  _count,
+};
+
 class Compass_dir
 {
 public:
