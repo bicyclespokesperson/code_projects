@@ -1,3 +1,4 @@
+#include "board.h"
 #include "move_generator.h"
 #include "my_assert.h"
 
@@ -294,7 +295,7 @@ Bitboard Move_generator::pawn_west_attacks(Color color, Bitboard pawns, Bitboard
   return west_attacks;
 }
 
-std::vector<Move> Move_generator::generate_piece_moves(Position const& position, Color color) const
+std::vector<Move> Move_generator::generate_piece_moves(Board const& position, Color color) const
 {
   std::vector<Move> result;
   result.reserve(218); // Theoretical max possible number of moves in a position
@@ -308,7 +309,7 @@ std::vector<Move> Move_generator::generate_piece_moves(Position const& position,
   {
     for (auto piece_location : position.get_piece_set(color, piece_types[i]))
     {
-      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied());
+      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied_squares());
       attacks &= ~position.get_all(color); // Throw out any moves to a square that is already occupied by our color
       for (auto end_location : attacks)
       {
@@ -324,7 +325,7 @@ std::vector<Move> Move_generator::generate_piece_moves(Position const& position,
   return result;
 }
 
-Bitboard Move_generator::get_all_attacked_squares(Position const& position, Color attacking_color) const
+Bitboard Move_generator::get_all_attacked_squares(Board const& position, Color attacking_color) const
 {
   constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
   constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
@@ -335,7 +336,7 @@ Bitboard Move_generator::get_all_attacked_squares(Position const& position, Colo
   {
     for (auto piece_location : position.get_piece_set(attacking_color, piece_types[i]))
     {
-      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied());
+      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied_squares());
       attacks &= ~position.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
       attacked_squares |= attacks;
     }
@@ -344,7 +345,7 @@ Bitboard Move_generator::get_all_attacked_squares(Position const& position, Colo
   return attacked_squares | pawn_potential_attacks(attacking_color, position.get_piece_set(attacking_color, Piece::pawn));
 }
 
-std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, Color color) const
+std::vector<Move> Move_generator::generate_pawn_moves(Board const& board, Color color) const
 {
   std::vector<Move> result;
   result.reserve(32);
@@ -352,38 +353,38 @@ std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, 
   // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
   auto offset_from_end_square = get_start_square_offset(color);
 
-  for (auto position : pawn_short_advances(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
+  for (auto location : pawn_short_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
-    result.emplace_back(Coordinates{position + offset_from_end_square}, Coordinates{position});
+    result.emplace_back(Coordinates{location + offset_from_end_square}, Coordinates{location});
   }
 
   // Handle long advances
-  for (auto position : pawn_long_advances(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
+  for (auto location : pawn_long_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
-    result.emplace_back(Coordinates{position + 2 * offset_from_end_square}, Coordinates{position});
+    result.emplace_back(Coordinates{location + 2 * offset_from_end_square}, Coordinates{location});
   }
 
   // Handle east captures
   auto east_offset = get_east_capture_offset(color);
-  for (auto position :
-       pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
+  for (auto location :
+       pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
   {
-    result.emplace_back(Coordinates{position + east_offset}, Coordinates{position});
+    result.emplace_back(Coordinates{location + east_offset}, Coordinates{location});
   }
 
   // Handle west captures
   auto west_offset = get_west_capture_offset(color);
-  for (auto position :
-       pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_all(opposite_color(color))))
+  for (auto location :
+       pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
   {
-    result.emplace_back(Coordinates{position + west_offset}, Coordinates{position});
+    result.emplace_back(Coordinates{location + west_offset}, Coordinates{location});
   }
 
   // Handle promotions
-  for (auto position : pawn_promotions(color, position.get_piece_set(color, Piece::pawn), position.get_occupied()))
+  for (auto location : pawn_promotions(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
-    Coordinates from{position + offset_from_end_square};
-    Coordinates to{position};
+    Coordinates from{location + offset_from_end_square};
+    Coordinates to{location};
     result.emplace_back(from, to, Move_type::normal, Piece::bishop);
     result.emplace_back(from, to, Move_type::normal, Piece::knight);
     result.emplace_back(from, to, Move_type::normal, Piece::rook);
@@ -391,15 +392,15 @@ std::vector<Move> Move_generator::generate_pawn_moves(Position const& position, 
   }
 
   // Handle en passant
-  for (auto position :
-       pawn_east_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
+  for (auto location :
+       pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
-    result.emplace_back(Coordinates{position + east_offset}, Coordinates{position}, Move_type::en_passant);
+    result.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Move_type::en_passant);
   }
-  for (auto position :
-       pawn_west_attacks(color, position.get_piece_set(color, Piece::pawn), position.get_en_passant_square()))
+  for (auto location :
+       pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
-    result.emplace_back(Coordinates{position + west_offset}, Coordinates{position}, Move_type::en_passant);
+    result.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Move_type::en_passant);
   }
 
   return result;

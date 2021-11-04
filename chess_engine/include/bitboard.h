@@ -38,6 +38,11 @@ struct Bitboard
     val &= ~(uint64_t{0x01} << index);
   }
 
+  constexpr void unset_all()
+  {
+    val ^= val;
+  }
+
   constexpr bool is_set(Coordinates coords) const
   {
     return static_cast<bool>(val & (uint64_t{0x01} << coords.square_index()));

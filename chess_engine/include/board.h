@@ -5,6 +5,7 @@
 #include "coordinates.h"
 #include "move.h"
 #include "square.h"
+#include "move_generator.h"
 
 class Board
 {
@@ -114,6 +115,8 @@ public:
 
   Piece get_piece(Coordinates square) const;
 
+  Move_generator const& generator() const;
+
 private:
   /**
    * Private constructor that doesn't initialize pieces
@@ -139,8 +142,8 @@ private:
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
 
-  static void add_piece_(Color color, Piece piece, Coordinates to_add);
-  static void remove_piece_(Color color, Piece piece, Coordinates to_remove);
+  void add_piece_(Color color, Piece piece, Coordinates to_add);
+  void remove_piece_(Color color, Piece piece, Coordinates to_remove);
 
   static void display_piece_locations_(std::vector<Coordinates> const& pieces);
 
@@ -153,6 +156,8 @@ private:
 
   std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
   Bitboard m_en_passant_square{0};
+
+  Move_generator m_generator{};
 
   bool m_white_can_short_castle : 1 {true};
   bool m_white_can_long_castle : 1 {true};

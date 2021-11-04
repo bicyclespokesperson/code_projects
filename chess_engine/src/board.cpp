@@ -102,8 +102,10 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
       return false;
     }
 
-    Move_generator mg; //TODO: Should this be shared somehow? Probably don't want to initalized it here every time
-    Bitboard attacked_squares; //TODO: Populate with move generator once it accepts a board instead of a position
+    auto const color = board.get_piece_color(to);
+
+    // TODO: Should the generator live on the board? This feels clumsy. At least it isn't initialized twice though
+    Bitboard attacked_squares = board.generator().get_all_attacked_squares(board, opposite_color(color));
 
     if (attacked_squares.is_set(from) || attacked_squares.is_set(to) || attacked_squares.is_set(transit_square))
     {
@@ -262,6 +264,11 @@ Piece Board::get_piece(Coordinates square) const
   return (search == piece_types.cend()) ? Piece::empty : *search;
 }
 
+Move_generator const& Board::generator() const
+{
+  return m_generator;
+}
+
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
@@ -349,7 +356,7 @@ bool Board::try_move(Move m)
   update_castling_rights_(m.to);
 
   // Move rook if the move was a castle
-  if (get_piece(m.to) == Piece::king && distance_between(m.from, m.to) == 2)
+  if (piece_to_move == Piece::king && distance_between(m.from, m.to) == 2)
   {
     auto rook_move = find_castling_rook_move_(m.to);
     perform_move_(rook_move, rook_move.to);
@@ -360,6 +367,17 @@ bool Board::try_move(Move m)
   {
     remove_piece_(color, Piece::pawn, m.to);
     add_piece_(color, m.promotion, m.to);
+  }
+
+  // Set en passant square if applicable
+  if (piece_to_move == Piece::pawn && distance_between(m.from, m.to) == 2)
+  {
+    int const offset = (color == Color::white) ? -1 : 1;
+    m_en_passant_square.set_square(Coordinates{m.to.x(), m.to.y() + offset});
+  }
+  else
+  {
+    m_en_passant_square.unset_all();
   }
 
   m_previous_move = Move{m.from, m.to};
@@ -515,58 +533,34 @@ int Board::distance_between(Coordinates from, Coordinates to) const
 
 void Board::setup()
 {
-#if 0
-  m_white_piece_locations.clear();
-  m_black_piece_locations.clear();
-  m_white_piece_locations.reserve(c_initial_piece_count);
-  m_black_piece_locations.reserve(c_initial_piece_count);
-
   // White pieces
-  square_at({0, 0}).set_occupier(Piece::rook);
-  square_at({1, 0}).set_occupier(Piece::knight);
-  square_at({2, 0}).set_occupier(Piece::bishop);
-  square_at({3, 0}).set_occupier(Piece::queen);
-  square_at({4, 0}).set_occupier(Piece::king);
-  square_at({5, 0}).set_occupier(Piece::bishop);
-  square_at({6, 0}).set_occupier(Piece::knight);
-  square_at({7, 0}).set_occupier(Piece::rook);
+  add_piece_(Color::white, Piece::rook, {0, 0});
+  add_piece_(Color::white, Piece::knight, {1, 0});
+  add_piece_(Color::white, Piece::bishop, {2, 0});
+  add_piece_(Color::white, Piece::queen, {3, 0});
+  add_piece_(Color::white, Piece::king, {4, 0});
+  add_piece_(Color::white, Piece::bishop, {5, 0});
+  add_piece_(Color::white, Piece::knight, {6, 0});
+  add_piece_(Color::white, Piece::rook, {7, 0});
   for (int8_t i{0}; i < c_board_dimension; ++i)
   {
-    square_at({i, 0}).set_occupier_color(Color::white);
-
-    square_at({i, 1}).set_occupier(Piece::pawn);
-    square_at({i, 1}).set_occupier_color(Color::white);
-
-    //m_white_piece_locations.push_back({i, 0});
-    //m_white_piece_locations.push_back({i, 1});
+    add_piece_(Color::white, Piece::pawn, {i, 1});
   }
 
   // Black pieces
-  square_at({0, 7}).set_occupier(Piece::rook);
-  square_at({1, 7}).set_occupier(Piece::knight);
-  square_at({2, 7}).set_occupier(Piece::bishop);
-  square_at({3, 7}).set_occupier(Piece::queen);
-  square_at({4, 7}).set_occupier(Piece::king);
-  square_at({5, 7}).set_occupier(Piece::bishop);
-  square_at({6, 7}).set_occupier(Piece::knight);
-  square_at({7, 7}).set_occupier(Piece::rook);
+  add_piece_(Color::black, Piece::rook, {0, 7});
+  add_piece_(Color::black, Piece::knight, {1, 7});
+  add_piece_(Color::black, Piece::bishop, {2, 7});
+  add_piece_(Color::black, Piece::queen, {3, 7});
+  add_piece_(Color::black, Piece::king, {4, 7});
+  add_piece_(Color::black, Piece::bishop, {5, 7});
+  add_piece_(Color::black, Piece::knight, {6, 7});
+  add_piece_(Color::black, Piece::rook, {7, 7});
   for (int8_t i{0}; i < c_board_dimension; ++i)
   {
-    square_at({i, 7}).set_occupier_color(Color::black);
-
-    square_at({i, 6}).set_occupier(Piece::pawn);
-    square_at({i, 6}).set_occupier_color(Color::black);
-
-    //m_black_piece_locations.push_back({i, 7});
-    //m_black_piece_locations.push_back({i, 6});
+    add_piece_(Color::black, Piece::pawn, {i, 6});
   }
 
-  //std::sort(m_white_piece_locations.begin(), m_white_piece_locations.end());
-  //std::sort(m_black_piece_locations.begin(), m_black_piece_locations.end());
-#endif
-
-  //m_white_king = {4, 0};
-  //m_black_king = {4, 7};
   m_white_can_short_castle = true;
   m_white_can_long_castle = true;
   m_black_can_short_castle = true;
@@ -682,8 +676,9 @@ std::optional<Move> Board::previous_move() const
 
 bool Board::is_in_check_(Color color) const
 {
-  //TODO: Implement based on move generation
-  return false;
+  Bitboard attacked_squares = generator().get_all_attacked_squares(*this, opposite_color(color));
+  Bitboard king_location = get_piece_set(color, Piece::king);
+  return !(king_location & attacked_squares).is_empty();
 }
 
 bool Board::is_in_checkmate(Color color) const
@@ -730,17 +725,60 @@ bool Board::is_in_checkmate(Color color) const
 
 void Board::remove_piece_(Color color, Piece piece, Coordinates to_remove)
 {
-  //TODO: implement
+  MY_ASSERT(m_bitboards[static_cast<uint8_t>(color)].is_set(to_remove), "Cannot remove piece that is not present");
+  MY_ASSERT(m_bitboards[static_cast<uint8_t>(piece)].is_set(to_remove), "Cannot remove piece that is not present");
+
+  m_bitboards[static_cast<uint8_t>(color)].unset_square(to_remove);
+  m_bitboards[static_cast<uint8_t>(piece)].unset_square(to_remove);
 }
 
 void Board::add_piece_(Color color, Piece piece, Coordinates to_add)
 {
-  //TODO: implement
+  MY_ASSERT(!m_bitboards[static_cast<uint8_t>(color)].is_set(to_add), "Cannot add piece that is already present");
+  MY_ASSERT(!m_bitboards[static_cast<uint8_t>(piece)].is_set(to_add), "Cannot add piece that is already present");
+
+  m_bitboards[static_cast<uint8_t>(color)].set_square(to_add);
+  m_bitboards[static_cast<uint8_t>(piece)].set_square(to_add);
 }
 
 bool Board::validate_() const
 {
-  //TODO: Populate this
+  if ((get_piece_set(Color::black, Piece::pawn) |
+      get_piece_set(Color::black, Piece::bishop) |
+      get_piece_set(Color::black, Piece::knight) |
+      get_piece_set(Color::black, Piece::rook) |
+      get_piece_set(Color::black, Piece::queen) |
+      get_piece_set(Color::black, Piece::king)) != get_all(Color::black))
+  {
+    return false;
+  }
+
+  if ((get_piece_set(Color::white, Piece::pawn) |
+      get_piece_set(Color::white, Piece::bishop) |
+      get_piece_set(Color::white, Piece::knight) |
+      get_piece_set(Color::white, Piece::rook) |
+      get_piece_set(Color::white, Piece::queen) |
+      get_piece_set(Color::white, Piece::king)) != get_all(Color::white))
+  {
+    return false;
+  }
+
+  // Ensure that the same bit is not set for multiple different piece types
+  constexpr static std::array piece_types{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
+  for (auto piece1 : piece_types)
+  {
+    for (auto piece2 : piece_types)
+    {
+      if (piece1 != piece2)
+      {
+        if (!(get_all(piece1) & get_all(piece2)).is_empty())
+        {
+          return false;
+        }
+      }
+    }
+  }
+
   return true;
 }
 
@@ -749,7 +787,6 @@ std::vector<Coordinates> Board::find_pieces_that_can_move_to(Piece piece, Color 
   std::vector<Coordinates> candidates;
   auto locations = get_piece_set(color, piece);
 
-  //TODO: Should the iterator return coordinates instead of locations?
   for (auto index : locations)
   {
     Coordinates location{index};
@@ -1065,7 +1102,6 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     {
       for (uint8_t i{0}; i < (fen_str[index] - '0'); ++i)
       {
-        //board->square_at({x, y}).set_occupier(Piece::empty); // TODO: Don't think I need to do anything here as squares default to empty
         x = (x + 1) % c_board_dimension;
       }
     }
@@ -1149,6 +1185,8 @@ std::optional<Board> Board::from_fen(std::string_view fen)
       std::cerr << "Badly formed fen string - invalid en passant capture square" << std::endl;
       return {};
     }
+
+    board->m_en_passant_square.set_square(*capture_square);
 
     auto from_y = capture_square->y() + 1;
     auto to_y = capture_square->y() - 1;

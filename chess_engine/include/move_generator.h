@@ -5,7 +5,8 @@
 #include "chess_types.h"
 #include "coordinates.h"
 #include "move.h"
-#include "position.h"
+
+class Board;
 
 class Move_generator
 {
@@ -26,13 +27,13 @@ public:
   Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies) const;
   Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies) const;
 
-  std::vector<Move> generate_piece_moves(Position const& position, Color color) const;
-  std::vector<Move> generate_pawn_moves(Position const& position, Color color) const;
+  std::vector<Move> generate_piece_moves(Board const& board, Color color) const;
+  std::vector<Move> generate_pawn_moves(Board const& board, Color color) const;
 
   Bitboard get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
   Bitboard get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
 
-  Bitboard get_all_attacked_squares(Position const& position, Color attacking_color) const;
+  Bitboard get_all_attacked_squares(Board const& board, Color attacking_color) const;
 
 private:
   void initialize_ray_attacks_();
