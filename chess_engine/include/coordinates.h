@@ -20,7 +20,7 @@ public:
 
   explicit constexpr Coordinates(int32_t square_index)
   {
-    MY_ASSERT(0 < square_index && square_index < c_board_dimension_squared, "A board has 64 squares");
+    MY_ASSERT(0 <= square_index && square_index < c_board_dimension_squared, "A board has 64 squares");
 
     m_square_index = square_index;
   }

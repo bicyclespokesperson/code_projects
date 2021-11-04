@@ -90,7 +90,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
       return false;
     }
 
-    auto const color = board.get_piece_color(to);
+    auto const color = board.get_piece_color(from);
 
     // TODO: Should the generator live on the board? This feels clumsy. At least it isn't initialized twice though
     Bitboard attacked_squares = board.generator().get_all_attacked_squares(board, opposite_color(color));
@@ -294,7 +294,6 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
 
 bool Board::try_move(Move m)
 {
-  std::cout << "Calling try move: " << m << std::endl;
   auto const piece_to_move = get_piece(m.from);
   if (piece_to_move == Piece::empty)
   {
@@ -320,7 +319,7 @@ bool Board::try_move(Move m)
     return false;
   }
 
-  if (m.promotion == Piece::empty || m.promotion == Piece::king || m.promotion == Piece::pawn)
+  if (m.promotion == Piece::king || m.promotion == Piece::pawn)
   {
     // Cannot promote to king or pawn
     return false;
