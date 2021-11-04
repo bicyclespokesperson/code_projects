@@ -6,18 +6,6 @@ namespace
 {
 bool piece_can_move(Coordinates from, Coordinates to, Board const& board);
 
-#if 0
-bool occupied_by_friend(Coordinates from, Coordinates to, Board const& board)
-{
-  if (auto const& square = board.square_at(to);
-      square.is_occupied() && square.occupier_color() == board.square_at(from).occupier_color())
-  {
-    return true;
-  }
-  return false;
-}
-#endif
-
 bool bishop_can_move(Coordinates from, Coordinates to, Board const& board)
 {
   if (!(board.is_clear_diagonal(from, to)))
@@ -205,8 +193,6 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
 
 Board::Board()
 {
-  static_assert(sizeof(Square) == 1);
-
   setup();
 }
 
@@ -308,6 +294,7 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
 
 bool Board::try_move(Move m)
 {
+  std::cout << "Calling try move: " << m << std::endl;
   auto const piece_to_move = get_piece(m.from);
   if (piece_to_move == Piece::empty)
   {

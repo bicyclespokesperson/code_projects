@@ -1,7 +1,6 @@
 #include "player.h"
 #include "board.h"
 #include "coordinates.h"
-#include "square.h"
 
 Player::Player(std::string name) : m_name(std::move(name))
 {

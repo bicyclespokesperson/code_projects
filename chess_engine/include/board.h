@@ -4,7 +4,6 @@
 #include "bitboard.h"
 #include "coordinates.h"
 #include "move.h"
-#include "square.h"
 #include "move_generator.h"
 
 class Board

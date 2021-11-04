@@ -1,7 +1,6 @@
 #include "game.h"
 #include "board.h"
 #include "player.h"
-#include "square.h"
 
 Game::Game() = default;
 

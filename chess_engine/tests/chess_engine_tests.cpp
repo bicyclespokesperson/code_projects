@@ -141,7 +141,7 @@ TEST_CASE("A pgn file from chess.com", "[board]")
   REQUIRE(result == expected);
 }
 
-TEST_CASE("A board should be initially setup"
+TEST_CASE("A board should be initially setup", 
           "[board]")
 {
   Board board;
@@ -217,18 +217,23 @@ TEST_CASE("Fen castling rights and en passant"
 TEST_CASE("A board should prevent illegal moves", "[board]")
 {
   Board board;
+  std::cout << board << "\n";
 
   REQUIRE(!board.try_move_algebraic("d5"));  // Black cannot move first
   REQUIRE(!board.try_move_algebraic("Bc4")); // Bishops cannot jump over pieces
   REQUIRE(board.try_move_algebraic("e4"));
+  std::cout << board << "\n";
 
   REQUIRE(board.try_move_algebraic("e6"));
+  std::cout << board << "\n";
 
   REQUIRE(!board.try_move_algebraic("e3"));   // Pawns cannot move backwards
   REQUIRE(!board.try_move_algebraic("exf5")); // Pawns cannot capture to an empty square
   REQUIRE(board.try_move_algebraic("e5"));
+  std::cout << board << "\n";
 
   REQUIRE(board.try_move_algebraic("f5"));
+  std::cout << board << "\n";
 
   REQUIRE(!board.try_move_algebraic("e6"));   // Pawns cannot capture forward
   REQUIRE(!board.try_move_algebraic("exd6")); // Test en passant
