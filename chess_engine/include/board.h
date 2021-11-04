@@ -4,7 +4,6 @@
 #include "bitboard.h"
 #include "coordinates.h"
 #include "move.h"
-#include "move_generator.h"
 
 class Board
 {
@@ -114,8 +113,6 @@ public:
 
   Piece get_piece(Coordinates square) const;
 
-  Move_generator const& generator() const;
-
 private:
   /**
    * Private constructor that doesn't initialize pieces
@@ -155,8 +152,6 @@ private:
 
   std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
   Bitboard m_en_passant_square{0};
-
-  Move_generator m_generator{};
 
   bool m_white_can_short_castle : 1 {true};
   bool m_white_can_long_castle : 1 {true};

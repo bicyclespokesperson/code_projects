@@ -56,15 +56,24 @@ constexpr int32_t get_west_capture_offset(Color color)
 
 } // namespace
 
-Move_generator::Move_generator()
+std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> Move_generator::m_ray_attacks = []
 {
-  initialize_ray_attacks_();
-  initialize_knight_attacks_();
-  initialize_king_attacks_();
-}
+  return Move_generator::initialize_ray_attacks_();
+}();
 
-void Move_generator::initialize_ray_attacks_()
+std::array<Bitboard, c_board_dimension_squared> Move_generator::m_knight_attacks = []
 {
+  return Move_generator::initialize_knight_attacks_();
+}();
+
+std::array<Bitboard, c_board_dimension_squared> Move_generator::m_king_attacks = []
+{
+  return Move_generator::initialize_king_attacks_();
+}();
+
+std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> Move_generator::initialize_ray_attacks_()
+{
+  std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
   {
     for (int8_t y{0}; y < c_board_dimension; ++y)
@@ -72,7 +81,7 @@ void Move_generator::initialize_ray_attacks_()
       for (Compass_dir dir = Compass_dir::north; dir < Compass_dir::_count; ++dir)
       {
         auto square_index = Coordinates{x, y}.square_index();
-        Bitboard& bb = m_ray_attacks[square_index][dir];
+        Bitboard& bb = result[square_index][dir];
 
         int8_t square_x{x};
         int8_t square_y{y};
@@ -125,16 +134,18 @@ void Move_generator::initialize_ray_attacks_()
       }   // for each dir
     }     // for each y
   }       // for each x
+  return result;
 } // initialize_ray_attacks
 
-void Move_generator::initialize_knight_attacks_()
+std::array<Bitboard, c_board_dimension_squared> Move_generator::initialize_knight_attacks_()
 {
+  std::array<Bitboard, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
   {
     for (int8_t y{0}; y < c_board_dimension; ++y)
     {
       auto square_index = Coordinates{x, y}.square_index();
-      auto& bb = m_knight_attacks[square_index];
+      auto& bb = result[square_index];
 
       update_if_in_bounds_(bb, x + 1, y + 2);
       update_if_in_bounds_(bb, x - 1, y + 2);
@@ -146,10 +157,12 @@ void Move_generator::initialize_knight_attacks_()
       update_if_in_bounds_(bb, x - 2, y - 1);
     }
   }
+  return result;
 }
 
-void Move_generator::initialize_king_attacks_()
+std::array<Bitboard, c_board_dimension_squared> Move_generator::initialize_king_attacks_()
 {
+  std::array<Bitboard, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
   {
     for (int8_t y{0}; y < c_board_dimension; ++y)
@@ -169,9 +182,11 @@ void Move_generator::initialize_king_attacks_()
       }
     }
   }
+
+  return result;
 }
 
-Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const
+Bitboard Move_generator::get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied)
 {
   MY_ASSERT(dir.is_positive(), "Only positive directions are supported");
 
@@ -186,7 +201,7 @@ Bitboard Move_generator::get_positive_ray_attacks(Coordinates square, Compass_di
   return attacks;
 }
 
-Bitboard Move_generator::get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const
+Bitboard Move_generator::get_negative_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied)
 {
   MY_ASSERT(!dir.is_positive(), "Only negative directions are supported");
 
@@ -203,19 +218,19 @@ Bitboard Move_generator::get_negative_ray_attacks(Coordinates square, Compass_di
 
 Bitboard Move_generator::gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
                                             std::span<const Compass_dir> negative_directions, Coordinates square,
-                                            Bitboard occupied) const
+                                            Bitboard occupied)
 {
   auto positive_attacks = std::accumulate(positive_directions.begin(), positive_directions.end(), Bitboard{0},
                                           [&](Bitboard result, Compass_dir dir) {
-                                            return result | get_positive_ray_attacks(square, dir, occupied);
+                                            return result | get_positive_ray_attacks_(square, dir, occupied);
                                           });
   return std::accumulate(negative_directions.begin(), negative_directions.end(), positive_attacks,
                          [&](Bitboard result, Compass_dir dir) {
-                           return result | get_negative_ray_attacks(square, dir, occupied);
+                           return result | get_negative_ray_attacks_(square, dir, occupied);
                          });
 }
 
-Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied) const
+Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied)
 {
   constexpr static std::array<Compass_dir, 2> positive_directions{Compass_dir::north, Compass_dir::east};
   constexpr static std::array<Compass_dir, 2> negative_directions{Compass_dir::south, Compass_dir::west};
@@ -223,7 +238,7 @@ Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied) con
   return gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
 }
 
-Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied) const
+Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied)
 {
   constexpr static std::array<Compass_dir, 2> positive_directions{Compass_dir::northeast, Compass_dir::northwest};
   constexpr static std::array<Compass_dir, 2> negative_directions{Compass_dir::southeast, Compass_dir::southwest};
@@ -231,22 +246,22 @@ Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied) c
   return gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
 }
 
-Bitboard Move_generator::queen_attacks(Coordinates square, Bitboard occupied) const
+Bitboard Move_generator::queen_attacks(Coordinates square, Bitboard occupied)
 {
   return bishop_attacks(square, occupied) | rook_attacks(square, occupied);
 }
 
-Bitboard Move_generator::knight_attacks(Coordinates square, Bitboard /* occupied */) const
+Bitboard Move_generator::knight_attacks(Coordinates square, Bitboard /* occupied */)
 {
   return m_knight_attacks[square.square_index()];
 }
 
-Bitboard Move_generator::king_attacks(Coordinates square, Bitboard /* occupied */) const
+Bitboard Move_generator::king_attacks(Coordinates square, Bitboard /* occupied */)
 {
   return m_king_attacks[square.square_index()];
 }
 
-Bitboard Move_generator::pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied) const
+Bitboard Move_generator::pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
@@ -254,7 +269,7 @@ Bitboard Move_generator::pawn_short_advances(Color color, Bitboard pawns, Bitboa
   return one_space_moves & ~promotion_rank;
 }
 
-Bitboard Move_generator::pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied) const
+Bitboard Move_generator::pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const start_rank = get_pawn_start_rank(color);
@@ -264,7 +279,7 @@ Bitboard Move_generator::pawn_long_advances(Color color, Bitboard pawns, Bitboar
   return two_space_moves;
 }
 
-Bitboard Move_generator::pawn_promotions(Color color, Bitboard pawns, Bitboard occupied) const
+Bitboard Move_generator::pawn_promotions(Color color, Bitboard pawns, Bitboard occupied)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
@@ -272,7 +287,7 @@ Bitboard Move_generator::pawn_promotions(Color color, Bitboard pawns, Bitboard o
   return one_space_moves & promotion_rank;
 }
 
-Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns) const
+Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const west_attacks = (pawns.*bitshift_fn)(7) & ~Bitboard_constants::h_file;
@@ -281,21 +296,21 @@ Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns) con
   return west_attacks | east_attacks;
 }
 
-Bitboard Move_generator::pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies) const
+Bitboard Move_generator::pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const east_attacks = (pawns.*bitshift_fn)(9) & ~Bitboard_constants::a_file & enemies;
   return east_attacks;
 }
 
-Bitboard Move_generator::pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies) const
+Bitboard Move_generator::pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const west_attacks = (pawns.*bitshift_fn)(7) & ~Bitboard_constants::h_file & enemies;
   return west_attacks;
 }
 
-std::vector<Move> Move_generator::generate_piece_moves(Board const& position, Color color) const
+std::vector<Move> Move_generator::generate_piece_moves(Board const& position, Color color)
 {
   std::vector<Move> result;
   result.reserve(218); // Theoretical max possible number of moves in a position
@@ -309,7 +324,7 @@ std::vector<Move> Move_generator::generate_piece_moves(Board const& position, Co
   {
     for (auto piece_location : position.get_piece_set(color, piece_types[i]))
     {
-      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied_squares());
+      auto attacks = piece_move_functions[i](Coordinates{piece_location}, position.get_occupied_squares());
       attacks &= ~position.get_all(color); // Throw out any moves to a square that is already occupied by our color
       for (auto end_location : attacks)
       {
@@ -325,7 +340,7 @@ std::vector<Move> Move_generator::generate_piece_moves(Board const& position, Co
   return result;
 }
 
-Bitboard Move_generator::get_all_attacked_squares(Board const& position, Color attacking_color) const
+Bitboard Move_generator::get_all_attacked_squares(Board const& position, Color attacking_color)
 {
   constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
   constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
@@ -336,7 +351,7 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& position, Color a
   {
     for (auto piece_location : position.get_piece_set(attacking_color, piece_types[i]))
     {
-      auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied_squares());
+      auto attacks = piece_move_functions[i](Coordinates{piece_location}, position.get_occupied_squares());
       attacks &=
           ~position.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
       attacked_squares |= attacks;
@@ -347,7 +362,7 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& position, Color a
          pawn_potential_attacks(attacking_color, position.get_piece_set(attacking_color, Piece::pawn));
 }
 
-std::vector<Move> Move_generator::generate_pawn_moves(Board const& board, Color color) const
+std::vector<Move> Move_generator::generate_pawn_moves(Board const& board, Color color)
 {
   std::vector<Move> result;
   result.reserve(32);

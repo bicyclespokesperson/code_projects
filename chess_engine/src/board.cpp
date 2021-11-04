@@ -1,6 +1,7 @@
 #include "board.h"
 #include "move_generator.h"
 #include "my_assert.h"
+#include "move_generator.h"
 
 namespace
 {
@@ -94,7 +95,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
 
     // TODO: Should the generator live on the board? This feels clumsy. At least it isn't initialized twice though
     // This makes a board pretty heavy to copy, too. A move generator is quite large.
-    Bitboard attacked_squares = board.generator().get_all_attacked_squares(board, opposite_color(color));
+    Bitboard attacked_squares = Move_generator::get_all_attacked_squares(board, opposite_color(color));
 
     if (attacked_squares.is_set(from) || attacked_squares.is_set(to) || attacked_squares.is_set(transit_square))
     {
@@ -246,11 +247,6 @@ Piece Board::get_piece(Coordinates square) const
   });
 
   return (search == piece_types.cend()) ? Piece::empty : *search;
-}
-
-Move_generator const& Board::generator() const
-{
-  return m_generator;
 }
 
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
@@ -658,7 +654,7 @@ std::optional<Move> Board::previous_move() const
 
 bool Board::is_in_check_(Color color) const
 {
-  Bitboard attacked_squares = generator().get_all_attacked_squares(*this, opposite_color(color));
+  Bitboard attacked_squares = Move_generator::get_all_attacked_squares(*this, opposite_color(color));
   Bitboard king_location = get_piece_set(color, Piece::king);
   return !(king_location & attacked_squares).is_empty();
 }

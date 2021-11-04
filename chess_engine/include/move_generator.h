@@ -11,44 +11,41 @@ class Board;
 class Move_generator
 {
 public:
-  Move_generator();
+  static std::vector<Move> generate_piece_moves(Board const& board, Color color);
+  static std::vector<Move> generate_pawn_moves(Board const& board, Color color);
+  static Bitboard get_all_attacked_squares(Board const& board, Color attacking_color);
 
-  Bitboard rook_attacks(Coordinates square, Bitboard occupied) const;
-  Bitboard bishop_attacks(Coordinates square, Bitboard occupied) const;
-  Bitboard queen_attacks(Coordinates square, Bitboard occupied) const;
-  Bitboard knight_attacks(Coordinates square, Bitboard occupied) const;
-  Bitboard king_attacks(Coordinates square, Bitboard occupied) const;
+  static Bitboard rook_attacks(Coordinates square, Bitboard occupied);
+  static Bitboard bishop_attacks(Coordinates square, Bitboard occupied);
+  static Bitboard queen_attacks(Coordinates square, Bitboard occupied);
+  static Bitboard knight_attacks(Coordinates square, Bitboard occupied);
+  static Bitboard king_attacks(Coordinates square, Bitboard occupied);
 
-  Bitboard pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied) const;
-  Bitboard pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied) const;
-  Bitboard pawn_promotions(Color color, Bitboard pawns, Bitboard occupied) const;
-  Bitboard pawn_potential_attacks(Color color, Bitboard pawns) const;
+  static Bitboard pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied);
+  static Bitboard pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied);
+  static Bitboard pawn_promotions(Color color, Bitboard pawns, Bitboard occupied);
+  static Bitboard pawn_potential_attacks(Color color, Bitboard pawns);
 
-  Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies) const;
-  Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies) const;
-
-  std::vector<Move> generate_piece_moves(Board const& board, Color color) const;
-  std::vector<Move> generate_pawn_moves(Board const& board, Color color) const;
-
-  Bitboard get_positive_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
-  Bitboard get_negative_ray_attacks(Coordinates square, Compass_dir dir, Bitboard occupied) const;
-
-  Bitboard get_all_attacked_squares(Board const& board, Color attacking_color) const;
+  static Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies);
+  static Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies);
 
 private:
-  void initialize_ray_attacks_();
-  void initialize_knight_attacks_();
-  void initialize_king_attacks_();
+  static std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> initialize_ray_attacks_();
+  static std::array<Bitboard, c_board_dimension_squared> initialize_knight_attacks_();
+  static std::array<Bitboard, c_board_dimension_squared> initialize_king_attacks_();
 
-  Bitboard gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
+  static Bitboard get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
+  static Bitboard get_negative_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
+
+  static Bitboard gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
                               std::span<const Compass_dir> negative_directions, Coordinates square,
-                              Bitboard occupied) const;
+                              Bitboard occupied);
 
   // [square][direction]
-  std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks{};
+  static std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks;
 
-  std::array<Bitboard, c_board_dimension_squared> m_knight_attacks{};
-  std::array<Bitboard, c_board_dimension_squared> m_king_attacks{};
+  static std::array<Bitboard, c_board_dimension_squared> m_knight_attacks;
+  static std::array<Bitboard, c_board_dimension_squared> m_king_attacks;
 };
 
 struct Bitboard_constants
