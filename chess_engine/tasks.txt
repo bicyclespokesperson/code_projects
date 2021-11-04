@@ -1,9 +1,5 @@
 Generate moves
 
-  TODO:
-    Refactor board to use dense bitboard
-    Implement pawn move generation
-
 This article is good, might also want to just look at the source code for the engine
 https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
 

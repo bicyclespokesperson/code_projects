@@ -1,5 +1,5 @@
-#include "board.h"
 #include "move_generator.h"
+#include "board.h"
 #include "my_assert.h"
 
 namespace
@@ -337,12 +337,14 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& position, Color a
     for (auto piece_location : position.get_piece_set(attacking_color, piece_types[i]))
     {
       auto attacks = (this->*(piece_move_functions[i]))(Coordinates{piece_location}, position.get_occupied_squares());
-      attacks &= ~position.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
+      attacks &=
+          ~position.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
       attacked_squares |= attacks;
     }
   }
 
-  return attacked_squares | pawn_potential_attacks(attacking_color, position.get_piece_set(attacking_color, Piece::pawn));
+  return attacked_squares |
+         pawn_potential_attacks(attacking_color, position.get_piece_set(attacking_color, Piece::pawn));
 }
 
 std::vector<Move> Move_generator::generate_pawn_moves(Board const& board, Color color) const
@@ -353,7 +355,8 @@ std::vector<Move> Move_generator::generate_pawn_moves(Board const& board, Color 
   // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
   auto offset_from_end_square = get_start_square_offset(color);
 
-  for (auto location : pawn_short_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
+  for (auto location :
+       pawn_short_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
     result.emplace_back(Coordinates{location + offset_from_end_square}, Coordinates{location});
   }
@@ -392,13 +395,11 @@ std::vector<Move> Move_generator::generate_pawn_moves(Board const& board, Color 
   }
 
   // Handle en passant
-  for (auto location :
-       pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location : pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     result.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Move_type::en_passant);
   }
-  for (auto location :
-       pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location : pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     result.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Move_type::en_passant);
   }

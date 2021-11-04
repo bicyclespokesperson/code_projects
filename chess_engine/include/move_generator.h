@@ -46,6 +46,7 @@ private:
 
   // [square][direction]
   std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks{};
+
   std::array<Bitboard, c_board_dimension_squared> m_knight_attacks{};
   std::array<Bitboard, c_board_dimension_squared> m_king_attacks{};
 };

@@ -93,6 +93,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
     auto const color = board.get_piece_color(from);
 
     // TODO: Should the generator live on the board? This feels clumsy. At least it isn't initialized twice though
+    // This makes a board pretty heavy to copy, too. A move generator is quite large.
     Bitboard attacked_squares = board.generator().get_all_attacked_squares(board, opposite_color(color));
 
     if (attacked_squares.is_set(from) || attacked_squares.is_set(to) || attacked_squares.is_set(transit_square))
@@ -144,10 +145,7 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
       return true;
     }
     // En passant
-    else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.previous_move() &&
-             board.previous_move()->from.x() == to.x() && std::abs(board.previous_move()->from.y() - to.y()) == 1 &&
-             std::abs(board.previous_move()->to.y() - to.y()) == 1 &&
-             board.get_piece_set(opposite_color(color), Piece::pawn).is_set(board.previous_move()->to))
+    else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.get_en_passant_square().is_set(to))
     {
       return true;
     }
@@ -197,8 +195,8 @@ Board::Board()
 }
 
 Board::Board(int)
-    : m_white_can_short_castle(false), m_white_can_long_castle(false),
-      m_black_can_short_castle(false), m_black_can_long_castle(false)
+    : m_white_can_short_castle(false), m_white_can_long_castle(false), m_black_can_short_castle(false),
+      m_black_can_long_castle(false)
 {
 }
 
@@ -241,11 +239,11 @@ Color Board::get_piece_color(Coordinates square) const
 
 Piece Board::get_piece(Coordinates square) const
 {
-  constexpr static std::array piece_types{Piece::pawn, Piece::bishop, Piece::knight, Piece::rook, Piece::queen, Piece::king};
-  auto const search = std::find_if(piece_types.cbegin(), piece_types.cend(), [&](Piece piece)
-                                   {
-                                     return get_all(piece).is_set(square);
-                                   });
+  constexpr static std::array piece_types{Piece::pawn, Piece::bishop, Piece::knight,
+                                          Piece::rook, Piece::queen,  Piece::king};
+  auto const search = std::find_if(piece_types.cbegin(), piece_types.cend(), [&](Piece piece) {
+    return get_all(piece).is_set(square);
+  });
 
   return (search == piece_types.cend()) ? Piece::empty : *search;
 }
@@ -260,8 +258,6 @@ std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordi
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
   auto const piece = get_piece(m.from);
   auto const color = get_piece_color(m.from);
-  //auto& pieces = get_pieces(color);
-  //auto& opposing_pieces = get_pieces(opposite_color(color));
 
   if (is_occupied(m.to) || capture_location != m.to)
   {
@@ -729,28 +725,23 @@ void Board::add_piece_(Color color, Piece piece, Coordinates to_add)
 
 bool Board::validate_() const
 {
-  if ((get_piece_set(Color::black, Piece::pawn) |
-      get_piece_set(Color::black, Piece::bishop) |
-      get_piece_set(Color::black, Piece::knight) |
-      get_piece_set(Color::black, Piece::rook) |
-      get_piece_set(Color::black, Piece::queen) |
-      get_piece_set(Color::black, Piece::king)) != get_all(Color::black))
+  if ((get_piece_set(Color::black, Piece::pawn) | get_piece_set(Color::black, Piece::bishop) |
+       get_piece_set(Color::black, Piece::knight) | get_piece_set(Color::black, Piece::rook) |
+       get_piece_set(Color::black, Piece::queen) | get_piece_set(Color::black, Piece::king)) != get_all(Color::black))
   {
     return false;
   }
 
-  if ((get_piece_set(Color::white, Piece::pawn) |
-      get_piece_set(Color::white, Piece::bishop) |
-      get_piece_set(Color::white, Piece::knight) |
-      get_piece_set(Color::white, Piece::rook) |
-      get_piece_set(Color::white, Piece::queen) |
-      get_piece_set(Color::white, Piece::king)) != get_all(Color::white))
+  if ((get_piece_set(Color::white, Piece::pawn) | get_piece_set(Color::white, Piece::bishop) |
+       get_piece_set(Color::white, Piece::knight) | get_piece_set(Color::white, Piece::rook) |
+       get_piece_set(Color::white, Piece::queen) | get_piece_set(Color::white, Piece::king)) != get_all(Color::white))
   {
     return false;
   }
 
   // Ensure that the same bit is not set for multiple different piece types
-  constexpr static std::array piece_types{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
+  constexpr static std::array piece_types{Piece::pawn, Piece::knight, Piece::bishop,
+                                          Piece::rook, Piece::queen,  Piece::king};
   for (auto piece1 : piece_types)
   {
     for (auto piece2 : piece_types)
@@ -802,7 +793,7 @@ std::optional<Move> Board::move_from_uci_(std::string move_str)
 
   if (from && to)
   {
-    //TODO: Check for castling and en passant
+    // TODO: Check for castling and en passant
     return Move{*from, *to, Move_type::normal, promotion_result};
   }
 
@@ -889,7 +880,7 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
   {
     // Exactly one piece can move to the target square
 
-    //TODO: Check for en passent
+    // TODO: Check for en passent
     return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
   }
 
@@ -913,7 +904,7 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      //TODO: Check for en passent
+      // TODO: Check for en passent
       return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
     }
   }
@@ -937,7 +928,7 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
     move_str = move_str.substr(1);
     if (candidates.size() == 1)
     {
-      //TODO: Check for en passent
+      // TODO: Check for en passent
 
       // Exactly one piece can move to the target square
       return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
@@ -1095,9 +1086,6 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     {
       auto color = islower(fen_str[index]) ? Color::black : Color::white;
       auto piece = from_char(toupper(fen_str[index]));
-
-      //board->square_at({x, y}).set_occupier_color(color);
-      //board->square_at({x, y}).set_occupier(piece);
       board->add_piece_(color, piece, {x, y});
 
       x = (x + 1) % c_board_dimension;
@@ -1239,20 +1227,9 @@ std::string Board::to_fen() const
   result << castling_rights_to_fen_();
   result << ' ';
 
-  auto en_passant_is_possible = [&]() {
-    if (!previous_move())
-    {
-      return false;
-    }
-
-    return get_piece(previous_move()->to) == Piece::pawn &&
-           std::abs(previous_move()->to.y() - previous_move()->from.y()) == 2;
-  };
-
-  if (en_passant_is_possible())
+  if (!get_en_passant_square().is_empty())
   {
-    Coordinates en_passant_square{previous_move()->from.x(),
-                                  static_cast<int32_t>((previous_move()->from.y() + previous_move()->to.y()) / 2)};
+    Coordinates en_passant_square{*get_en_passant_square().begin()};
     result << en_passant_square;
   }
   else

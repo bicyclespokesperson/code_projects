@@ -23,12 +23,10 @@
  */
 int main(int /* argc */, char* /* argv*/[])
 {
-#if 0
+#if 1
   Game game;
   game.run();
 #endif
-
-  Meneldor_engine me;
 
   return 0;
 }
