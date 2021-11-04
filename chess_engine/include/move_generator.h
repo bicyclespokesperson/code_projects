@@ -38,8 +38,9 @@ private:
   static Bitboard get_negative_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
 
   static Bitboard gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
-                              std::span<const Compass_dir> negative_directions, Coordinates square,
-                              Bitboard occupied);
+                                     std::span<const Compass_dir> negative_directions,
+                                     Coordinates square,
+                                     Bitboard occupied);
 
   // [square][direction]
   static std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks;

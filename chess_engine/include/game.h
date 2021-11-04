@@ -8,7 +8,6 @@ class Player;
  */
 class Game
 {
-
 public:
   Game();
 

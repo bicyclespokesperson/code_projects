@@ -99,41 +99,41 @@ std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared>
 
           switch (dir)
           {
-          case Compass_dir::north:
-            square_y += 1;
-            break;
-          case Compass_dir::northwest:
-            square_y += 1;
-            square_x -= 1;
-            break;
-          case Compass_dir::west:
-            square_x -= 1;
-            break;
-          case Compass_dir::southwest:
-            square_y -= 1;
-            square_x -= 1;
-            break;
-          case Compass_dir::south:
-            square_y -= 1;
-            break;
-          case Compass_dir::southeast:
-            square_y -= 1;
-            square_x += 1;
-            break;
-          case Compass_dir::east:
-            square_x += 1;
-            break;
-          case Compass_dir::northeast:
-            square_y += 1;
-            square_x += 1;
-            break;
-          default:
-            break;
+            case Compass_dir::north:
+              square_y += 1;
+              break;
+            case Compass_dir::northwest:
+              square_y += 1;
+              square_x -= 1;
+              break;
+            case Compass_dir::west:
+              square_x -= 1;
+              break;
+            case Compass_dir::southwest:
+              square_y -= 1;
+              square_x -= 1;
+              break;
+            case Compass_dir::south:
+              square_y -= 1;
+              break;
+            case Compass_dir::southeast:
+              square_y -= 1;
+              square_x += 1;
+              break;
+            case Compass_dir::east:
+              square_x += 1;
+              break;
+            case Compass_dir::northeast:
+              square_y += 1;
+              square_x += 1;
+              break;
+            default:
+              break;
           };
         } // while square in bounds
-      }   // for each dir
-    }     // for each y
-  }       // for each x
+      } // for each dir
+    } // for each y
+  } // for each x
   return result;
 } // initialize_ray_attacks
 
@@ -217,15 +217,18 @@ Bitboard Move_generator::get_negative_ray_attacks_(Coordinates square, Compass_d
 }
 
 Bitboard Move_generator::gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
-                                            std::span<const Compass_dir> negative_directions, Coordinates square,
+                                            std::span<const Compass_dir> negative_directions,
+                                            Coordinates square,
                                             Bitboard occupied)
 {
   auto positive_attacks = std::accumulate(positive_directions.begin(), positive_directions.end(), Bitboard{0},
-                                          [&](Bitboard result, Compass_dir dir) {
+                                          [&](Bitboard result, Compass_dir dir)
+                                          {
                                             return result | get_positive_ray_attacks_(square, dir, occupied);
                                           });
   return std::accumulate(negative_directions.begin(), negative_directions.end(), positive_attacks,
-                         [&](Bitboard result, Compass_dir dir) {
+                         [&](Bitboard result, Compass_dir dir)
+                         {
                            return result | get_negative_ray_attacks_(square, dir, occupied);
                          });
 }
@@ -353,7 +356,7 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& position, Color a
     {
       auto attacks = piece_move_functions[i](Coordinates{piece_location}, position.get_occupied_squares());
       attacks &=
-          ~position.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
+        ~position.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
       attacked_squares |= attacks;
     }
   }

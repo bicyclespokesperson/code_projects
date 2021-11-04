@@ -50,7 +50,8 @@ public:
     _count,
   };
 
-  constexpr Compass_dir(Value dir) : m_value(dir)
+  constexpr Compass_dir(Value dir)
+  : m_value(dir)
   {
   }
 
@@ -73,9 +74,10 @@ public:
     constexpr std::array positive_directions{Compass_dir::north, Compass_dir::east, Compass_dir::northwest,
                                              Compass_dir::northeast};
 
-    return std::any_of(positive_directions.cbegin(), positive_directions.cend(), [&](auto dir) {
-      return dir == this->m_value;
-    });
+    return std::any_of(positive_directions.cbegin(), positive_directions.cend(), [&](auto dir)
+                       {
+                         return dir == this->m_value;
+                       });
   }
 
 private:

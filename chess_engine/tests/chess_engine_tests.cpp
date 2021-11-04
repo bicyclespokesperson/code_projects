@@ -179,8 +179,8 @@ TEST_CASE("A board can be created from a FEN string", "[board]")
   REQUIRE(result == expected);
 
   REQUIRE(!board->try_move_algebraic("O-O-O")); // Should fail as black does not have queenside castling rights
-  REQUIRE(board->try_move_algebraic("axb3"));   // En passant should succeed
-  REQUIRE(!board->try_move_algebraic("O-O"));   // Should fail as white does not have kingside castling rights
+  REQUIRE(board->try_move_algebraic("axb3")); // En passant should succeed
+  REQUIRE(!board->try_move_algebraic("O-O")); // Should fail as white does not have kingside castling rights
   REQUIRE(board->try_move_algebraic("O-O-O"));
   REQUIRE(board->try_move_algebraic("O-O"));
 }
@@ -217,19 +217,19 @@ TEST_CASE("A board should prevent illegal moves", "[board]")
 {
   Board board;
 
-  REQUIRE(!board.try_move_algebraic("d5"));  // Black cannot move first
+  REQUIRE(!board.try_move_algebraic("d5")); // Black cannot move first
   REQUIRE(!board.try_move_algebraic("Bc4")); // Bishops cannot jump over pieces
   REQUIRE(board.try_move_algebraic("e4"));
 
   REQUIRE(board.try_move_algebraic("e6"));
 
-  REQUIRE(!board.try_move_algebraic("e3"));   // Pawns cannot move backwards
+  REQUIRE(!board.try_move_algebraic("e3")); // Pawns cannot move backwards
   REQUIRE(!board.try_move_algebraic("exf5")); // Pawns cannot capture to an empty square
   REQUIRE(board.try_move_algebraic("e5"));
 
   REQUIRE(board.try_move_algebraic("f5"));
 
-  REQUIRE(!board.try_move_algebraic("e6"));   // Pawns cannot capture forward
+  REQUIRE(!board.try_move_algebraic("e6")); // Pawns cannot capture forward
   REQUIRE(!board.try_move_algebraic("exd6")); // Test en passant
   REQUIRE(board.try_move_algebraic("exf6"));
 

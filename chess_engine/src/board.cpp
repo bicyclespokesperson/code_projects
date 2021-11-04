@@ -1,7 +1,6 @@
 #include "board.h"
 #include "move_generator.h"
 #include "my_assert.h"
-#include "move_generator.h"
 
 namespace
 {
@@ -114,7 +113,8 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
   bool const is_white = color == Color::white;
 
   // A pawn can move two spaces on its first move
-  int const max_distance = [&] {
+  int const max_distance = [&]
+  {
     if ((is_white && from.y() == 1) || (!is_white && from.y() == 6))
     {
       return 2;
@@ -171,20 +171,20 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
 
   switch (board.get_piece(from))
   {
-  case Piece::pawn:
-    return pawn_can_move(from, to, board);
-  case Piece::knight:
-    return knight_can_move(from, to, board);
-  case Piece::bishop:
-    return bishop_can_move(from, to, board);
-  case Piece::rook:
-    return rook_can_move(from, to, board);
-  case Piece::queen:
-    return queen_can_move(from, to, board);
-  case Piece::king:
-    return king_can_move(from, to, board);
-  default:
-    return false;
+    case Piece::pawn:
+      return pawn_can_move(from, to, board);
+    case Piece::knight:
+      return knight_can_move(from, to, board);
+    case Piece::bishop:
+      return bishop_can_move(from, to, board);
+    case Piece::rook:
+      return rook_can_move(from, to, board);
+    case Piece::queen:
+      return queen_can_move(from, to, board);
+    case Piece::king:
+      return king_can_move(from, to, board);
+    default:
+      return false;
   }
 }
 
@@ -196,8 +196,10 @@ Board::Board()
 }
 
 Board::Board(int)
-    : m_white_can_short_castle(false), m_white_can_long_castle(false), m_black_can_short_castle(false),
-      m_black_can_long_castle(false)
+: m_white_can_short_castle(false),
+  m_white_can_long_castle(false),
+  m_black_can_short_castle(false),
+  m_black_can_long_castle(false)
 {
 }
 
@@ -241,10 +243,11 @@ Color Board::get_piece_color(Coordinates square) const
 Piece Board::get_piece(Coordinates square) const
 {
   constexpr static std::array piece_types{Piece::pawn, Piece::bishop, Piece::knight,
-                                          Piece::rook, Piece::queen,  Piece::king};
-  auto const search = std::find_if(piece_types.cbegin(), piece_types.cend(), [&](Piece piece) {
-    return get_all(piece).is_set(square);
-  });
+                                          Piece::rook, Piece::queen, Piece::king};
+  auto const search = std::find_if(piece_types.cbegin(), piece_types.cend(), [&](Piece piece)
+                                   {
+                                     return get_all(piece).is_set(square);
+                                   });
 
   return (search == piece_types.cend()) ? Piece::empty : *search;
 }
@@ -737,7 +740,7 @@ bool Board::validate_() const
 
   // Ensure that the same bit is not set for multiple different piece types
   constexpr static std::array piece_types{Piece::pawn, Piece::knight, Piece::bishop,
-                                          Piece::rook, Piece::queen,  Piece::king};
+                                          Piece::rook, Piece::queen, Piece::king};
   for (auto piece1 : piece_types)
   {
     for (auto piece2 : piece_types)
@@ -800,7 +803,8 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
 {
   std::string move_str{move_param};
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(),
-                                [chars = std::string("x+#?!")](char c) {
+                                [chars = std::string("x+#?!")](char c)
+                                {
                                   return isspace(c) || (chars.find(c) != std::string::npos);
                                 }),
                  move_str.end());
@@ -845,7 +849,8 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
   auto target_square = Coordinates::from_str({move_str.c_str() + move_str.size() - 2, 2});
   move_str.resize(move_str.size() - 2); // Drop target square from string
 
-  auto const piece = [&] {
+  auto const piece = [&]
+  {
     // Handle pawn move case (ex: e4, xe4, fxe4)
     if (move_str.empty() || islower(move_str[0]))
     {
@@ -891,7 +896,8 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
     // Drop candidates that are not on the correct column
     auto start_column = static_cast<int32_t>(move_str[0] - 'a');
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
-                                    [start_column](Coordinates piece_loc) {
+                                    [start_column](Coordinates piece_loc)
+                                    {
                                       return piece_loc.x() != start_column;
                                     }),
                      candidates.end());
@@ -913,11 +919,11 @@ std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Col
 
   if (isdigit(move_str[0]))
   {
-
     // Drop candidates that are not on the correct column
     auto start_row = static_cast<int32_t>(move_str[0] - '1');
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
-                                    [start_row](Coordinates piece_loc) {
+                                    [start_row](Coordinates piece_loc)
+                                    {
                                       return piece_loc.y() != start_row;
                                     }),
                      candidates.end());
@@ -1013,20 +1019,20 @@ bool Board::update_castling_rights_fen_(char c)
 {
   switch (c)
   {
-  case 'k':
-    m_black_can_short_castle = true;
-    break;
-  case 'q':
-    m_black_can_long_castle = true;
-    break;
-  case 'K':
-    m_white_can_long_castle = true;
-    break;
-  case 'Q':
-    m_white_can_long_castle = true;
-    break;
-  default:
-    return false;
+    case 'k':
+      m_black_can_short_castle = true;
+      break;
+    case 'q':
+      m_black_can_long_castle = true;
+      break;
+    case 'K':
+      m_white_can_long_castle = true;
+      break;
+    case 'Q':
+      m_white_can_long_castle = true;
+      break;
+    default:
+      return false;
   }
   return true;
 }
@@ -1177,7 +1183,8 @@ std::string Board::to_fen() const
 {
   std::stringstream result;
 
-  auto to_char = [](Piece piece, Color color) -> char {
+  auto to_char = [](Piece piece, Color color) -> char
+  {
     std::stringstream ss;
     ss << piece;
 
@@ -1257,15 +1264,15 @@ std::string square_str(Coordinates location, Board const& board)
   {
     switch (board.get_piece_color(location))
     {
-    case Color::black:
-      ss << 'b';
-      break;
-    case Color::white:
-      ss << 'w';
-      break;
-    default:
-      MY_ASSERT(false, "Square occupier should be black or white");
-      break;
+      case Color::black:
+        ss << 'b';
+        break;
+      case Color::white:
+        ss << 'w';
+        break;
+      default:
+        MY_ASSERT(false, "Square occupier should be black or white");
+        break;
     }
   }
   else
@@ -1287,7 +1294,8 @@ std::ostream& operator<<(std::ostream& out, Board const& self)
     {
       out << square_str({j, i}, self);
     }
-    out << std::endl << std::endl;
+    out << std::endl
+        << std::endl;
   }
 
   out << "   ";

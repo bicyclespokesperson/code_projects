@@ -9,7 +9,6 @@
  */
 class Player
 {
-
 public:
   /**
    * Constructs a new player

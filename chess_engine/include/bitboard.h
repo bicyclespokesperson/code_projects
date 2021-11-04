@@ -3,7 +3,8 @@
 
 #include "coordinates.h"
 
-template <typename Fn> struct Bitboard_iterator;
+template <typename Fn>
+struct Bitboard_iterator;
 
 struct Bitboard;
 
@@ -14,7 +15,8 @@ struct Bitboard
 
   constexpr Bitboard() = default;
 
-  constexpr explicit Bitboard(uint64_t value) : val(value)
+  constexpr explicit Bitboard(uint64_t value)
+  : val(value)
   {
   }
 
@@ -164,7 +166,8 @@ struct Bitboard
   uint64_t val{0};
 };
 
-template <typename Fn> struct Bitboard_iterator
+template <typename Fn>
+struct Bitboard_iterator
 {
   using iterator_category = std::input_iterator_tag;
   using difference_type = int32_t;
@@ -174,7 +177,9 @@ template <typename Fn> struct Bitboard_iterator
 
   using update_fn_t = std::decay_t<Fn>;
 
-  constexpr Bitboard_iterator(Bitboard bb, Fn fn) : m_bitboard(bb), m_update_fn(std::move(fn))
+  constexpr Bitboard_iterator(Bitboard bb, Fn fn)
+  : m_bitboard(bb),
+    m_update_fn(std::move(fn))
   {
     m_bitboard = bb;
     operator++();
@@ -226,30 +231,34 @@ private:
 
 constexpr Bitboard::Iterator Bitboard::begin() const
 {
-  return Iterator(*this, [](Bitboard& b) {
-    return b.bitscan_forward();
-  });
+  return Iterator(*this, [](Bitboard& b)
+                  {
+                    return b.bitscan_forward();
+                  });
 }
 
 constexpr Bitboard::Iterator Bitboard::end() const
 {
-  return Iterator(Bitboard{0}, [](Bitboard& b) {
-    return b.bitscan_forward();
-  });
+  return Iterator(Bitboard{0}, [](Bitboard& b)
+                  {
+                    return b.bitscan_forward();
+                  });
 }
 
 constexpr Bitboard::Iterator Bitboard::rbegin() const
 {
-  return Iterator(*this, [](Bitboard& b) {
-    return b.bitscan_reverse();
-  });
+  return Iterator(*this, [](Bitboard& b)
+                  {
+                    return b.bitscan_reverse();
+                  });
 }
 
 constexpr Bitboard::Iterator Bitboard::rend() const
 {
-  return Iterator(Bitboard{0}, [](Bitboard& b) {
-    return b.bitscan_reverse();
-  });
+  return Iterator(Bitboard{0}, [](Bitboard& b)
+                  {
+                    return b.bitscan_reverse();
+                  });
 }
 
 std::ostream& operator<<(std::ostream& os, Bitboard const& self);
