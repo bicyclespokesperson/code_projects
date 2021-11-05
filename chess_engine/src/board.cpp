@@ -184,6 +184,13 @@ bool piece_can_move(Coordinates from, Coordinates to, Board const& board)
   }
 }
 
+// This array can be indexed by color
+static constexpr std::array en_passant_y_offsets{1, -1};
+constexpr Coordinates en_passant_capture_location(Color color, Coordinates end_square)
+{
+  return Coordinates{end_square.x(), end_square.y() + en_passant_y_offsets[static_cast<uint8_t>(color)]};
+}
+
 } // namespace
 
 Board::Board()
@@ -233,6 +240,7 @@ Color Board::get_piece_color(Coordinates square) const
   return get_all(Color::white).is_set(square) ? Color::white : Color::black;
 }
 
+//TODO: Could the piece be cached in the move to avoid calling this so often?
 Piece Board::get_piece(Coordinates square) const
 {
   constexpr static std::array piece_types{Piece::pawn, Piece::bishop, Piece::knight,
@@ -285,36 +293,74 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
   }
 }
 
+bool Board::undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights)
+{
+  auto const piece = get_piece(m.to);
+  MY_ASSERT(piece != Piece::empty, "Cannot undo move without a piece on target square");
+
+  auto const color = get_piece_color(m.to);
+  MY_ASSERT(color != get_active_color(), "Cannot undo move for current player's turn");
+
+  MY_ASSERT((piece == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) == (m.promotion != Piece::empty), "Cannot undo promotion for a non-pawn");
+
+  // optional pair coords, piece
+  std::optional<std::pair<Coordinates, Piece>> captured;
+  if (captured_piece != Piece::empty)
+  {
+    if (en_passant_square.is_set(m.to))
+    {
+      captured = {en_passant_capture_location(color, m.to), captured_piece};
+    }
+    else
+    {
+      captured = {m.to, captured_piece};
+    }
+  }
+
+  unperform_move_(m, captured);
+  if (piece == Piece::king && distance_between(m.to, m.from) == 2)
+  {
+    auto const rook_move = find_castling_rook_move_(m.to);
+    unperform_move_(rook_move, {});
+  }
+
+  if (m.promotion != Piece::empty)
+  {
+    remove_piece_(color, m.promotion, m.from);
+    add_piece_(color, Piece::pawn, m.from);
+  }
+
+  m_rights = rights;
+  m_en_passant_square = en_passant_square;
+  m_active_color = opposite_color(m_active_color);
+  MY_ASSERT(validate_(), "Board is in an incorrect state after move");
+
+  return false;
+}
+
 bool Board::move_results_in_check_destructive(Move m)
 {
-  // This array can be indexed by color
-  static constexpr std::array offsets{1, -1};
-
   auto const color = get_piece_color(m.from);
 
   auto capture_location = m.to;
   if (m.type == Move_type::en_passant)
   {
-    // Update capture location for En passant case
-    capture_location = Coordinates{m.to.x(), m.to.y() + offsets[static_cast<uint8_t>(color)]};
+    capture_location = en_passant_capture_location(color, m.to);
   }
 
   perform_move_(m, capture_location);
   return is_in_check(color);
 }
 
+//TODO: Is this faster than the destructive one?
 bool Board::move_results_in_check(Move m)
 {
-  // This array can be indexed by color
-  static constexpr std::array offsets{1, -1};
-
   auto const color = get_piece_color(m.from);
 
   auto capture_location = m.to;
   if (m.type == Move_type::en_passant)
   {
-    // Update capture location for En passant case
-    capture_location = Coordinates{m.to.x(), m.to.y() + offsets[static_cast<uint8_t>(color)]};
+    capture_location = en_passant_capture_location(color, m.to);
   }
 
   auto captured_piece = perform_move_(m, capture_location);
@@ -324,12 +370,12 @@ bool Board::move_results_in_check(Move m)
   return result;
 }
 
-bool Board::try_move(Move m)
+std::optional<Piece> Board::try_move(Move m)
 {
   auto const piece_to_move = get_piece(m.from);
   if (piece_to_move == Piece::empty)
   {
-    return false;
+    return {};
   }
 
   auto const color = get_piece_color(m.from);
@@ -337,41 +383,46 @@ bool Board::try_move(Move m)
   if (get_active_color() != color)
   {
     // Make sure the correct color is moving
-    return false;
+    return {};
   }
 
   if (!piece_can_move(m.from, m.to, *this))
   {
-    return false;
+    return {};
   }
 
   // Ensure that a promotion square is present iff we have a pawn move to the back rank
   if ((piece_to_move == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) != (m.promotion != Piece::empty))
   {
-    return false;
+    return {};
   }
 
   if (m.promotion == Piece::king || m.promotion == Piece::pawn)
   {
     // Cannot promote to king or pawn
-    return false;
+    return {};
   }
+
+  return move_no_verify(m, false);
+}
+
+std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
+{
+  auto const piece_to_move = get_piece(m.from);
+  auto const color = get_active_color();
 
   auto capture_location = m.to;
   if (piece_to_move == Piece::pawn && is_clear_diagonal(m.from, m.to) && !is_occupied(m.to))
   {
     // Update capture location for En passant case
-
-    // This array can be indexed by color
-    static constexpr std::array offsets{1, -1};
-    capture_location = Coordinates{m.to.x(), m.to.y() + offsets[static_cast<uint8_t>(color)]};
+    capture_location = en_passant_capture_location(color, m.to);
   }
 
   auto captured_piece = perform_move_(m, capture_location);
-  if (is_in_check(color))
+  if (!skip_check_detection && is_in_check(color))
   {
     unperform_move_(m, captured_piece);
-    return false;
+    return {};
   }
 
   update_castling_rights_(color, piece_to_move, m.from);
@@ -404,25 +455,25 @@ bool Board::try_move(Move m)
   m_active_color = opposite_color(m_active_color);
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
-  return true;
+  return {captured_piece.has_value() ? captured_piece->second : Piece::empty};
 }
 
-bool Board::try_move_algebraic(std::string_view move_str)
+std::optional<Piece> Board::try_move_algebraic(std::string_view move_str)
 {
-  if (auto m = move_from_algebraic_(move_str, get_active_color()))
+  if (auto m = move_from_algebraic(move_str, get_active_color()))
   {
     return try_move(*m);
   }
-  return false;
+  return {};
 }
 
-bool Board::try_move_uci(std::string_view move_str)
+std::optional<Piece> Board::try_move_uci(std::string_view move_str)
 {
-  if (auto m = move_from_uci_(std::string{move_str}))
+  if (auto m = move_from_uci(std::string{move_str}))
   {
     return try_move(*m);
   }
-  return false;
+  return {};
 }
 
 Color Board::get_active_color() const
@@ -801,7 +852,7 @@ std::vector<Coordinates> Board::find_pieces_that_can_move_to(Piece piece, Color 
   return candidates;
 }
 
-std::optional<Move> Board::move_from_uci_(std::string move_str) const
+std::optional<Move> Board::move_from_uci(std::string move_str) const
 {
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(), isspace), move_str.end());
   std::transform(move_str.begin(), move_str.end(), move_str.begin(), toupper);
@@ -825,7 +876,7 @@ std::optional<Move> Board::move_from_uci_(std::string move_str) const
   return {};
 }
 
-std::optional<Move> Board::move_from_algebraic_(std::string_view move_param, Color color) const
+std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Color color) const
 {
   std::string move_str{move_param};
   move_str.erase(std::remove_if(move_str.begin(), move_str.end(),
@@ -1052,7 +1103,7 @@ bool Board::update_castling_rights_fen_(char c)
       m_rights.black_can_long_castle = true;
       break;
     case 'K':
-      m_rights.white_can_long_castle = true;
+      m_rights.white_can_short_castle = true;
       break;
     case 'Q':
       m_rights.white_can_long_castle = true;
@@ -1160,7 +1211,6 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   }
 
   ++index;
-
   while (fen_str[index] != ' ')
   {
     board->update_castling_rights_fen_(fen_str[index]);

@@ -324,28 +324,24 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
 
   if (color == Color::white)
   {
-    if (!(attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty())
+    if (!(attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty())
     {
       moves.emplace_back(short_castle_white);
     }
 
-    if (!(attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty())
+    if (!(attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty())
     {
       moves.emplace_back(long_castle_white);
     }
   }
   else
   {
-    if (!(attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty())
+    if (!(attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty())
     {
       moves.emplace_back(short_castle_black);
     }
 
-    if (!(attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty())
+    if (!(attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty())
     {
       moves.emplace_back(long_castle_black);
     }
@@ -461,8 +457,6 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
     for (auto piece_location : board.get_piece_set(attacking_color, piece_types[i]))
     {
       auto attacks = piece_move_functions[i](Coordinates{piece_location}, board.get_occupied_squares());
-      attacks &=
-        ~board.get_all(attacking_color); // Throw out any moves to a square that is already occupied by our color
       attacked_squares |= attacks;
     }
   }
