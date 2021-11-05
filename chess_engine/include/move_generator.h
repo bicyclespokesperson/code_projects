@@ -12,6 +12,8 @@ class Move_generator
 {
 public:
   static std::vector<Move> generate_legal_moves(Board const& board, Color color);
+  static std::vector<Move> generate_pseudo_legal_moves(Board const& board, Color color);
+
   static void generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves);
   static void generate_pawn_moves(Board const& board, Color color, std::vector<Move>& moves);
   static void generate_castling_moves(Board const& board, Color color, std::vector<Move>& moves);

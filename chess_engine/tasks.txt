@@ -1,5 +1,7 @@
 Generate moves
 
+Compare with stockfish: https://chess.stackexchange.com/questions/15494/validate-engine-moves-using-perft-and-divide
+
 This article is good, might also want to just look at the source code for the engine
 https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
 

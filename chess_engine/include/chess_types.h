@@ -98,4 +98,6 @@ Piece from_char(char c);
 
 std::ostream& operator<<(std::ostream& os, Piece const& self);
 
+std::ostream& operator<<(std::ostream& os, Color const& self);
+
 #endif // CHESS_TYPES_H

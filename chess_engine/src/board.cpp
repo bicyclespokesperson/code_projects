@@ -408,6 +408,8 @@ std::optional<Piece> Board::try_move(Move m)
 
 std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
 {
+  std::cerr << "Attempting move: " << m << "\n";
+
   auto const piece_to_move = get_piece(m.from);
   auto const color = get_active_color();
 
@@ -442,14 +444,11 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
   }
 
   // Set en passant square if applicable
+  m_en_passant_square.unset_all();
   if (piece_to_move == Piece::pawn && distance_between(m.from, m.to) == 2)
   {
     int const offset = (color == Color::white) ? -1 : 1;
     m_en_passant_square.set_square(Coordinates{m.to.x(), m.to.y() + offset});
-  }
-  else
-  {
-    m_en_passant_square.unset_all();
   }
 
   m_active_color = opposite_color(m_active_color);
@@ -783,7 +782,15 @@ bool Board::is_in_checkmate(Color color) const
 
 void Board::remove_piece_(Color color, Piece piece, Coordinates to_remove)
 {
-  MY_ASSERT(m_bitboards[static_cast<uint8_t>(color)].is_set(to_remove), "Cannot remove piece that is not present");
+  //MY_ASSERT(m_bitboards[static_cast<uint8_t>(color)].is_set(to_remove), "Cannot remove piece that is not present");
+  if (!m_bitboards[static_cast<uint8_t>(color)].is_set(to_remove))
+  {
+    std::cerr << "No " << color << " " << piece << " available to remove from " << to_remove << ".\n";
+    std::cerr << "Validation result: " << std::to_string(validate_()) << "\n";
+    std::cerr << *this;
+    MY_ASSERT(false, "Invalid state");
+  }
+
   MY_ASSERT(m_bitboards[static_cast<uint8_t>(piece)].is_set(to_remove), "Cannot remove piece that is not present");
 
   m_bitboards[static_cast<uint8_t>(color)].unset_square(to_remove);

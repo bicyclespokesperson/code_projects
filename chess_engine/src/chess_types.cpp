@@ -53,3 +53,9 @@ std::ostream& operator<<(std::ostream& os, Piece const& self)
 
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, Color const& self)
+{
+  os << ((self == Color::white) ? "white" : "black");
+  return os;
+}

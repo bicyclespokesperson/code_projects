@@ -321,31 +321,47 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
   static constexpr Move long_castle_black{{4, 7}, {2, 7}};
 
   auto const attacks = Move_generator::get_all_attacked_squares(board, opposite_color(color));
+  auto const castling_rights = board.get_castling_rights();
+
+  int count{0};
 
   if (color == Color::white)
   {
-    if (!(attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty())
+    if ((attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty()
+        && castling_rights.white_can_short_castle)
     {
       moves.emplace_back(short_castle_white);
+      ++count;
     }
 
-    if (!(attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty())
+    if ((attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty()
+        && castling_rights.white_can_long_castle)
     {
       moves.emplace_back(long_castle_white);
+      ++count;
     }
   }
   else
   {
-    if (!(attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty())
+    if ((attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty()
+        && castling_rights.black_can_short_castle)
     {
       moves.emplace_back(short_castle_black);
+      ++count;
     }
 
-    if (!(attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty())
+    if ((attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty()
+        && castling_rights.black_can_long_castle)
     {
       moves.emplace_back(long_castle_black);
+      ++count;
     }
   }
+  std::cerr << std::to_string(count) << " castling moves\n";
 }
 
 void Move_generator::generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves)
@@ -422,6 +438,18 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
   {
     moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Move_type::en_passant);
   }
+}
+
+std::vector<Move> Move_generator::generate_pseudo_legal_moves(Board const& board, Color color)
+{
+  std::vector<Move> pseudo_legal_moves;
+  pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
+
+  generate_pawn_moves(board, color, pseudo_legal_moves);
+  generate_piece_moves(board, color, pseudo_legal_moves);
+  generate_castling_moves(board, color, pseudo_legal_moves);
+
+  return pseudo_legal_moves;
 }
 
 std::vector<Move> Move_generator::generate_legal_moves(Board const& board, Color color)
