@@ -424,3 +424,11 @@ TEST_CASE("Bitboard iterator", "[bitboard]")
   REQUIRE(total == 79);
   REQUIRE(total_reverse == 79);
 }
+
+TEST_CASE("Starting moves", "[Move_generator]")
+{
+  Board board;
+  auto moves = Move_generator::generate_legal_moves(board, Color::white);
+  REQUIRE(moves.size() == 20);
+}
+

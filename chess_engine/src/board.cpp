@@ -67,7 +67,7 @@ bool king_can_move(Coordinates from, Coordinates to, Board const& board)
   // Check if castling is allowed
   if (from.y() == to.y() && std::abs(from.x() - to.x()) == 2)
   {
-    if (!board.check_castling_rights(to))
+    if (!board.can_castle_to(to))
     {
       return false; // One of the pieces necessary for castling has already moved
     }
@@ -192,10 +192,7 @@ Board::Board()
 }
 
 Board::Board(int)
-: m_white_can_short_castle(false),
-  m_white_can_long_castle(false),
-  m_black_can_short_castle(false),
-  m_black_can_long_castle(false)
+: m_rights{false, false, false, false}
 {
 }
 
@@ -248,6 +245,11 @@ Piece Board::get_piece(Coordinates square) const
   return (search == piece_types.cend()) ? Piece::empty : *search;
 }
 
+Board::Castling_rights Board::get_castling_rights() const
+{
+  return m_rights;
+}
+
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
@@ -283,6 +285,45 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
   }
 }
 
+bool Board::move_results_in_check_destructive(Move m)
+{
+  // This array can be indexed by color
+  static constexpr std::array offsets{1, -1};
+
+  auto const color = get_piece_color(m.from);
+
+  auto capture_location = m.to;
+  if (m.type == Move_type::en_passant)
+  {
+    // Update capture location for En passant case
+    capture_location = Coordinates{m.to.x(), m.to.y() + offsets[static_cast<uint8_t>(color)]};
+  }
+
+  perform_move_(m, capture_location);
+  return is_in_check(color);
+}
+
+bool Board::move_results_in_check(Move m)
+{
+  // This array can be indexed by color
+  static constexpr std::array offsets{1, -1};
+
+  auto const color = get_piece_color(m.from);
+
+  auto capture_location = m.to;
+  if (m.type == Move_type::en_passant)
+  {
+    // Update capture location for En passant case
+    capture_location = Coordinates{m.to.x(), m.to.y() + offsets[static_cast<uint8_t>(color)]};
+  }
+
+  auto captured_piece = perform_move_(m, capture_location);
+  bool result = is_in_check(color);
+  unperform_move_(m, captured_piece);
+
+  return result;
+}
+
 bool Board::try_move(Move m)
 {
   auto const piece_to_move = get_piece(m.from);
@@ -293,7 +334,7 @@ bool Board::try_move(Move m)
 
   auto const color = get_piece_color(m.from);
 
-  if (active_color() != color)
+  if (get_active_color() != color)
   {
     // Make sure the correct color is moving
     return false;
@@ -320,11 +361,14 @@ bool Board::try_move(Move m)
   if (piece_to_move == Piece::pawn && is_clear_diagonal(m.from, m.to) && !is_occupied(m.to))
   {
     // Update capture location for En passant case
-    capture_location = previous_move()->to;
+
+    // This array can be indexed by color
+    static constexpr std::array offsets{1, -1};
+    capture_location = Coordinates{m.to.x(), m.to.y() + offsets[static_cast<uint8_t>(color)]};
   }
 
   auto captured_piece = perform_move_(m, capture_location);
-  if (is_in_check_(color))
+  if (is_in_check(color))
   {
     unperform_move_(m, captured_piece);
     return false;
@@ -357,7 +401,7 @@ bool Board::try_move(Move m)
     m_en_passant_square.unset_all();
   }
 
-  m_previous_move = Move{m.from, m.to};
+  m_active_color = opposite_color(m_active_color);
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
   return true;
@@ -365,7 +409,7 @@ bool Board::try_move(Move m)
 
 bool Board::try_move_algebraic(std::string_view move_str)
 {
-  if (auto m = move_from_algebraic_(move_str, active_color()))
+  if (auto m = move_from_algebraic_(move_str, get_active_color()))
   {
     return try_move(*m);
   }
@@ -381,14 +425,9 @@ bool Board::try_move_uci(std::string_view move_str)
   return false;
 }
 
-Color Board::active_color() const
+Color Board::get_active_color() const
 {
-  if (!previous_move())
-  {
-    return Color::white;
-  }
-
-  return opposite_color(get_piece_color(previous_move()->to));
+  return m_active_color;
 }
 
 Move Board::find_castling_rook_move_(Coordinates king_destination) const
@@ -414,26 +453,26 @@ Move Board::find_castling_rook_move_(Coordinates king_destination) const
   return {{0, 0}, {0, 0}};
 }
 
-bool Board::check_castling_rights(Coordinates dest) const
+bool Board::can_castle_to(Coordinates dest) const
 {
   if (dest == Coordinates{2, 0})
   {
-    return m_white_can_long_castle;
+    return m_rights.white_can_long_castle;
   }
 
   if (dest == Coordinates{6, 0})
   {
-    return m_white_can_short_castle;
+    return m_rights.white_can_short_castle;
   }
 
   if (dest == Coordinates{2, 7})
   {
-    return m_black_can_long_castle;
+    return m_rights.black_can_long_castle;
   }
 
   if (dest == Coordinates{6, 7})
   {
-    return m_black_can_short_castle;
+    return m_rights.black_can_short_castle;
   }
 
   return false;
@@ -445,13 +484,13 @@ void Board::update_castling_rights_(Color color, Piece piece, Coordinates from)
   {
     if (color == Color::black)
     {
-      m_black_can_short_castle = false;
-      m_black_can_long_castle = false;
+      m_rights.black_can_short_castle = false;
+      m_rights.black_can_long_castle = false;
     }
     else
     {
-      m_white_can_short_castle = false;
-      m_white_can_long_castle = false;
+      m_rights.white_can_short_castle = false;
+      m_rights.white_can_long_castle = false;
     }
   }
 
@@ -459,19 +498,19 @@ void Board::update_castling_rights_(Color color, Piece piece, Coordinates from)
   {
     if (from == Coordinates{0, 0})
     {
-      m_white_can_long_castle = false;
+      m_rights.white_can_long_castle = false;
     }
     else if (from == Coordinates{7, 0})
     {
-      m_white_can_short_castle = false;
+      m_rights.white_can_short_castle = false;
     }
     else if (from == Coordinates{0, 7})
     {
-      m_black_can_long_castle = false;
+      m_rights.black_can_long_castle = false;
     }
     else if (from == Coordinates{7, 7})
     {
-      m_black_can_short_castle = false;
+      m_rights.black_can_short_castle = false;
     }
   }
 }
@@ -538,11 +577,7 @@ void Board::setup()
     add_piece_(Color::black, Piece::pawn, {i, 6});
   }
 
-  m_white_can_short_castle = true;
-  m_white_can_long_castle = true;
-  m_black_can_short_castle = true;
-  m_black_can_long_castle = true;
-  m_previous_move = {};
+  m_rights = {true, true, true, true};
 
   MY_ASSERT(validate_(), "Board is in an incorrect state");
 }
@@ -646,12 +681,7 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
   return true;
 }
 
-std::optional<Move> Board::previous_move() const
-{
-  return m_previous_move;
-}
-
-bool Board::is_in_check_(Color color) const
+bool Board::is_in_check(Color color) const
 {
   Bitboard attacked_squares = Move_generator::get_all_attacked_squares(*this, opposite_color(color));
   Bitboard king_location = get_piece_set(color, Piece::king);
@@ -660,13 +690,13 @@ bool Board::is_in_check_(Color color) const
 
 bool Board::is_in_checkmate(Color color) const
 {
-  if (active_color() != color)
+  if (get_active_color() != color)
   {
     // A player cannot be in checkmate if it is not their turn
     return false;
   }
 
-  if (!is_in_check_(color))
+  if (!is_in_check(color))
   {
     return false;
   }
@@ -690,7 +720,7 @@ bool Board::is_in_checkmate(Color color) const
           if (is_occupied(m.to) && get_piece_color(m.to) != color)
           {
             auto captured_piece = non_const_this->perform_move_(m, m.to);
-            result = is_in_check_(color);
+            result = is_in_check(color);
             non_const_this->unperform_move_(m, captured_piece);
           }
         }
@@ -1016,16 +1046,16 @@ bool Board::update_castling_rights_fen_(char c)
   switch (c)
   {
     case 'k':
-      m_black_can_short_castle = true;
+      m_rights.black_can_short_castle = true;
       break;
     case 'q':
-      m_black_can_long_castle = true;
+      m_rights.black_can_long_castle = true;
       break;
     case 'K':
-      m_white_can_long_castle = true;
+      m_rights.white_can_long_castle = true;
       break;
     case 'Q':
-      m_white_can_long_castle = true;
+      m_rights.white_can_long_castle = true;
       break;
     default:
       return false;
@@ -1036,19 +1066,19 @@ bool Board::update_castling_rights_fen_(char c)
 std::string Board::castling_rights_to_fen_() const
 {
   std::stringstream ss;
-  if (m_white_can_short_castle)
+  if (m_rights.white_can_short_castle)
   {
     ss << 'K';
   }
-  if (m_white_can_long_castle)
+  if (m_rights.white_can_long_castle)
   {
     ss << 'Q';
   }
-  if (m_black_can_short_castle)
+  if (m_rights.black_can_short_castle)
   {
     ss << 'k';
   }
-  if (m_black_can_long_castle)
+  if (m_rights.black_can_long_castle)
   {
     ss << 'q';
   }
@@ -1108,22 +1138,13 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   }
   ++index;
 
-  Color to_play = Color::white;
   if (tolower(fen_str[index]) == 'w')
   {
-    // White to play - denote this by setting previous_move to a black piece
-    // The move being to and from the same square is irrelevent, the board will just check which color piece performed
-    // the previous move
-    Coordinates black_location{*board->get_all(Color::black).begin()};
-    board->m_previous_move = Move{black_location, black_location};
+    board->m_active_color = Color::white;
   }
   else if (tolower(fen_str[index]) == 'b')
   {
-    to_play = Color::black;
-
-    // Black to play - denote this by setting previous_move to a white piece
-    Coordinates white_location{*board->get_all(Color::white).begin()};
-    board->m_previous_move = Move{white_location, white_location};
+    board->m_active_color = Color::black;
   }
   else
   {
@@ -1159,15 +1180,6 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     }
 
     board->m_en_passant_square.set_square(*capture_square);
-
-    auto from_y = capture_square->y() + 1;
-    auto to_y = capture_square->y() - 1;
-    if (to_play == Color::black)
-    {
-      std::swap(from_y, to_y);
-    }
-
-    board->m_previous_move = Move{{capture_square->x(), from_y}, {capture_square->x(), to_y}};
   }
 
   MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");
@@ -1220,7 +1232,7 @@ std::string Board::to_fen() const
     }
   }
   result << ' ';
-  result << ((active_color() == Color::white) ? 'w' : 'b');
+  result << ((get_active_color() == Color::white) ? 'w' : 'b');
   result << ' ';
 
   result << castling_rights_to_fen_();

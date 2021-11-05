@@ -8,6 +8,14 @@
 class Board
 {
 public:
+  struct Castling_rights
+  {
+    bool white_can_short_castle : 1 {true};
+    bool white_can_long_castle : 1 {true};
+    bool black_can_short_castle : 1 {true};
+    bool black_can_long_castle : 1 {true};
+  };
+
   static std::optional<Board> from_pgn(std::string_view pgn);
 
   static std::optional<Board> from_fen(std::string_view fen);
@@ -61,11 +69,6 @@ public:
   int distance_between(Coordinates from, Coordinates to) const;
 
   /**
-   * Prints the square to the specified std::ostream
-   * @param out_stream The stream to print to
-   */
-
-  /**
    * Initializes the board with pieces in their standard positions
    */
   void setup();
@@ -74,6 +77,25 @@ public:
    * Return false on invalid move
    */
   bool try_move(Move m);
+
+  /**
+   * A fast try move method that will return true if the move results in check.
+   * Does not perform verification on whether or not the move is legal.
+   * Leaves the board in an invalid state.
+   */
+  bool move_results_in_check_destructive(Move m);
+  
+  /**
+   * Performs a move, then unperforms the move. 
+   * Does not perform verification on whether or not the move is legal.
+   * Returns true if the move resulted in check.
+   */
+  bool move_results_in_check(Move m);
+
+  // ?
+  bool move_no_verify();
+
+  void undo_move(Move m, Bitboard en_passant_square);
 
   /**
    * Attempt to make a move encoded in uci format ("e2 e4")
@@ -87,13 +109,19 @@ public:
    */
   bool try_move_algebraic(std::string_view move_str);
 
-  std::optional<Move> previous_move() const;
+  /**
+   * Check if castling to the desired square is allowed
+   * (the pieces involved haven't moved)
+   */
+  bool can_castle_to(Coordinates dest) const;
 
-  bool check_castling_rights(Coordinates dest) const;
+  Castling_rights get_castling_rights() const;
 
   std::vector<Coordinates> find_pieces_that_can_move_to(Piece piece, Color color, Coordinates target_square) const;
 
-  Color active_color() const;
+  Color get_active_color() const;
+
+  bool is_in_check(Color color) const;
 
   bool is_in_checkmate(Color color) const;
 
@@ -128,27 +156,21 @@ private:
   bool update_castling_rights_fen_(char c);
   std::string castling_rights_to_fen_() const;
 
-  bool is_in_check_(Color color) const;
-
   std::optional<Move> move_from_algebraic_(std::string_view move_param, Color color) const;
   std::optional<Move> move_from_uci_(std::string move_str) const;
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
   void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
+  Move find_castling_rook_move_(Coordinates king_destination) const;
 
   void add_piece_(Color color, Piece piece, Coordinates to_add);
   void remove_piece_(Color color, Piece piece, Coordinates to_remove);
 
-  Move find_castling_rook_move_(Coordinates king_destination) const;
 
   std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
   Bitboard m_en_passant_square{0};
-  std::optional<Move> m_previous_move;
-
-  bool m_white_can_short_castle : 1 {true};
-  bool m_white_can_long_castle : 1 {true};
-  bool m_black_can_short_castle : 1 {true};
-  bool m_black_can_long_castle : 1 {true};
+  Castling_rights m_rights;
+  Color m_active_color{Color::white};
 };
 
 std::ostream& operator<<(std::ostream& out, Board const& self);

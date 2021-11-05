@@ -6,7 +6,7 @@
 
 struct Move
 {
-  Move(Coordinates from_coord, Coordinates to_coord, Move_type move_type = Move_type::normal, Piece promotion_piece = Piece::empty)
+  constexpr Move(Coordinates from_coord, Coordinates to_coord, Move_type move_type = Move_type::normal, Piece promotion_piece = Piece::empty)
   : from(from_coord),
     to(to_coord),
     type(move_type),

@@ -11,8 +11,10 @@ class Board;
 class Move_generator
 {
 public:
-  static std::vector<Move> generate_piece_moves(Board const& board, Color color);
-  static std::vector<Move> generate_pawn_moves(Board const& board, Color color);
+  static std::vector<Move> generate_legal_moves(Board const& board, Color color);
+  static void generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves);
+  static void generate_pawn_moves(Board const& board, Color color, std::vector<Move>& moves);
+  static void generate_castling_moves(Board const& board, Color color, std::vector<Move>& moves);
   static Bitboard get_all_attacked_squares(Board const& board, Color attacking_color);
 
   static Bitboard rook_attacks(Coordinates square, Bitboard occupied);
@@ -61,6 +63,12 @@ struct Bitboard_constants
   static constexpr Bitboard eighth_rank{0xff00000000000000};
   static constexpr Bitboard a_file{0x0101010101010101};
   static constexpr Bitboard h_file{0x8080808080808080};
+
+  static constexpr Bitboard short_castling_empty_squares_white{0x0000000000000060};
+  static constexpr Bitboard long_castling_empty_squares_white{0x000000000000000e};
+  static constexpr Bitboard short_castling_empty_squares_black{0x6000000000000000};
+  static constexpr Bitboard long_castling_empty_squares_black{0x0e00000000000000};
+
   static constexpr Bitboard all{std::numeric_limits<uint64_t>::max()};
   static constexpr Bitboard none{0};
 };

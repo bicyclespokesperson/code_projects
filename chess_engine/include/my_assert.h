@@ -8,6 +8,15 @@
 #define MY_ASSERT(Expr, Msg) ;
 #endif
 
-void __M_Assert(char const* expr_str, bool expr, char const* file, int line, char const* msg);
+constexpr void __M_Assert(char const* expr_str, bool expr, char const* file, int line, char const* msg)
+{
+  if (!expr)
+  {
+    std::cerr << "Assert failed:\t" << msg << "\n"
+              << "Expected:\t" << expr_str << "\n"
+              << "Source:\t\t" << file << ", line " << line << "\n";
+    abort();
+  }
+}
 
 #endif // MY_ASSERT_H_2323
