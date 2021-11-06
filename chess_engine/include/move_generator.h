@@ -30,8 +30,10 @@ public:
   static Bitboard pawn_promotions(Color color, Bitboard pawns, Bitboard occupied);
   static Bitboard pawn_potential_attacks(Color color, Bitboard pawns);
 
-  static Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies);
-  static Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies);
+  static Bitboard pawn_east_attacks_no_promote(Color color, Bitboard pawns, Bitboard enemies);
+  static Bitboard pawn_east_attacks_with_promote(Color color, Bitboard pawns, Bitboard enemies);
+  static Bitboard pawn_west_attacks_no_promote(Color color, Bitboard pawns, Bitboard enemies);
+  static Bitboard pawn_west_attacks_with_promote(Color color, Bitboard pawns, Bitboard enemies);
 
 private:
   static std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> initialize_ray_attacks_();

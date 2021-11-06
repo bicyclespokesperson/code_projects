@@ -17,38 +17,6 @@ std::optional<std::string> read_file_contents(std::string const& filename)
   return std::string{std::istreambuf_iterator<char>(infile), std::istreambuf_iterator<char>()};
 }
 
-uint64_t Perft(int depth, Board& board)
-{
-  std::vector<Bitboard> en_passant_squares;
-  en_passant_squares.reserve(256);
-
-  std::vector<Board::Castling_rights> castling_rights;
-  castling_rights.reserve(256);
-
-
-  int i{0};
-  uint64_t nodes = 0;
-
-  if (depth == 0) 
-    return uint64_t{1};
-
-  auto color = static_cast<Color>(depth % 2);
-  auto moves = Move_generator::generate_pseudo_legal_moves(board, color);
-  for (auto m : moves) {
-
-    en_passant_squares.push_back(board.get_en_passant_square());
-    castling_rights.push_back(board.get_castling_rights());
-
-    auto captured_piece = board.move_no_verify(m);
-    if (!board.is_in_check(color))
-      nodes += Perft(depth - 1, board);
-
-    board.undo_move(m, *captured_piece, en_passant_squares.back(), castling_rights.back());
-    en_passant_squares.pop_back();
-    castling_rights.pop_back();
-  }
-  return nodes;
-}
 } // namespace
 
 static const char c_fischer_spassky_result[] = R"(
@@ -500,10 +468,12 @@ TEST_CASE("Starting moves", "[Move_generator]")
   REQUIRE(moves.size() == 20);
 }
 
+#if 0
 TEST_CASE("Perft", "[Move_generator]")
 {
   Board board;
 
   REQUIRE(Perft(1, board) == 20);
 }
+#endif
 

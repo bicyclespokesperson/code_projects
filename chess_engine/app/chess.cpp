@@ -56,7 +56,13 @@ uint64_t Perft(int depth, Board& board)
     en_passant_squares.push_back(board.get_en_passant_square());
     castling_rights.push_back(board.get_castling_rights());
 
-    auto captured_piece = board.move_no_verify(m);
+    auto captured_piece = board.try_move(m);
+    if (!captured_piece.has_value())
+    {
+      std::cout << board << "\n" << board.to_fen() << "\n";
+    }
+    MY_ASSERT(captured_piece.has_value(), "Invalid move");
+    //auto captured_piece = board.move_no_verify(m);
     if (!board.is_in_check(color))
       nodes += Perft(depth - 1, board);
 
@@ -90,12 +96,16 @@ int main(int argc, char* argv[])
   // https://www.chessprogramming.org/Perft_Results#Position_2
   std::string fen_position_2{"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -"};
 
+  std::string fen_2_problem_board{"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/P1N2Q1p/1PPBBPPP/R3K2R b KQkq - 0 1"};
+
   std::string fen_position_3{"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -"};
 
   std::string fen_position_5{"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"};
 
-  Board board = *Board::from_fen(fen_position_5);
+  Board board = *Board::from_fen(fen_position_2);
   //Board board;
+
+  
 
   int result = Perft(depth, board);
   std::cout << "Perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n";

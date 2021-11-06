@@ -301,7 +301,7 @@ bool Board::undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, 
   auto const color = get_piece_color(m.to);
   MY_ASSERT(color != get_active_color(), "Cannot undo move for current player's turn");
 
-  MY_ASSERT((piece == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) == (m.promotion != Piece::empty), "Cannot undo promotion for a non-pawn");
+  MY_ASSERT((m.promotion == Piece::empty) || (m.to.y() == 0 || m.to.y() == 7), "Promotion move must end on back rank");
 
   // optional pair coords, piece
   std::optional<std::pair<Coordinates, Piece>> captured;
@@ -372,9 +372,11 @@ bool Board::move_results_in_check(Move m)
 
 std::optional<Piece> Board::try_move(Move m)
 {
+  std::cerr << "Trying move: " << m << "\n";
   auto const piece_to_move = get_piece(m.from);
   if (piece_to_move == Piece::empty)
   {
+    std::cerr << "Empty start square " << m.from << "\n";
     return {};
   }
 
@@ -382,28 +384,32 @@ std::optional<Piece> Board::try_move(Move m)
 
   if (get_active_color() != color)
   {
+    std::cerr << "Wrong color " << color << "\n";
     // Make sure the correct color is moving
     return {};
   }
 
   if (!piece_can_move(m.from, m.to, *this))
   {
+    std::cerr << "Piece doesn't move like that: " << piece_to_move << "\n";
     return {};
   }
 
   // Ensure that a promotion square is present iff we have a pawn move to the back rank
   if ((piece_to_move == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) != (m.promotion != Piece::empty))
   {
+    std::cerr << "Invalid promotion target: " << m.promotion << "\n";
     return {};
   }
 
   if (m.promotion == Piece::king || m.promotion == Piece::pawn)
   {
+    std::cerr << "Can't promote to: " << m.promotion << "\n";
     // Cannot promote to king or pawn
     return {};
   }
 
-  return move_no_verify(m, false);
+  return move_no_verify(m, true);
 }
 
 std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
