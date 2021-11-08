@@ -71,7 +71,8 @@ std::array<Bitboard, c_board_dimension_squared> Move_generator::m_king_attacks =
   return Move_generator::initialize_king_attacks_();
 }();
 
-std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> Move_generator::initialize_ray_attacks_()
+std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared>
+Move_generator::initialize_ray_attacks_()
 {
   std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
@@ -351,20 +352,19 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
 
   if (color == Color::white)
   {
-    if ((attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() 
-        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty() 
-        && castling_rights.white_can_short_castle)
+    if ((attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() &&
+        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
+        (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty() &&
+        castling_rights.white_can_short_castle)
     {
       moves.emplace_back(short_castle_white);
       ++count;
     }
 
-    if ((attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() 
-        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty() 
-        && !board.get_occupied_squares().is_set(Coordinates{1, 0})
-        && castling_rights.white_can_long_castle)
+    if ((attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
+        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
+        (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
+        !board.get_occupied_squares().is_set(Coordinates{1, 0}) && castling_rights.white_can_long_castle)
     {
       moves.emplace_back(long_castle_white);
       ++count;
@@ -372,20 +372,19 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
   }
   else
   {
-    if ((attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() 
-        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty() 
-        && castling_rights.black_can_short_castle)
+    if ((attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() &&
+        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
+        (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty() &&
+        castling_rights.black_can_short_castle)
     {
       moves.emplace_back(short_castle_black);
       ++count;
     }
 
-    if ((attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() 
-        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
-        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty() 
-        && !board.get_occupied_squares().is_set(Coordinates{1, 7})
-        && castling_rights.black_can_long_castle)
+    if ((attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
+        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
+        (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
+        !board.get_occupied_squares().is_set(Coordinates{1, 7}) && castling_rights.black_can_long_castle)
     {
       moves.emplace_back(long_castle_black);
       ++count;
@@ -434,15 +433,15 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
 
   // Handle east captures
   auto east_offset = get_east_capture_offset(color);
-  for (auto location :
-       pawn_east_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+  for (auto location : pawn_east_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn),
+                                                    board.get_all(opposite_color(color))))
   {
     moves.emplace_back(Coordinates{location + east_offset}, Coordinates{location});
   }
 
   // Handle promotion / east capture moves
-  for (auto location :
-       pawn_east_attacks_with_promote(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+  for (auto location : pawn_east_attacks_with_promote(color, board.get_piece_set(color, Piece::pawn),
+                                                      board.get_all(opposite_color(color))))
   {
     Coordinates from{location + east_offset};
     Coordinates to{location};
@@ -454,15 +453,15 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
 
   // Handle west captures
   auto west_offset = get_west_capture_offset(color);
-  for (auto location :
-       pawn_west_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+  for (auto location : pawn_west_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn),
+                                                    board.get_all(opposite_color(color))))
   {
     moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location});
   }
 
   // Handle promotion / west capture moves
-  for (auto location :
-       pawn_west_attacks_with_promote(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+  for (auto location : pawn_west_attacks_with_promote(color, board.get_piece_set(color, Piece::pawn),
+                                                      board.get_all(opposite_color(color))))
   {
     Coordinates from{location + west_offset};
     Coordinates to{location};
@@ -484,12 +483,14 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
   }
 
   // Handle en passant
-  for (auto location : pawn_east_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location :
+       pawn_east_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     moves.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Move_type::en_passant);
   }
 
-  for (auto location : pawn_west_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location :
+       pawn_west_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Move_type::en_passant);
   }
@@ -519,7 +520,8 @@ std::vector<Move> Move_generator::generate_legal_moves(Board const& board, Color
   std::vector<Move> legal_moves;
   legal_moves.reserve(pseudo_legal_moves.size());
   Board tmp_board(board);
-  std::copy_if(pseudo_legal_moves.cbegin(), pseudo_legal_moves.cend(), std::back_inserter(legal_moves), [&](auto m)
+  std::copy_if(pseudo_legal_moves.cbegin(), pseudo_legal_moves.cend(), std::back_inserter(legal_moves),
+               [&](auto m)
                {
                  tmp_board = board;
                  return !tmp_board.move_results_in_check_destructive(m);
@@ -544,8 +546,7 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
     }
   }
 
-  return attacked_squares |
-         pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn));
+  return attacked_squares | pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn));
 }
 
 uint64_t perft(int depth, Board& board, bool print_moves /* = false */)
@@ -577,8 +578,7 @@ uint64_t perft(int depth, Board& board, bool print_moves /* = false */)
     auto captured_piece = board.move_no_verify(m);
     if (!captured_piece.has_value())
     {
-      std::cout << board << "\n"
-                << board.to_fen() << "\n";
+      std::cout << board << "\n" << board.to_fen() << "\n";
     }
     MY_ASSERT(captured_piece.has_value(), "Invalid move");
 
@@ -603,4 +603,3 @@ uint64_t perft(int depth, Board& board, bool print_moves /* = false */)
   }
   return nodes;
 }
-

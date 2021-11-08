@@ -20,7 +20,7 @@ TEST_CASE("Perft position 2", "[.Move_generator]")
   auto board = *Board::from_fen(fen_str);
 
   uint64_t actual = perft(4, board);
-  
+
   uint64_t expected{4'085'603};
   REQUIRE(actual == expected);
 }
@@ -31,7 +31,7 @@ TEST_CASE("Perft position 3", "[.Move_generator]")
   auto board = *Board::from_fen(fen_str);
 
   uint64_t actual = perft(5, board);
-  
+
   uint64_t expected{674'624};
   REQUIRE(actual == expected);
 }
@@ -42,7 +42,7 @@ TEST_CASE("Perft position 4", "[.Move_generator]")
   auto board = *Board::from_fen(fen_str);
 
   uint64_t actual = perft(4, board);
-  
+
   uint64_t expected{422'333};
   REQUIRE(actual == expected);
 }
@@ -53,7 +53,7 @@ TEST_CASE("Perft position 5", "[.Move_generator]")
   auto board = *Board::from_fen(fen_str);
 
   uint64_t actual = perft(4, board);
-  
+
   uint64_t expected{2'103'487};
   REQUIRE(actual == expected);
 }
@@ -64,7 +64,7 @@ TEST_CASE("Perft position 6", "[.Move_generator]")
   auto board = *Board::from_fen(fen_str);
 
   uint64_t actual = perft(4, board);
-  
+
   uint64_t expected{3'894'594};
   REQUIRE(actual == expected);
 }

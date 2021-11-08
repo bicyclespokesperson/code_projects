@@ -198,8 +198,7 @@ Board::Board()
   setup();
 }
 
-Board::Board(int)
-: m_rights{false, false, false, false}
+Board::Board(int) : m_rights{false, false, false, false}
 {
 }
 
@@ -244,8 +243,9 @@ Color Board::get_piece_color(Coordinates square) const
 Piece Board::get_piece(Coordinates square) const
 {
   constexpr static std::array piece_types{Piece::pawn, Piece::bishop, Piece::knight,
-                                          Piece::rook, Piece::queen, Piece::king};
-  auto const search = std::find_if(piece_types.cbegin(), piece_types.cend(), [&](Piece piece)
+                                          Piece::rook, Piece::queen,  Piece::king};
+  auto const search = std::find_if(piece_types.cbegin(), piece_types.cend(),
+                                   [&](Piece piece)
                                    {
                                      return get_all(piece).is_set(square);
                                    });
@@ -293,7 +293,11 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
   }
 }
 
-bool Board::undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock)
+bool Board::undo_move(Move m,
+                      Piece captured_piece,
+                      Bitboard en_passant_square,
+                      Castling_rights rights,
+                      uint8_t halfmove_clock)
 {
   auto const piece = get_piece(m.to);
   MY_ASSERT(piece != Piece::empty, "Cannot undo move without a piece on target square");
@@ -865,7 +869,7 @@ bool Board::validate_() const
 
   // Ensure that the same bit is not set for multiple different piece types
   constexpr static std::array piece_types{Piece::pawn, Piece::knight, Piece::bishop,
-                                          Piece::rook, Piece::queen, Piece::king};
+                                          Piece::rook, Piece::queen,  Piece::king};
   for (auto piece1 : piece_types)
   {
     for (auto piece2 : piece_types)
@@ -1422,8 +1426,7 @@ std::ostream& operator<<(std::ostream& out, Board const& self)
     {
       out << square_str({j, i}, self);
     }
-    out << std::endl
-        << std::endl;
+    out << std::endl << std::endl;
   }
 
   out << "   ";

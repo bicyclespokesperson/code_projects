@@ -2,8 +2,7 @@
 #include "board.h"
 #include "coordinates.h"
 
-Player::Player(std::string name)
-: m_name(std::move(name))
+Player::Player(std::string name) : m_name(std::move(name))
 {
 }
 

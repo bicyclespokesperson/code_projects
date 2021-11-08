@@ -8,7 +8,6 @@ cmake_minimum_required(VERSION 3.16)
 project (chess_engine VERSION 0.1 LANGUAGES CXX)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-  set(CMAKE_BUILD_TYPE Debug)
 
   # Create a compile_commands.json file
   set(CMAKE_EXPORT_COMPILE_COMMANDS True)

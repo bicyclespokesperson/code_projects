@@ -104,7 +104,8 @@ public:
   /**
    * Captured piece can be Piece::empty to signify no capture was performed
    */
-  bool undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock);
+  bool
+  undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock);
 
   /**
    * Attempt to make a move encoded in uci format ("e2 e4")

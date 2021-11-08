@@ -33,7 +33,6 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
   std::cout << bb << "\nhex: " << bb.hex_str() << "\n";
 }
 
-
 /**
  * Play the chess game.
  * @param argc
