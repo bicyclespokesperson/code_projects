@@ -428,35 +428,37 @@ TEST_CASE("Bitboard iterator", "[bitboard]")
 
 TEST_CASE("Undo move", "[board]")
 {
-  static const std::string fen_string{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 1"};
+  static const std::string fen_string{"r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 7 9"};
   auto board = Board::from_fen(fen_string);
   auto color = board->get_active_color();
 
   // Save state
   auto en_passant_square = board->get_en_passant_square();
   auto castling_rights = board->get_castling_rights();
+  auto halfmove_clock = board->get_halfmove_clock();
   auto m = board->move_from_algebraic("axb3", color);
   auto captured_piece = board->try_move(*m);
 
-  board->undo_move(*m, *captured_piece, en_passant_square, castling_rights);
+  board->undo_move(*m, *captured_piece, en_passant_square, castling_rights, halfmove_clock);
 
   REQUIRE(board->to_fen() == fen_string);
 }
 
 TEST_CASE("Undo move 2", "[board]")
 {
-  static const std::string fen_string{"rn1qk2r/pbpp1ppp/1p2pn2/8/3P4/b1NQB2P/PPP1PPP1/R3KBNR w KQkq - 0 1"};
+  static const std::string fen_string{"rn1qk2r/pbpp1ppp/1p2pn2/8/3P4/b1NQB2P/PPP1PPP1/R3KBNR w KQkq - 9 15"};
   auto board = Board::from_fen(fen_string);
   auto color = board->get_active_color();
 
   // Save state
   auto en_passant_square = board->get_en_passant_square();
   auto castling_rights = board->get_castling_rights();
+  auto halfmove_clock = board->get_halfmove_clock();
 
   auto m = board->move_from_uci("e1c1");
   auto captured_piece = board->move_no_verify(*m);
 
-  board->undo_move(*m, *captured_piece, en_passant_square, castling_rights);
+  board->undo_move(*m, *captured_piece, en_passant_square, castling_rights, halfmove_clock);
 
   REQUIRE(board->to_fen() == fen_string);
 }
@@ -476,4 +478,3 @@ TEST_CASE("Perft", "[Move_generator]")
   REQUIRE(Perft(1, board) == 20);
 }
 #endif
-

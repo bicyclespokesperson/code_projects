@@ -5,6 +5,9 @@ Compare with stockfish: https://chess.stackexchange.com/questions/15494/validate
 This article is good, might also want to just look at the source code for the engine
 https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
 
+Article on legal move generation
+https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/
+
 Pseudocode for shallow blue:
   gen pseudo legal moves
   array legal_moves

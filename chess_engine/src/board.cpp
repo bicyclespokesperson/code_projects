@@ -293,7 +293,7 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
   }
 }
 
-bool Board::undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights)
+bool Board::undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock)
 {
   auto const piece = get_piece(m.to);
   MY_ASSERT(piece != Piece::empty, "Cannot undo move without a piece on target square");
@@ -332,6 +332,20 @@ bool Board::undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, 
 
   m_rights = rights;
   m_en_passant_square = en_passant_square;
+
+  if (color == Color::black)
+  {
+    --m_fullmove_count;
+  }
+  if (piece == Piece::pawn || captured_piece != Piece::empty)
+  {
+    m_halfmove_clock = halfmove_clock;
+  }
+  else
+  {
+    --m_halfmove_clock;
+  }
+
   m_active_color = opposite_color(m_active_color);
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
 
@@ -409,13 +423,11 @@ std::optional<Piece> Board::try_move(Move m)
     return {};
   }
 
-  return move_no_verify(m, true);
+  return move_no_verify(m, true); //TODO: change to false
 }
 
 std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
 {
-  std::cerr << "Attempting move: " << m << "\n";
-
   auto const piece_to_move = get_piece(m.from);
   auto const color = get_active_color();
 
@@ -457,6 +469,19 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
     m_en_passant_square.set_square(Coordinates{m.to.x(), m.to.y() + offset});
   }
 
+  if (color == Color::black)
+  {
+    ++m_fullmove_count;
+  }
+  if (piece_to_move == Piece::pawn || captured_piece)
+  {
+    m_halfmove_clock = 0;
+  }
+  else
+  {
+    ++m_halfmove_clock;
+  }
+
   m_active_color = opposite_color(m_active_color);
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
@@ -484,6 +509,16 @@ std::optional<Piece> Board::try_move_uci(std::string_view move_str)
 Color Board::get_active_color() const
 {
   return m_active_color;
+}
+
+int Board::get_halfmove_clock() const
+{
+  return m_halfmove_clock;
+}
+
+int Board::get_move_count() const
+{
+  return m_fullmove_count;
 }
 
 Move Board::find_castling_rook_move_(Coordinates king_destination) const
@@ -1243,7 +1278,22 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     }
 
     board->m_en_passant_square.set_square(*capture_square);
+    ++index;
   }
+
+  ++index;
+  if (fen_str[index] != ' ')
+  {
+    std::cerr << "Badly formed fen string - expected space after en passant square" << std::endl;
+    return {};
+  }
+
+  ++index;
+  size_t last_char{0};
+  board->m_halfmove_clock = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
+
+  index += last_char;
+  board->m_fullmove_count = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
 
   MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");
 
@@ -1311,8 +1361,7 @@ std::string Board::to_fen() const
     result << '-';
   }
 
-  // We don't keep track of moves, so always write 0 and 1 for halfmove clock and fullmove clock
-  result << " 0 1";
+  result << " " << std::to_string(m_halfmove_clock) <<  " " << std::to_string(m_fullmove_count);
 
   return result.str();
 }

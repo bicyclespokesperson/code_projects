@@ -104,7 +104,7 @@ public:
   /**
    * Captured piece can be Piece::empty to signify no capture was performed
    */
-  bool undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights);
+  bool undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock);
 
   /**
    * Attempt to make a move encoded in uci format ("e2 e4")
@@ -158,6 +158,10 @@ public:
 
   Piece get_piece(Coordinates square) const;
 
+  int get_halfmove_clock() const;
+
+  int get_move_count() const;
+
 private:
   /**
    * Private constructor that doesn't initialize pieces
@@ -184,6 +188,8 @@ private:
   Bitboard m_en_passant_square{0};
   Castling_rights m_rights;
   Color m_active_color{Color::white};
+  uint8_t m_halfmove_clock{0};
+  uint8_t m_fullmove_count{1};
 };
 
 std::ostream& operator<<(std::ostream& out, Board const& self);
