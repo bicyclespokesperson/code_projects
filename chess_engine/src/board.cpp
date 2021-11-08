@@ -419,8 +419,8 @@ std::optional<Piece> Board::try_move(Move m)
 
   if (m.promotion == Piece::king || m.promotion == Piece::pawn)
   {
-    std::cerr << "Can't promote to: " << m.promotion << "\n";
     // Cannot promote to king or pawn
+    std::cerr << "Can't promote to: " << m.promotion << "\n";
     return {};
   }
 
