@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 
   Board board = *Board::from_fen(fen);
 
-  constexpr bool print_moves = true;
+  constexpr bool print_moves = false;
   int result = Perft(depth, board, print_moves);
   std::cout << "Perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n";
 

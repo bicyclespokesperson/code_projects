@@ -293,9 +293,11 @@ Bitboard Move_generator::pawn_promotions(Color color, Bitboard pawns, Bitboard o
 Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const west_attacks = (pawns.*bitshift_fn)(7) & ~Bitboard_constants::h_file;
+  auto const shift_distance_east = (Color::black == color) ? 7 : 9; // new
+  auto const shift_distance_west = (Color::black == color) ? 9 : 7; // new
+  auto const west_attacks = (pawns.*bitshift_fn)(shift_distance_west) & ~Bitboard_constants::h_file;
 
-  auto const east_attacks = (pawns.*bitshift_fn)(9) & ~Bitboard_constants::a_file;
+  auto const east_attacks = (pawns.*bitshift_fn)(shift_distance_east) & ~Bitboard_constants::a_file;
   return west_attacks | east_attacks;
 }
 

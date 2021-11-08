@@ -1282,23 +1282,31 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   }
 
   ++index;
-  if (fen_str[index] != ' ')
+  if (index < fen_str.size() && fen_str[index] != ' ')
   {
     std::cerr << "Badly formed fen string - expected space after en passant square" << std::endl;
     return {};
   }
 
-  ++index;
-  size_t last_char{0};
-  board->m_halfmove_clock = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
-
-  index += last_char;
-  if (index >= fen_str.size())
+  while (index < fen_str.size() && fen_str[index] == ' ')
   {
-    std::cerr << "Badly formed fen string - expected full move count" << std::endl;
-    return {};
+    ++index;
   }
-  board->m_fullmove_count = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
+
+  // Full move and half move counts are optional
+  if (index < fen_str.size())
+  {
+    size_t last_char{0};
+    board->m_halfmove_clock = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
+
+    index += last_char;
+    if (index >= fen_str.size())
+    {
+      std::cerr << "Badly formed fen string - expected full move count" << std::endl;
+      return {};
+    }
+    board->m_fullmove_count = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
+  }
 
   MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");
 

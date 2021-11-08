@@ -1,4 +1,5 @@
 Generate moves
+  Do pawn promotions not show up in attacked squares?
 
 Compare with stockfish: https://chess.stackexchange.com/questions/15494/validate-engine-moves-using-perft-and-divide
 
