@@ -19,7 +19,7 @@ std::optional<std::string> Player::prompt_move(std::istream& in, std::ostream& o
 
   std::string line = "";
   out << get_name() << ", please enter the beginning and ending squares of the ";
-  out << "move (ex: A2 A4): ";
+  out << "move (ex: Bxc7): ";
 
   // Get move from the user and ensure that it is of the correct form
   getline(in, line);

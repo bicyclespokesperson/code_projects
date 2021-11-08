@@ -173,7 +173,7 @@ private:
    */
   bool validate_() const;
 
-  void update_castling_rights_(Color color, Piece piece, Coordinates from);
+  void update_castling_rights_(Color color, Piece piece, Move m);
   bool update_castling_rights_fen_(char c);
   std::string castling_rights_to_fen_() const;
 

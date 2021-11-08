@@ -69,7 +69,6 @@ uint64_t Perft(int depth, Board& board)
     //auto captured_piece = board.move_no_verify(m);
     if (!board.is_in_check(color))
     {
-
       nodes += Perft(depth - 1, board);
     }
 
@@ -77,10 +76,9 @@ uint64_t Perft(int depth, Board& board)
     en_passant_squares.pop_back();
     castling_rights.pop_back();
     halfmove_clocks.pop_back();
-
   }
 
-  std::cout << board.to_fen() << ": "  << std::to_string(nodes) << " moves\n";
+  std::cout << board.to_fen() << ": " << std::to_string(nodes) << " moves\n";
   return nodes;
 }
 
@@ -92,10 +90,10 @@ uint64_t Perft(int depth, Board& board)
  */
 int main(int argc, char* argv[])
 {
-#if 0
+#if 1
   Game game;
   game.run();
-#endif
+#else
 
   int depth{2};
   if (argc == 2)
@@ -121,5 +119,6 @@ int main(int argc, char* argv[])
   int result = Perft(depth, board);
   std::cout << "Perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n";
 
+#endif
   return 0;
 }

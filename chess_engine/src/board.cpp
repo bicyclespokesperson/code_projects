@@ -445,7 +445,7 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
     return {};
   }
 
-  update_castling_rights_(color, piece_to_move, m.from);
+  update_castling_rights_(color, piece_to_move, m);
 
   // Move rook if the move was a castle
   if (piece_to_move == Piece::king && distance_between(m.from, m.to) == 2)
@@ -569,7 +569,7 @@ bool Board::can_castle_to(Coordinates dest) const
   return false;
 }
 
-void Board::update_castling_rights_(Color color, Piece piece, Coordinates from)
+void Board::update_castling_rights_(Color color, Piece piece, Move m)
 {
   if (piece == Piece::king)
   {
@@ -584,22 +584,21 @@ void Board::update_castling_rights_(Color color, Piece piece, Coordinates from)
       m_rights.white_can_long_castle = false;
     }
   }
-
-  if (piece == Piece::rook)
+  else
   {
-    if (from == Coordinates{0, 0})
+    if (Coordinates target{0, 0}; m.to == target || m.from == target)
     {
       m_rights.white_can_long_castle = false;
     }
-    else if (from == Coordinates{7, 0})
+    else if (Coordinates target{7, 0}; m.to == target || m.from == target)
     {
       m_rights.white_can_short_castle = false;
     }
-    else if (from == Coordinates{0, 7})
+    else if (Coordinates target{0, 7}; m.to == target || m.from == target)
     {
       m_rights.black_can_long_castle = false;
     }
-    else if (from == Coordinates{7, 7})
+    else if (Coordinates target{7, 7}; m.to == target || m.from == target)
     {
       m_rights.black_can_short_castle = false;
     }
@@ -1366,7 +1365,7 @@ std::string Board::to_fen() const
     result << '-';
   }
 
-  result << " " << std::to_string(m_halfmove_clock) <<  " " << std::to_string(m_fullmove_count);
+  result << " " << std::to_string(m_halfmove_clock) << " " << std::to_string(m_fullmove_count);
 
   return result.str();
 }
