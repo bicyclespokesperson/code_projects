@@ -424,7 +424,7 @@ std::optional<Piece> Board::try_move(Move m)
     return {};
   }
 
-  return move_no_verify(m, true); //TODO: change to false
+  return move_no_verify(m, false);
 }
 
 std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
