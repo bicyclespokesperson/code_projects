@@ -386,7 +386,7 @@ bool Board::move_results_in_check(Move m)
 
 std::optional<Piece> Board::try_move(Move m)
 {
-  std::cerr << "Trying move: " << m << "\n";
+  //std::cout << "Trying move: " << m << "\n";
   auto const piece_to_move = get_piece(m.from);
   if (piece_to_move == Piece::empty)
   {
@@ -1293,6 +1293,11 @@ std::optional<Board> Board::from_fen(std::string_view fen)
   board->m_halfmove_clock = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
 
   index += last_char;
+  if (index >= fen_str.size())
+  {
+    std::cerr << "Badly formed fen string - expected full move count" << std::endl;
+    return {};
+  }
   board->m_fullmove_count = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
 
   MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");

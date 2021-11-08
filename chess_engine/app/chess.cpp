@@ -45,7 +45,6 @@ uint64_t Perft(int depth, Board& board)
   halfmove_clocks.reserve(256);
 
   uint64_t nodes{0};
-  uint64_t nodes_for_pos{0};
 
   if (depth == 0)
   {
@@ -71,7 +70,7 @@ uint64_t Perft(int depth, Board& board)
     if (!board.is_in_check(color))
     {
 
-      nodes_for_pos = Perft(depth - 1, board);
+      nodes += Perft(depth - 1, board);
     }
 
     board.undo_move(m, *captured_piece, en_passant_squares.back(), castling_rights.back(), halfmove_clocks.back());
@@ -79,9 +78,9 @@ uint64_t Perft(int depth, Board& board)
     castling_rights.pop_back();
     halfmove_clocks.pop_back();
 
-    std::cout << board.to_fen() << ": "  << std::to_string(nodes_for_pos) << " moves\n";
-    nodes += nodes_for_pos;
   }
+
+  std::cout << board.to_fen() << ": "  << std::to_string(nodes) << " moves\n";
   return nodes;
 }
 
@@ -116,8 +115,8 @@ int main(int argc, char* argv[])
 
   std::string fen_position_6{"r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "};
 
-  Board board = *Board::from_fen(fen_position_4);
-  //Board board; // CORRECT UP TO DEPTH 4
+  //Board board = *Board::from_fen(fen_position_4);
+  Board board; // CORRECT UP TO DEPTH 4
 
   int result = Perft(depth, board);
   std::cout << "Perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n";
