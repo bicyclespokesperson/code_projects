@@ -69,9 +69,9 @@ struct Bitboard_constants
   static constexpr Bitboard h_file{0x8080808080808080};
 
   static constexpr Bitboard short_castling_empty_squares_white{0x0000000000000060};
-  static constexpr Bitboard long_castling_empty_squares_white{0x000000000000000e};
+  static constexpr Bitboard long_castling_empty_squares_white{0x000000000000000c};
   static constexpr Bitboard short_castling_empty_squares_black{0x6000000000000000};
-  static constexpr Bitboard long_castling_empty_squares_black{0x0e00000000000000};
+  static constexpr Bitboard long_castling_empty_squares_black{0x0c00000000000000};
 
   static constexpr Bitboard all{std::numeric_limits<uint64_t>::max()};
   static constexpr Bitboard none{0};

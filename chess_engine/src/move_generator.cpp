@@ -349,13 +349,20 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
 
   if (color == Color::white)
   {
-    if ((attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() && (attacks & board.get_piece_set(color, Piece::king)).is_empty() && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty() && castling_rights.white_can_short_castle)
+    if ((attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() 
+        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty() 
+        && castling_rights.white_can_short_castle)
     {
       moves.emplace_back(short_castle_white);
       ++count;
     }
 
-    if ((attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() && (attacks & board.get_piece_set(color, Piece::king)).is_empty() && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty() && castling_rights.white_can_long_castle)
+    if ((attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() 
+        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty() 
+        && !board.get_occupied_squares().is_set(Coordinates{1, 0})
+        && castling_rights.white_can_long_castle)
     {
       moves.emplace_back(long_castle_white);
       ++count;
@@ -363,13 +370,20 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
   }
   else
   {
-    if ((attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() && (attacks & board.get_piece_set(color, Piece::king)).is_empty() && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty() && castling_rights.black_can_short_castle)
+    if ((attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() 
+        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty() 
+        && castling_rights.black_can_short_castle)
     {
       moves.emplace_back(short_castle_black);
       ++count;
     }
 
-    if ((attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() && (attacks & board.get_piece_set(color, Piece::king)).is_empty() && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty() && castling_rights.black_can_long_castle)
+    if ((attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() 
+        && (attacks & board.get_piece_set(color, Piece::king)).is_empty() 
+        && (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty() 
+        && !board.get_occupied_squares().is_set(Coordinates{1, 7})
+        && castling_rights.black_can_long_castle)
     {
       moves.emplace_back(long_castle_black);
       ++count;
