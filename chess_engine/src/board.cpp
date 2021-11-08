@@ -511,12 +511,12 @@ Color Board::get_active_color() const
   return m_active_color;
 }
 
-int Board::get_halfmove_clock() const
+uint8_t Board::get_halfmove_clock() const
 {
   return m_halfmove_clock;
 }
 
-int Board::get_move_count() const
+uint8_t Board::get_move_count() const
 {
   return m_fullmove_count;
 }

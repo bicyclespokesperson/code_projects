@@ -158,9 +158,9 @@ public:
 
   Piece get_piece(Coordinates square) const;
 
-  int get_halfmove_clock() const;
+  uint8_t get_halfmove_clock() const;
 
-  int get_move_count() const;
+  uint8_t get_move_count() const;
 
 private:
   /**
