@@ -337,12 +337,13 @@ bool Board::undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, 
   {
     --m_fullmove_count;
   }
-  if (piece == Piece::pawn || captured_piece != Piece::empty)
+  if (piece == Piece::pawn || captured_piece != Piece::empty || m.promotion != Piece::empty)
   {
     m_halfmove_clock = halfmove_clock;
   }
   else
   {
+    MY_ASSERT(m_halfmove_clock > 0, "Halfmove clock should never go negative");
     --m_halfmove_clock;
   }
 

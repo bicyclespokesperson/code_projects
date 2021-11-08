@@ -470,6 +470,32 @@ TEST_CASE("Starting moves", "[Move_generator]")
   REQUIRE(moves.size() == 20);
 }
 
+TEST_CASE("Move counts", "[board]")
+{
+  Board board;
+  REQUIRE(board.get_move_count() == 1);
+  REQUIRE(board.get_halfmove_clock() == 0);
+
+  board.try_move_algebraic("bxc5"); // Illegal move should not change move counts
+
+  REQUIRE(board.get_move_count() == 1);
+  REQUIRE(board.get_halfmove_clock() == 0);
+
+  board.try_move_algebraic("e4");
+  board.try_move_algebraic("e5");
+  board.try_move_algebraic("Nf3");
+  board.try_move_algebraic("Nf6");
+
+  REQUIRE(board.get_move_count() == 3);
+  REQUIRE(board.get_halfmove_clock() == 2);
+
+  board.try_move_algebraic("Nxe5");
+  board.try_move_algebraic("Nc6");
+
+  REQUIRE(board.get_move_count() == 4);
+  REQUIRE(board.get_halfmove_clock() == 1);
+}
+
 #if 0
 TEST_CASE("Perft", "[Move_generator]")
 {
