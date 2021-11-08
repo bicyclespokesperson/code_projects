@@ -42,3 +42,5 @@ Integrate UCI protocol
 
 Implement engine functionality
 
+qperft runs at 170,000,000 nodes/sec on my macbook
+My perft implementation runs at 1,700,000 by comparison, so 100x slower
