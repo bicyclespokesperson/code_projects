@@ -4,6 +4,7 @@ target_include_directories(chess_game PUBLIC ../include)
 target_precompile_headers(chess_game
   PRIVATE
     <algorithm>
+    <compare>
     <cstdint>
     <filesystem>
     <fstream>
@@ -11,7 +12,6 @@ target_precompile_headers(chess_game
     <map>
     <numeric>
     <random>
-    <ranges>
     <set>
     <span>
     <string>
@@ -28,6 +28,7 @@ target_include_directories(perft PUBLIC ../include)
 target_precompile_headers(perft
   PRIVATE
     <algorithm>
+    <compare>
     <cstdint>
     <filesystem>
     <fstream>
@@ -35,7 +36,6 @@ target_precompile_headers(perft
     <map>
     <numeric>
     <random>
-    <ranges>
     <set>
     <span>
     <string>
@@ -52,6 +52,7 @@ target_include_directories(engine_main PUBLIC ../include)
 target_precompile_headers(engine_main
   PRIVATE
     <algorithm>
+    <compare>
     <cstdint>
     <filesystem>
     <fstream>
@@ -59,7 +60,6 @@ target_precompile_headers(engine_main
     <map>
     <numeric>
     <random>
-    <ranges>
     <set>
     <span>
     <string>

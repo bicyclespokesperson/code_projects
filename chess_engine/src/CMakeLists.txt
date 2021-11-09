@@ -12,6 +12,7 @@ target_precompile_headers(chess_engine_lib
   PRIVATE
     <algorithm>
     <atomic>
+    <compare>
     <cstdint>
     <filesystem>
     <fstream>
@@ -21,7 +22,6 @@ target_precompile_headers(chess_engine_lib
     <numeric>
     <numeric>
     <random>
-    <ranges>
     <set>
     <span>
     <string>

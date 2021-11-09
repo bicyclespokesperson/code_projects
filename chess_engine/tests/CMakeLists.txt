@@ -18,6 +18,7 @@ target_compile_features(general_tests PRIVATE cxx_std_20)
 target_precompile_headers(general_tests
   PRIVATE
     <algorithm>
+    <compare>
     <cstdint>
     <filesystem>
     <fstream>
@@ -25,7 +26,6 @@ target_precompile_headers(general_tests
     <map>
     <numeric>
     <random>
-    <ranges>
     <set>
     <span>
     <string>

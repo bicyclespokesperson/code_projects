@@ -3,7 +3,7 @@
 
 constexpr int c_default_depth{1};
 
-int Meneldor_engine::evaluate(Board const& board, Color color) const
+int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
 {
   //color = Color::black;
 
@@ -12,30 +12,32 @@ int Meneldor_engine::evaluate(Board const& board, Color color) const
   constexpr static std::array pieces{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
   static_assert(piece_values.size() == pieces.size());
 
+  /*
   if (board.is_in_checkmate(opposite_color(color)))
   {
     return std::numeric_limits<int>::max();
   }
+  */
 
-  std::array<int, pieces.size()> opposing_piece_counts{};
-  std::transform(pieces.cbegin(), pieces.cend(), opposing_piece_counts.begin(),
+  std::array<int, pieces.size()> black_piece_counts{};
+  std::transform(pieces.cbegin(), pieces.cend(), black_piece_counts.begin(),
                  [&](Piece piece)
                  {
-                   return board.get_piece_set(opposite_color(color), piece).occupancy();
+                   return board.get_piece_set(Color::black, piece).occupancy();
                  });
 
-  std::array<int, pieces.size()> piece_counts{};
-  std::transform(pieces.cbegin(), pieces.cend(), piece_counts.begin(),
+  std::array<int, pieces.size()> white_piece_counts{};
+  std::transform(pieces.cbegin(), pieces.cend(), white_piece_counts.begin(),
                  [&](Piece piece)
                  {
-                   return board.get_piece_set(color, piece).occupancy();
+                   return board.get_piece_set(Color::white, piece).occupancy();
                  });
 
-  auto const opposing_material =
-    std::inner_product(opposing_piece_counts.cbegin(), opposing_piece_counts.cend(), piece_values.cbegin(), 0);
-  auto const material = std::inner_product(piece_counts.cbegin(), piece_counts.cend(), piece_values.cbegin(), 0);
+  auto const black_material = std::inner_product(black_piece_counts.cbegin(), black_piece_counts.cend(), piece_values.cbegin(), 0);
+  auto const white_material = std::inner_product(white_piece_counts.cbegin(), white_piece_counts.cend(), piece_values.cbegin(), 0);
 
-  return (material - opposing_material);
+  auto multiplier = (board.get_active_color() == Color::white) ? 1 : -1;
+  return multiplier * (white_material - black_material);
 }
 
 int Meneldor_engine::quiesce_(Board const& board, Color color) const
@@ -123,7 +125,7 @@ int Meneldor_engine::alpha_beta_(Board& board, Color color, int alpha, int beta,
     std::cout << indents << " Response " << move << " ";
     Board tmp_board{board};
     tmp_board.move_no_verify(move);
-    int score = alpha_beta_(tmp_board, opposite_color(color), beta, alpha, depth_remaining - 1);
+    int score = -alpha_beta_(tmp_board, opposite_color(color), -beta, -alpha, depth_remaining - 1);
     std::cout << std::to_string(score) << "\n";
     if (score >= beta)
     {
