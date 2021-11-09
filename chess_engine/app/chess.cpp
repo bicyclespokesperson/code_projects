@@ -46,7 +46,6 @@ int main(int argc, char* argv[])
   game.run();
 #else
 
-
 #endif
   return 0;
 }

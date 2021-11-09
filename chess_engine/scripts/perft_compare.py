@@ -3,6 +3,7 @@
 import chess
 import os
 import sys
+import time
 
 
 '''
@@ -48,7 +49,8 @@ def perft(board, depth, output_stream, print_moves=False):
         board.pop()
 
 
-    print(f'{board.fen()}: {nodes} moves', file=output_stream)
+    if print_moves:
+        print(f'{board.fen()}: {nodes} moves', file=output_stream)
 
     return nodes
 
@@ -92,11 +94,16 @@ def main():
     if len(sys.argv) == 3:
         fen = sys.argv[2]
 
-    compare(fen, depth)
+    #compare(fen, depth)
 
-    #print_moves = False
-    #result = perft(board, depth, print_moves)
-    #print(f'Perft({depth}) = {result}')
+    board = chess.Board(fen)
+    start_time = time.time()
+    print_moves = False
+    result = perft(board, depth, sys.stdout, print_moves)
+    end_time = time.time()
+    print(f'Perft({depth}) = {result}')
+    print(f'Took {end_time - start_time} seconds')
+    print(f'Nodes/sec: {result / (end_time - start_time)}')
 
     # Current Status:
     # Generating one extra move for this position (depth 4): "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"

@@ -42,6 +42,18 @@ constexpr int32_t get_start_square_offset(Color color)
   return c_square_offsets[static_cast<int32_t>(color)];
 }
 
+constexpr std::array c_east_shift_offsets{7, 9};
+constexpr int32_t get_east_shift_distance(Color color)
+{
+  return c_east_shift_offsets[static_cast<int32_t>(color)];
+}
+
+constexpr std::array c_west_shift_offsets{9, 7};
+constexpr int32_t get_west_shift_distance(Color color)
+{
+  return c_west_shift_offsets[static_cast<int32_t>(color)];
+}
+
 constexpr std::array c_east_offsets{7, -9};
 constexpr int32_t get_east_capture_offset(Color color)
 {
@@ -294,8 +306,8 @@ Bitboard Move_generator::pawn_promotions(Color color, Bitboard pawns, Bitboard o
 Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance_east = (Color::black == color) ? 7 : 9; // new
-  auto const shift_distance_west = (Color::black == color) ? 9 : 7; // new
+  auto const shift_distance_east = get_east_shift_distance(color); // new
+  auto const shift_distance_west = get_west_shift_distance(color); // new
   auto const west_attacks = (pawns.*bitshift_fn)(shift_distance_west) & ~Bitboard_constants::h_file;
 
   auto const east_attacks = (pawns.*bitshift_fn)(shift_distance_east) & ~Bitboard_constants::a_file;
@@ -306,7 +318,7 @@ Bitboard Move_generator::pawn_east_attacks_no_promote(Color color, Bitboard pawn
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const promotion_rank = get_pawn_promotion_rank(color); // Handle pawn promotions separately
-  auto const shift_distance = (Color::black == color) ? 7 : 9; // new
+  auto const shift_distance = get_east_shift_distance(color); // new
   auto const east_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::a_file & enemies;
   return east_attacks & ~promotion_rank;
 }
@@ -315,7 +327,7 @@ Bitboard Move_generator::pawn_east_attacks_with_promote(Color color, Bitboard pa
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const promotion_rank = get_pawn_promotion_rank(color); // Handle pawn promotions separately
-  auto const shift_distance = (Color::black == color) ? 7 : 9; // new
+  auto const shift_distance = get_east_shift_distance(color); // new
   auto const east_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::a_file & enemies;
   return east_attacks & promotion_rank;
 }
@@ -323,7 +335,7 @@ Bitboard Move_generator::pawn_east_attacks_with_promote(Color color, Bitboard pa
 Bitboard Move_generator::pawn_west_attacks_no_promote(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance = (Color::black == color) ? 9 : 7; // new
+  auto const shift_distance = get_west_shift_distance(color); // new
   auto const promotion_rank = get_pawn_promotion_rank(color); // Handle pawn promotions separately
   auto const west_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::h_file & enemies;
   return west_attacks & ~promotion_rank;
@@ -332,7 +344,7 @@ Bitboard Move_generator::pawn_west_attacks_no_promote(Color color, Bitboard pawn
 Bitboard Move_generator::pawn_west_attacks_with_promote(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance = (Color::black == color) ? 9 : 7;
+  auto const shift_distance = get_west_shift_distance(color);
   auto const promotion_rank = get_pawn_promotion_rank(color); // Handle pawn promotions separately
   auto const west_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::h_file & enemies;
   return west_attacks & promotion_rank;

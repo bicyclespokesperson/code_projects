@@ -15,7 +15,6 @@ int main(int argc, char* argv[])
     std::cerr << "Invalid fen string\n";
   }
 
-  
   int depth{0};
   try
   {
@@ -37,7 +36,6 @@ int main(int argc, char* argv[])
   std::cout << "perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n";
   std::cout << "Elapsed time: " << std::to_string(elapsed_seconds) << " seconds\n";
   std::cout << "Nodes/sec: " << std::to_string(result / elapsed_seconds) << "\n";
-
 
   return 0;
 }
