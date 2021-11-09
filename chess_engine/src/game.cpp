@@ -1,15 +1,12 @@
 #include "game.h"
 #include "board.h"
 #include "player.h"
-
-Game::Game() = default;
-
-Game::~Game() = default;
+#include "meneldor_engine.h"
 
 /**
  * Initialize the board by putting the pieces in the correct locations
  */
-void Game::run()
+void Game::player_vs_player()
 {
   m_player1 = std::make_unique<Player>("White player");
   m_player2 = std::make_unique<Player>("Black player");
@@ -46,6 +43,87 @@ void Game::run()
       game_in_progress = false;
       std::string winning_player = (color == Color::white ? std::string{"black"} : std::string{"white"});
       std::cout << winning_player << " is victorious!" << std::endl;
+    }
+  }
+}
+
+void Game::player_vs_computer(Color player_color)
+{
+  m_player1 = std::make_unique<Player>((player_color == Color::white) ? "White player" : "Black player");
+
+  Meneldor_engine engine;
+  engine.initialize();
+
+  Board board;
+
+  std::cout << board;
+
+
+  auto move_to_string = [](Move m)
+  {
+    std::stringstream ss;
+    ss << m;
+    return ss.str();
+  };
+
+  std::vector<std::string> move_list;
+  bool game_in_progress = true;
+  bool player_turn{player_color == Color::white};
+  auto* player = get_next_player();
+  while (game_in_progress)
+  {
+    if (player_turn)
+    {
+      if (auto move_str = player->prompt_move(std::cin, std::cout))
+      {
+        auto move = board.move_from_algebraic(*move_str, board.get_active_color());
+        if (move && board.try_move(*move))
+        {
+          player_turn = !player_turn;
+          engine.makeMove(move_to_string(*move));
+          move_list.push_back(move_to_string(*move));
+        }
+        else
+        {
+          std::cout << "\n --------- That move is invalid --------- \n";
+        }
+      }
+      else
+      {
+        game_in_progress = false;
+      }
+    }
+    else
+    {
+      std::cout << "Engine thinking\n";
+
+      senjo::GoParams params;
+      auto const start = std::chrono::system_clock::now();
+      auto const engine_move = engine.go(params, nullptr);
+      auto const end = std::chrono::system_clock::now();
+      std::chrono::duration<double> const elapsed_seconds = end - start;
+
+      MY_ASSERT(board.try_move_uci(engine_move).has_value(), "Engine cannot play illegal move");
+      engine.makeMove(engine_move);
+      std::cout << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2) << std::to_string(elapsed_seconds.count()) << " seconds \n";
+      move_list.push_back(engine_move);
+      player_turn = !player_turn;
+    }
+
+    std::cout << board;
+    auto const color = board.get_active_color();
+    if (board.is_in_checkmate(color))
+    {
+      game_in_progress = false;
+      std::string winning_player = (color == Color::white ? std::string{"black"} : std::string{"white"});
+      std::cout << winning_player << " is victorious!" << std::endl;
+
+      std::cout << "Moves: ";
+      for (auto const& move : move_list)
+      {
+        std::cout << move << " ";
+      }
+      std::cout << "\n";
     }
   }
 }

@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 {
 #if 1
   Game game;
-  game.run();
+  game.player_vs_computer(Color::white);
 #else
 
 #endif

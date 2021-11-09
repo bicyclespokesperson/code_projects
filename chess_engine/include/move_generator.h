@@ -13,8 +13,8 @@ class Move_generator
 public:
   static uint64_t perft(int depth, Board& board, std::atomic_flag& is_cancelled);
 
-  static std::vector<Move> generate_legal_moves(Board const& board, Color color);
-  static std::vector<Move> generate_pseudo_legal_moves(Board const& board, Color color);
+  static std::vector<Move> generate_legal_moves(Board const& board);
+  static std::vector<Move> generate_pseudo_legal_moves(Board const& board);
 
   static void generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves);
   static void generate_pawn_moves(Board const& board, Color color, std::vector<Move>& moves);

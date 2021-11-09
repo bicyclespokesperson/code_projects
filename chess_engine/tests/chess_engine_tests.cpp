@@ -4,6 +4,7 @@
 #include "bitboard.h"
 #include "board.h"
 #include "move_generator.h"
+#include "meneldor_engine.h"
 
 namespace
 {
@@ -19,7 +20,8 @@ std::optional<std::string> read_file_contents(std::string const& filename)
 
 } // namespace
 
-static const char c_fischer_spassky_result[] = R"(
+//NOLINTNEXTLINE
+static const std::string c_fischer_spassky_result = R"(
 8  ___ ___ ___ ___ ___ ___ ___ ___ 
 
 7  ___ ___ ___ ___ ___ ___ ___ ___ 
@@ -39,7 +41,8 @@ static const char c_fischer_spassky_result[] = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-static const char c_sigrist_result[] = R"(
+//NOLINTNEXTLINE
+static const std::string c_sigrist_result = R"(
 8  R_b ___ ___ ___ ___ ___ ___ ___ 
 
 7  P_b P_b P_b ___ ___ ___ ___ P_b 
@@ -59,7 +62,8 @@ static const char c_sigrist_result[] = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-static const char c_fen_test_result[] = R"(
+//NOLINTNEXTLINE
+static const std::string c_fen_test_result = R"(
 8  R_b ___ ___ ___ K_b ___ ___ R_b 
 
 7  Q_b P_b P_b B_b ___ P_b P_b ___ 
@@ -79,7 +83,8 @@ static const char c_fen_test_result[] = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-static const char c_uci_moves_result[] = R"(
+//NOLINTNEXTLINE
+static const std::string c_uci_moves_result = R"(
 8  R_b N_b B_b Q_b K_b B_b ___ R_b 
 
 7  P_b P_b P_b P_b P_b P_b P_b P_b 
@@ -466,7 +471,7 @@ TEST_CASE("Undo move 2", "[board]")
 TEST_CASE("Starting moves", "[Move_generator]")
 {
   Board board;
-  auto moves = Move_generator::generate_legal_moves(board, Color::white);
+  auto moves = Move_generator::generate_legal_moves(board);
   REQUIRE(moves.size() == 20);
 }
 
@@ -496,11 +501,13 @@ TEST_CASE("Move counts", "[board]")
   REQUIRE(board.get_halfmove_clock() == 1);
 }
 
-#if 0
-TEST_CASE("Perft", "[Move_generator]")
+TEST_CASE("Evaluate", "[Meneldor_engine]")
 {
-  Board board;
+  std::string fen = "r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 0 10";
+  auto board = *Board::from_fen(fen);
 
-  REQUIRE(Perft(1, board) == 20);
+  Meneldor_engine engine;
+
+  // The evaluation function will change over time, but black is clearly winning in this position
+  REQUIRE(engine.evaluate(board, Color::black) > engine.evaluate(board, Color::white));
 }
-#endif

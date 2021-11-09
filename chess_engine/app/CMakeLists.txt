@@ -19,7 +19,7 @@ target_precompile_headers(chess_game
     <unordered_map>
     <vector>
 )
-target_link_libraries(chess_game PRIVATE chess_engine_lib )
+target_link_libraries(chess_game PRIVATE senjo chess_engine_lib )
 
 
 add_executable(perft perft.cpp)

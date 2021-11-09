@@ -35,7 +35,7 @@ target_precompile_headers(general_tests
 )
 
 # Need to link with the main library to build/test it, and also link with Catch2
-target_link_libraries(general_tests PRIVATE chess_engine_lib Catch2::Catch2)
+target_link_libraries(general_tests PRIVATE chess_engine_lib senjo Catch2::Catch2)
 
 # Add this so we can use "make test"
 # CMAKE_SOURCE_DIR == the top level of the tree

@@ -771,6 +771,8 @@ bool Board::is_in_check(Color color) const
 
 bool Board::is_in_checkmate(Color color) const
 {
+  //TODO: Doesn't support blocks
+
   if (get_active_color() != color)
   {
     // A player cannot be in checkmate if it is not their turn

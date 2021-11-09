@@ -75,7 +75,15 @@ public:
 
   void showEngineStats() const override;
 
+  int evaluate(Board const& board, Color color) const;
+
 private:
+  int alpha_beta_(Board& board, Color color, int alpha, int beta, int depth_remaining);
+  int quiesce_(Board const& board, Color color) const;
+
+  int alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depth_remaining ) const;
+  int alpha_beta_min_(Board const& board, Color color, int alpha, int beta, int depth_remaining ) const;
+
   bool m_is_debug{true};
   std::atomic_flag m_stop_requested{false};
   Board m_board;

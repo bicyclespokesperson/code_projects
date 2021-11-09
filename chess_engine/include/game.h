@@ -1,17 +1,25 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "chess_types.h"
+
 class Player;
 
 /**
- * A game is the overarching container for the random elements of a game.
+ * Allows the user to play a game of chess
  */
 class Game
 {
 public:
-  Game();
+  Game() = default;
 
-  ~Game();
+  ~Game() = default;
+
+  Game(Game const&) = delete;
+  Game(Game&&) = delete;
+
+  Game& operator=(Game const&) = delete;
+  Game& operator=(Game&&) = delete;
 
   /**
    * @returns the next player whose turn it is
@@ -23,7 +31,9 @@ public:
   /**
    * Runs a game of chess
    */
-  void run();
+  void player_vs_player();
+
+  void player_vs_computer(Color player_color);
 
   /**
    * Returns the opposite of the opposing player

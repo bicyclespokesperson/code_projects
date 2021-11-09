@@ -511,8 +511,9 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
   }
 }
 
-std::vector<Move> Move_generator::generate_pseudo_legal_moves(Board const& board, Color color)
+std::vector<Move> Move_generator::generate_pseudo_legal_moves(Board const& board)
 {
+  auto const color = board.get_active_color();
   std::vector<Move> pseudo_legal_moves;
   pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
 
@@ -523,8 +524,9 @@ std::vector<Move> Move_generator::generate_pseudo_legal_moves(Board const& board
   return pseudo_legal_moves;
 }
 
-std::vector<Move> Move_generator::generate_legal_moves(Board const& board, Color color)
+std::vector<Move> Move_generator::generate_legal_moves(Board const& board)
 {
+  auto const color = board.get_active_color();
   std::vector<Move> pseudo_legal_moves;
   pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
 
@@ -574,7 +576,7 @@ uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_can
   }
 
   auto color = board.get_active_color();
-  auto moves = Move_generator::generate_pseudo_legal_moves(board, color);
+  auto moves = Move_generator::generate_pseudo_legal_moves(board);
   for (auto m : moves)
   {
     auto tmp_board = Board{board};
