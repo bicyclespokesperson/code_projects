@@ -62,14 +62,12 @@ int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, in
   if (depth_remaining == 0)
   {
     auto result = quiesce_(board, color);
-    std::cout << indents << std::to_string(result) << "\n";
      
     return result;
   }
 
   for (auto move : Move_generator::generate_legal_moves(board))
   {
-    std::cout << indents << " Response " << move << " ";
     Board tmp_board{board};
     tmp_board.move_no_verify(move);
     int score = -negamax_(tmp_board, color, -beta, -alpha, depth_remaining - 1);
@@ -276,7 +274,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     if (score > best.second)
     {
       best = {move, score};
-      std::cout << "Updating best move to: " << move;
+      std::cout << "Updating best move to: " << move << "\n";
     }
 
     if (m_stop_requested.test())

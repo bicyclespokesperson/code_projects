@@ -344,6 +344,9 @@ TEST_CASE("Check for checkmate", "[board]")
 
   REQUIRE(!board.is_in_checkmate(Color::white));
   REQUIRE(board.is_in_checkmate(Color::black));
+
+  board = *Board::from_fen("rnb1kbnr/p2ppppp/2p5/qp6/3PP3/1B6/PPP2PPP/RNBQK1NR w KQkq - 2 5");
+  REQUIRE(!board.is_in_checkmate(Color::white));
 }
 
 TEST_CASE("bitboard", "[bitboard]")
@@ -509,5 +512,6 @@ TEST_CASE("Evaluate", "[Meneldor_engine]")
   Meneldor_engine engine;
 
   // The evaluation function will change over time, but black is clearly winning in this position
-  REQUIRE(engine.evaluate(board, Color::black) > engine.evaluate(board, Color::white));
+  // Black to move -> should return a positive value to indicate black is better
+  REQUIRE(engine.evaluate(board, Color::black) > 0);
 }

@@ -784,30 +784,7 @@ bool Board::is_in_checkmate(Color color) const
     return false;
   }
 
-  auto king_location = Coordinates{get_piece_set(color, Piece::king).bitscan_forward()};
-  bool result = true;
-  for (int i{-1}; i <= 1 && result; ++i)
-  {
-    for (int j{-1}; j <= 1 && result; ++j)
-    {
-      if (i != 0 || j != 0)
-      {
-        auto tmp_board = *this;
-        auto x = king_location.x() + i;
-        auto y = king_location.y() + j;
-        if (x > 0 && x < c_board_dimension && y > 0 && y < c_board_dimension)
-        {
-          Move m{king_location, {x, y}};
-          if (is_occupied(m.to) && get_piece_color(m.to) != color)
-          {
-            tmp_board.perform_move_(m, m.to);
-            result = tmp_board.is_in_check(color);
-          }
-        }
-      }
-    }
-  }
-  return result;
+  return Move_generator::generate_legal_moves(*this).empty();
 }
 
 void Board::remove_piece_(Color color, Piece piece, Coordinates to_remove)
