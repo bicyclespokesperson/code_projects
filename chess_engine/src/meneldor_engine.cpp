@@ -1,4 +1,5 @@
 #include "meneldor_engine.h"
+#include "move_generator.h"
 
 Meneldor_engine::Meneldor_engine()
 {
@@ -145,13 +146,12 @@ bool Meneldor_engine::isSearching()
 
 void Meneldor_engine::stopSearching() 
 {
-  MY_ASSERT(false, "Not implemented");
+  m_stop_requested.test_and_set();
 }
 
 bool Meneldor_engine::stopRequested() const 
 {
-  MY_ASSERT(false, "Not implemented");
-  return false;
+  return m_stop_requested.test();
 }
 
 void Meneldor_engine::waitForSearchFinish() 
@@ -159,15 +159,16 @@ void Meneldor_engine::waitForSearchFinish()
   MY_ASSERT(false, "Not implemented");
 }
 
-uint64_t Meneldor_engine::perft(const int /* depth */) 
+uint64_t Meneldor_engine::perft(const int depth) 
 {
-  MY_ASSERT(false, "Not implemented");
-  return 0;
+  m_stop_requested.clear();
+  return Move_generator::perft(depth, m_board, m_stop_requested);
 }
 
 std::string Meneldor_engine::go(const senjo::GoParams& /* params */,
                      std::string* /* ponder = nullptr */) 
 {
+  m_stop_requested.clear();
   MY_ASSERT(false, "Not implemented");
   return 0;
 }

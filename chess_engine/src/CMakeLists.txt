@@ -11,6 +11,7 @@ target_compile_features(chess_engine_lib PRIVATE cxx_std_20)
 target_precompile_headers(chess_engine_lib
   PRIVATE
     <algorithm>
+    <atomic>
     <cstdint>
     <filesystem>
     <fstream>

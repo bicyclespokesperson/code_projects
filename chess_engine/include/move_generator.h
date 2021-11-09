@@ -11,6 +11,8 @@ class Board;
 class Move_generator
 {
 public:
+  static uint64_t perft(int depth, Board& board, std::atomic_flag& is_cancelled);
+
   static std::vector<Move> generate_legal_moves(Board const& board, Color color);
   static std::vector<Move> generate_pseudo_legal_moves(Board const& board, Color color);
 
@@ -77,6 +79,5 @@ struct Bitboard_constants
   static constexpr Bitboard none{0};
 };
 
-uint64_t perft(int depth, Board& board, std::atomic_flag& is_cancelled);
 
 #endif // MOVE_GENERATOR_H

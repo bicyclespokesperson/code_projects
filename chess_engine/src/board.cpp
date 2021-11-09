@@ -904,6 +904,11 @@ std::optional<Move> Board::move_from_uci(std::string move_str) const
     move_str.resize(move_str.size() - 1);
   }
 
+  if (move_str.size() < 4)
+  {
+    return {};
+  }
+
   auto from = Coordinates::from_str(move_str);
   auto to = Coordinates::from_str({move_str.c_str() + 2, 2});
 
@@ -925,6 +930,11 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
                                   return isspace(c) || (chars.find(c) != std::string::npos);
                                 }),
                  move_str.end());
+
+  if (move_str.size() < 2)
+  {
+    return {};
+  }
 
   Piece promotion_result{Piece::empty};
   if (auto index = move_str.find('='); index != std::string::npos)

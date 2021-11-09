@@ -81,6 +81,7 @@ public:
 
 private:
    bool m_is_debug{false};
+   std::atomic_flag m_stop_requested{false};
    Board m_board;
 };
 
