@@ -1,7 +1,7 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 
-constexpr int c_default_depth{1};
+constexpr int c_default_depth{4};
 
 int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
 {
@@ -71,7 +71,6 @@ int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, in
     Board tmp_board{board};
     tmp_board.move_no_verify(move);
     int score = -negamax_(tmp_board, color, -beta, -alpha, depth_remaining - 1);
-    std::cout << std::to_string(score) << "\n";
     if (score >= beta)
     {
       return beta; // Opposing player has a move that gives a worse position for us than our current best move
@@ -114,14 +113,14 @@ std::string Meneldor_engine::getCountryName() const
 
 std::list<senjo::EngineOption> Meneldor_engine::getOptions() const
 {
-  MY_ASSERT(false, "Not implemented");
+  //MY_ASSERT(false, "Not implemented");
   return {};
 }
 
 bool Meneldor_engine::setEngineOption(const std::string& /* optionName */, const std::string& /* optionValue */)
 {
-  MY_ASSERT(false, "Not implemented");
-  return true;
+  //MY_ASSERT(false, "Not implemented");
+  return false;
 }
 
 void Meneldor_engine::initialize()
@@ -131,13 +130,11 @@ void Meneldor_engine::initialize()
 
 bool Meneldor_engine::isInitialized() const
 {
-  //MY_ASSERT(false, "Not implemented");
   return true;
 }
 
 bool Meneldor_engine::setPosition(const std::string& fen, std::string* /* remain  = nullptr */)
 {
-  std::cout << "Setting position to " << fen << "\n";
   //TODO: Use Output() to report errors in fen string
   if (auto board = Board::from_fen(fen))
   {
@@ -274,7 +271,6 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     if (score > best.second)
     {
       best = {move, score};
-      std::cout << "Updating best move to: " << move << "\n";
     }
 
     if (m_stop_requested.test())

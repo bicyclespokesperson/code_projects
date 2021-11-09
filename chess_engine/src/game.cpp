@@ -103,9 +103,10 @@ void Game::player_vs_computer(Color player_color)
       auto const end = std::chrono::system_clock::now();
       std::chrono::duration<double> const elapsed_seconds = end - start;
 
-      MY_ASSERT(board.try_move_uci(engine_move).has_value(), "Engine cannot play illegal move");
+      [[maybe_unused]] auto result = board.try_move_uci(engine_move);
+      MY_ASSERT(result.has_value(), "Engine cannot play illegal move");
       engine.makeMove(engine_move);
-      std::cout << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2) << std::to_string(elapsed_seconds.count()) << " seconds \n";
+      std::cout << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2) << elapsed_seconds.count() << " seconds \n";
       move_list.push_back(engine_move);
       player_turn = !player_turn;
     }
