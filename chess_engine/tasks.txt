@@ -39,6 +39,8 @@ https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#B
 https://www.chessprogramming.org/General_Setwise_Operations#UpdateByMove
 
 Integrate UCI protocol
+  Likely use this?
+  https://github.com/zd3nik/SenjoUCIAdapter
 
 Implement engine functionality
 

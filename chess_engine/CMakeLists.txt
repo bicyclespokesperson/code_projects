@@ -37,6 +37,7 @@ include(FetchContent)
 # Add the CMakeLists.txt files in the following directories
 add_subdirectory(src)
 add_subdirectory(app)
+add_subdirectory(senjo)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory(tests)
 endif()
