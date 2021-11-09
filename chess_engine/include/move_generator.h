@@ -79,5 +79,4 @@ struct Bitboard_constants
   static constexpr Bitboard none{0};
 };
 
-
 #endif // MOVE_GENERATOR_H

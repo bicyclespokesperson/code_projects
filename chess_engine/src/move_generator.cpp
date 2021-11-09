@@ -575,7 +575,7 @@ uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_can
   for (auto m : moves)
   {
     auto tmpBoard = Board{board};
-    [[maybe_unused]] auto captured_piece = tmpBoard.move_no_verify(m);		
+    [[maybe_unused]] auto captured_piece = tmpBoard.move_no_verify(m);
     MY_ASSERT(captured_piece.has_value(), "Invalid move");
 
     if (!tmpBoard.is_in_check(color))

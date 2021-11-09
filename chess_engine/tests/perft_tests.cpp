@@ -3,8 +3,8 @@
 #include "board.h"
 #include "move_generator.h"
 
-
-namespace {
+namespace
+{
 
 void test_perft(std::string_view fen, int depth, uint64_t expected)
 {
@@ -16,7 +16,7 @@ void test_perft(std::string_view fen, int depth, uint64_t expected)
   REQUIRE(actual == expected);
 }
 
-}
+} // namespace
 
 // Perft results source: https://www.chessprogramming.org/Perft_Results
 

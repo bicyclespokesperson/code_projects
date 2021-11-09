@@ -67,4 +67,4 @@ target_precompile_headers(engine_main
     <unordered_map>
     <vector>
 )
-target_link_libraries(engine_main PRIVATE chess_engine_lib )
+target_link_libraries(engine_main PRIVATE chess_engine_lib senjo)
