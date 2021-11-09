@@ -563,15 +563,6 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
 
 uint64_t perft(int depth, Board& board, bool print_moves /* = false */)
 {
-  std::vector<Bitboard> en_passant_squares;
-  en_passant_squares.reserve(256);
-
-  std::vector<Board::Castling_rights> castling_rights;
-  castling_rights.reserve(256);
-
-  std::vector<uint8_t> halfmove_clocks;
-  halfmove_clocks.reserve(256);
-
   uint64_t nodes{0};
 
   if (depth == 0)
@@ -583,35 +574,16 @@ uint64_t perft(int depth, Board& board, bool print_moves /* = false */)
   auto moves = Move_generator::generate_pseudo_legal_moves(board, color);
   for (auto m : moves)
   {
-    en_passant_squares.push_back(board.get_en_passant_square());
-    castling_rights.push_back(board.get_castling_rights());
-    halfmove_clocks.push_back(board.get_halfmove_clock());
-
-    auto captured_piece = board.move_no_verify(m);
-    if (!captured_piece.has_value())
-    {
-      std::cout << board << "\n" << board.to_fen() << "\n";
-    }
+    auto tmpBoard = Board{board};
+    [[maybe_unused]] auto captured_piece = tmpBoard.move_no_verify(m);		
     MY_ASSERT(captured_piece.has_value(), "Invalid move");
 
-    if (!board.is_in_check(color))
+    if (!tmpBoard.is_in_check(color))
     {
-      nodes += perft(depth - 1, board, print_moves);
-      if (print_moves)
-      {
-        std::cout << "Move " << m << "\n";
-      }
+      nodes += perft(depth - 1, tmpBoard, print_moves);
     }
 
-    board.undo_move(m, *captured_piece, en_passant_squares.back(), castling_rights.back(), halfmove_clocks.back());
-    en_passant_squares.pop_back();
-    castling_rights.pop_back();
-    halfmove_clocks.pop_back();
   }
 
-  if (print_moves)
-  {
-    std::cout << board.to_fen() << ": " << std::to_string(nodes) << " moves\n";
-  }
   return nodes;
 }
