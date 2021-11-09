@@ -71,7 +71,7 @@ public:
   /**
    * Initializes the board with pieces in their standard positions
    */
-  void setup();
+  void reset();
 
   /**
    * Tries to make a move
@@ -93,13 +93,6 @@ public:
    * Leaves the board in an invalid state.
    */
   bool move_results_in_check_destructive(Move m);
-
-  /**
-   * Performs a move, then unperforms the move. 
-   * Does not perform verification on whether or not the move is legal.
-   * Returns true if the move resulted in check.
-   */
-  bool move_results_in_check(Move m);
 
   /**
    * Captured piece can be Piece::empty to signify no capture was performed

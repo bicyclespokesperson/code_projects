@@ -195,7 +195,7 @@ constexpr Coordinates en_passant_capture_location(Color color, Coordinates end_s
 
 Board::Board()
 {
-  setup();
+  reset();
 }
 
 Board::Board(int) : m_rights{false, false, false, false}
@@ -371,27 +371,8 @@ bool Board::move_results_in_check_destructive(Move m)
   return is_in_check(color);
 }
 
-//TODO: Is this faster than the destructive one?
-bool Board::move_results_in_check(Move m)
-{
-  auto const color = get_piece_color(m.from);
-
-  auto capture_location = m.to;
-  if (m.type == Move_type::en_passant)
-  {
-    capture_location = en_passant_capture_location(color, m.to);
-  }
-
-  auto captured_piece = perform_move_(m, capture_location);
-  bool result = is_in_check(color);
-  unperform_move_(m, captured_piece);
-
-  return result;
-}
-
 std::optional<Piece> Board::try_move(Move m)
 {
-  //std::cout << "Trying move: " << m << "\n";
   auto const piece_to_move = get_piece(m.from);
   if (piece_to_move == Piece::empty)
   {
@@ -642,8 +623,15 @@ int Board::distance_between(Coordinates from, Coordinates to) const
   return -1;
 }
 
-void Board::setup()
+void Board::reset()
 {
+  m_bitboards.fill(Bitboard{0});
+  m_en_passant_square = Bitboard{0};
+  m_active_color = Color::white;
+  m_halfmove_clock = 0;
+  m_fullmove_count = 1;
+  m_rights = {true, true, true, true};
+
   // White pieces
   add_piece_(Color::white, Piece::rook, {0, 0});
   add_piece_(Color::white, Piece::knight, {1, 0});

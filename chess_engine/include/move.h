@@ -23,6 +23,11 @@ struct Move
   Piece promotion;
 };
 
+constexpr void test_fn()
+{
+  static_assert(sizeof(Move) == 4);
+}
+
 std::ostream& operator<<(std::ostream& os, Move const& self);
 
 #endif // MOVE_H
