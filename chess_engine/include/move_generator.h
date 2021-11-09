@@ -77,6 +77,6 @@ struct Bitboard_constants
   static constexpr Bitboard none{0};
 };
 
-uint64_t perft(int depth, Board& board, bool print_moves = false);
+uint64_t perft(int depth, Board& board, std::atomic_flag& is_cancelled);
 
 #endif // MOVE_GENERATOR_H

@@ -561,7 +561,7 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
   return attacked_squares | pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn));
 }
 
-uint64_t perft(int depth, Board& board, bool print_moves /* = false */)
+uint64_t perft(int depth, Board& board, std::atomic_flag& is_cancelled)
 {
   uint64_t nodes{0};
 
@@ -580,9 +580,8 @@ uint64_t perft(int depth, Board& board, bool print_moves /* = false */)
 
     if (!tmpBoard.is_in_check(color))
     {
-      nodes += perft(depth - 1, tmpBoard, print_moves);
+      nodes += perft(depth - 1, tmpBoard, is_cancelled);
     }
-
   }
 
   return nodes;

@@ -34,7 +34,8 @@ int main(int argc, char* argv[])
 
   constexpr bool print_moves = false;
   auto const start = std::chrono::system_clock::now();
-  auto result = perft(depth, *board, print_moves);
+  std::atomic_flag is_cancelled{false};
+  auto result = perft(depth, *board, is_cancelled);
   auto const end = std::chrono::system_clock::now();
   std::chrono::duration<double> const elapsed = end - start;
   auto const elapsed_seconds = elapsed.count();

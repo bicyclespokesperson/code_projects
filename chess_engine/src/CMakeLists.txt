@@ -4,7 +4,7 @@ file(GLOB SOURCES "./*.cpp")
 # Create library to enable separate test and run executables
 add_library(chess_engine_lib ${SOURCES})
 
-target_include_directories(chess_engine_lib PUBLIC ../include)
+target_include_directories(chess_engine_lib PUBLIC ../include ../senjo)
 
 target_compile_features(chess_engine_lib PRIVATE cxx_std_20)
 
