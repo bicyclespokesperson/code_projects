@@ -44,7 +44,8 @@ void Game::run()
     if (board.is_in_checkmate(color))
     {
       game_in_progress = false;
-      std::cout << (color == Color::white ? "black" : "white") << " is victorious!" << std::endl;
+      std::string winning_player = (color == Color::white ? std::string{"black"} : std::string{"white"});
+      std::cout << winning_player << " is victorious!" << std::endl;
     }
   }
 }

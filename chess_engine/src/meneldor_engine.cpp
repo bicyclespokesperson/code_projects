@@ -1,9 +1,7 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 
-Meneldor_engine::Meneldor_engine()
-{
-}
+Meneldor_engine::Meneldor_engine() = default;
 
 std::string Meneldor_engine::getEngineName() const
 {
@@ -168,7 +166,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& /* params */, std::string
 {
   m_stop_requested.clear();
   MY_ASSERT(false, "Not implemented");
-  return 0;
+  return "";
 }
 
 senjo::SearchStats Meneldor_engine::getSearchStats() const

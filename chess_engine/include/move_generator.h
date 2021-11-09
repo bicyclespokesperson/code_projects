@@ -51,9 +51,13 @@ private:
                                      Bitboard occupied);
 
   // [square][direction]
+  //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
   static std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks;
 
+  //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
   static std::array<Bitboard, c_board_dimension_squared> m_knight_attacks;
+
+  //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
   static std::array<Bitboard, c_board_dimension_squared> m_king_attacks;
 };
 

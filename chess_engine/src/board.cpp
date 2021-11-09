@@ -4,6 +4,7 @@
 
 namespace
 {
+
 bool piece_can_move(Coordinates from, Coordinates to, Board const& board);
 
 bool bishop_can_move(Coordinates from, Coordinates to, Board const& board)
@@ -25,7 +26,7 @@ bool knight_can_move(Coordinates from, Coordinates to, Board const& /* board */)
   }
 
   // Or two horizontal and one vertical
-  else if (std::abs(from.x() - to.x()) == 2 && std::abs(from.y() - to.y()) == 1)
+  if (std::abs(from.x() - to.x()) == 2 && std::abs(from.y() - to.y()) == 1)
   {
     return true;
   }
@@ -136,13 +137,10 @@ bool pawn_can_move(Coordinates from, Coordinates to, Board const& board)
     {
       return true;
     }
+
     // If the square is diagonally forward and occupied by an opponent
-    else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.is_occupied(to))
-    {
-      return true;
-    }
-    // En passant
-    else if (move_distance == 1 && board.is_clear_diagonal(from, to) && board.get_en_passant_square().is_set(to))
+    if (move_distance == 1 && board.is_clear_diagonal(from, to) &&
+        (board.is_occupied(to) || board.get_en_passant_square().is_set(to)))
     {
       return true;
     }
@@ -608,14 +606,14 @@ int Board::distance_between(Coordinates from, Coordinates to) const
 
   // If the squares are on the same horizontal, return the difference
   // in their verticals
-  else if (from.y() == to.y())
+  if (from.y() == to.y())
   {
     return std::abs(from.x() - to.x());
   }
 
   // If the squares are on the same diagonal, their x and y differences
   // will be equal, so return their X difference
-  else if (std::abs(from.x() - to.x()) == std::abs(from.y() - to.y()))
+  if (std::abs(from.x() - to.x()) == std::abs(from.y() - to.y()))
   {
     return std::abs(from.x() - to.x());
   }
@@ -687,7 +685,7 @@ bool Board::is_clear_vertical(Coordinates from, Coordinates to) const
 
   // Walk along the board and if we find an occupied space, exit the loop
   // and return false.
-  for (int8_t i = bottom.y() + 1; i < top.y(); i++)
+  for (int i = bottom.y() + 1; i < top.y(); i++)
   {
     if (is_occupied({from.x(), i}))
     {
@@ -720,7 +718,7 @@ bool Board::is_clear_horizontal(Coordinates from, Coordinates to) const
 
   // Walk along the board and if we find an occupied space, exit the loop
   // and return false.
-  for (int8_t i = left.x() + 1; i < right.x(); i++)
+  for (int i = left.x() + 1; i < right.x(); i++)
   {
     if (is_occupied({i, from.y()}))
     {
@@ -784,9 +782,6 @@ bool Board::is_in_checkmate(Color color) const
     return false;
   }
 
-  // We can cast this to non-const, since every change will be undone
-  auto non_const_this = const_cast<Board*>(this);
-
   auto king_location = Coordinates{get_piece_set(color, Piece::king).bitscan_forward()};
   bool result = true;
   for (int i{-1}; i <= 1 && result; ++i)
@@ -795,6 +790,7 @@ bool Board::is_in_checkmate(Color color) const
     {
       if (i != 0 || j != 0)
       {
+        auto tmp_board = *this;
         auto x = king_location.x() + i;
         auto y = king_location.y() + j;
         if (x > 0 && x < c_board_dimension && y > 0 && y < c_board_dimension)
@@ -802,9 +798,8 @@ bool Board::is_in_checkmate(Color color) const
           Move m{king_location, {x, y}};
           if (is_occupied(m.to) && get_piece_color(m.to) != color)
           {
-            auto captured_piece = non_const_this->perform_move_(m, m.to);
-            result = is_in_check(color);
-            non_const_this->unperform_move_(m, captured_piece);
+            tmp_board.perform_move_(m, m.to);
+            result = tmp_board.is_in_check(color);
           }
         }
       }
@@ -815,15 +810,6 @@ bool Board::is_in_checkmate(Color color) const
 
 void Board::remove_piece_(Color color, Piece piece, Coordinates to_remove)
 {
-  //MY_ASSERT(m_bitboards[static_cast<uint8_t>(color)].is_set(to_remove), "Cannot remove piece that is not present");
-  if (!m_bitboards[static_cast<uint8_t>(color)].is_set(to_remove))
-  {
-    std::cerr << "No " << color << " " << piece << " available to remove from " << to_remove << ".\n";
-    std::cerr << "Validation result: " << std::to_string(validate_()) << "\n";
-    std::cerr << *this;
-    MY_ASSERT(false, "Invalid state");
-  }
-
   MY_ASSERT(m_bitboards[static_cast<uint8_t>(piece)].is_set(to_remove), "Cannot remove piece that is not present");
 
   m_bitboards[static_cast<uint8_t>(color)].unset_square(to_remove);
@@ -1352,7 +1338,6 @@ std::string Board::to_fen() const
     if (empty_counter > 0)
     {
       result << std::to_string(empty_counter);
-      empty_counter = 0;
     }
     if (y > 0)
     {

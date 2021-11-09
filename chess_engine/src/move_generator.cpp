@@ -68,16 +68,19 @@ constexpr int32_t get_west_capture_offset(Color color)
 
 } // namespace
 
+//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
 std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> Move_generator::m_ray_attacks = []
 {
   return Move_generator::initialize_ray_attacks_();
 }();
 
+//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
 std::array<Bitboard, c_board_dimension_squared> Move_generator::m_knight_attacks = []
 {
   return Move_generator::initialize_knight_attacks_();
 }();
 
+//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
 std::array<Bitboard, c_board_dimension_squared> Move_generator::m_king_attacks = []
 {
   return Move_generator::initialize_king_attacks_();
@@ -574,13 +577,13 @@ uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_can
   auto moves = Move_generator::generate_pseudo_legal_moves(board, color);
   for (auto m : moves)
   {
-    auto tmpBoard = Board{board};
-    [[maybe_unused]] auto captured_piece = tmpBoard.move_no_verify(m);
+    auto tmp_board = Board{board};
+    [[maybe_unused]] auto captured_piece = tmp_board.move_no_verify(m);
     MY_ASSERT(captured_piece.has_value(), "Invalid move");
 
-    if (!tmpBoard.is_in_check(color))
+    if (!tmp_board.is_in_check(color))
     {
-      nodes += perft(depth - 1, tmpBoard, is_cancelled);
+      nodes += perft(depth - 1, tmp_board, is_cancelled);
     }
     if (is_cancelled.test())
     {
