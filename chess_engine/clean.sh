@@ -14,3 +14,5 @@ rm -r ./compile_commands.json
 
 find . -name '*.xcodeproj' -delete
 find . -name '*.build' -delete
+find . -name 'cmake_install.cmake' -delete
+find . -name 'SharedPrecompiledHeaders' -delete
