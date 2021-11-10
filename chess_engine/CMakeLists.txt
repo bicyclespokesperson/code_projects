@@ -20,6 +20,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Place the complied executable in the bin directory
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+  #set(CMAKE_CXX_CLANG_TIDY 
+  #clang-tidy; 
+  #-header-filter=./include)
+
   # Let's nicely support folders in IDEs
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

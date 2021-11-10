@@ -3,12 +3,14 @@
 
 // From: https://stackoverflow.com/questions/3692954/add-custom-messages-in-assert
 #ifndef NDEBUG
-#define MY_ASSERT(Expr, Msg) __M_Assert(#Expr, Expr, __FILE__, __LINE__, Msg)
+//NOLINTNEXTLINE
+#define MY_ASSERT(Expr, Msg) my_assert_utl_macro_(#Expr, Expr, __FILE__, __LINE__, Msg)
 #else
+//NOLINTNEXTLINE
 #define MY_ASSERT(Expr, Msg) ;
 #endif
 
-constexpr void __M_Assert(char const* expr_str, bool expr, char const* file, int line, char const* msg)
+constexpr void my_assert_utl_macro_(char const* expr_str, bool expr, char const* file, int line, char const* msg)
 {
   if (!expr)
   {

@@ -56,7 +56,6 @@ int main(int argc, char* argv[])
     param = argv[1];
   }
 
-
   if (param == "hh")
   {
     game.player_vs_player();

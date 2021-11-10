@@ -456,7 +456,6 @@ TEST_CASE("Undo move 2", "[board]")
 {
   static const std::string fen_string{"rn1qk2r/pbpp1ppp/1p2pn2/8/3P4/b1NQB2P/PPP1PPP1/R3KBNR w KQkq - 9 15"};
   auto board = Board::from_fen(fen_string);
-  auto color = board->get_active_color();
 
   // Save state
   auto en_passant_square = board->get_en_passant_square();

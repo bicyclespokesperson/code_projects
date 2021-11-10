@@ -25,7 +25,6 @@ std::string const& Player::get_name() const
 
 User_player::User_player(std::string name) : Player(std::move(name))
 {
-  reset();
 }
 
 // Returns empty if the player resigns.
@@ -74,7 +73,7 @@ void User_player::reset()
 
 Engine_player::Engine_player(std::string name) : Player(std::move(name))
 {
-  reset();
+  m_engine.initialize();
 }
 
 std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, std::ostream& out)

@@ -25,7 +25,7 @@ public:
   Board(Board const& other) = default;
   Board(Board&& other) = default;
   Board& operator=(Board const& other) = default;
-  Board& operator=(Board& other) = default;
+  Board& operator=(Board&& other) = default;
 
   ~Board() = default;
 

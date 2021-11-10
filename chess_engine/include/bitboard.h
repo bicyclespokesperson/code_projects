@@ -178,7 +178,6 @@ struct Bitboard_iterator
 
   constexpr Bitboard_iterator(Bitboard bb, Fn fn) : m_bitboard(bb), m_update_fn(std::move(fn))
   {
-    m_bitboard = bb;
     operator++();
   }
 
@@ -228,38 +227,38 @@ private:
 
 constexpr Bitboard::Iterator Bitboard::begin() const
 {
-  return Iterator(*this,
+  return {*this,
                   [](Bitboard& b)
                   {
                     return b.bitscan_forward();
-                  });
+                  }};
 }
 
 constexpr Bitboard::Iterator Bitboard::end() const
 {
-  return Iterator(Bitboard{0},
+  return {Bitboard{0},
                   [](Bitboard& b)
                   {
                     return b.bitscan_forward();
-                  });
+                  }};
 }
 
 constexpr Bitboard::Iterator Bitboard::rbegin() const
 {
-  return Iterator(*this,
+  return {*this,
                   [](Bitboard& b)
                   {
                     return b.bitscan_reverse();
-                  });
+                  }};
 }
 
 constexpr Bitboard::Iterator Bitboard::rend() const
 {
-  return Iterator(Bitboard{0},
+  return {Bitboard{0},
                   [](Bitboard& b)
                   {
                     return b.bitscan_reverse();
-                  });
+                  }};
 }
 
 std::ostream& operator<<(std::ostream& os, Bitboard const& self);
