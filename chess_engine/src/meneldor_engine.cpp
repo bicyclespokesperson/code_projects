@@ -165,7 +165,7 @@ bool Meneldor_engine::setEngineOption(const std::string& /* optionName */, const
 
 void Meneldor_engine::initialize()
 {
-  m_board = Board{};
+  m_board = {};
 }
 
 bool Meneldor_engine::isInitialized() const

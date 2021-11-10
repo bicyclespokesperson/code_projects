@@ -21,32 +21,13 @@ public:
   Game& operator=(Game const&) = delete;
   Game& operator=(Game&&) = delete;
 
-  /**
-   * @returns the next player whose turn it is
-   */
-  Player* get_next_player();
-
-  bool make_move(Player const& player);
-
-  /**
-   * Runs a game of chess
-   */
   void player_vs_player();
 
   void player_vs_computer(Color player_color);
 
   void computer_vs_computer();
 
-  /**
-   * Returns the opposite of the opposing player
-   * @param player The player whose opponent to return
-   * @return The opponent of the given player
-   */
-  Player& opponent_of(Player const& player);
-
+  void play_game(Player& white_player, Player& black_player);
 private:
-  std::unique_ptr<Player> m_player1{nullptr};
-  std::unique_ptr<Player> m_player2{nullptr};
-  Player* m_currentPlayer{nullptr};
 };
 #endif

@@ -2,6 +2,8 @@
 #define PLAYER_H
 
 #include "board.h"
+#include "chess_types.h"
+#include "meneldor_engine.h"
 
 /**
  * A player class represents one of the players in a chess game. It
@@ -10,43 +12,58 @@
 class Player
 {
 public:
-  /**
-   * Constructs a new player
-   * @param name The player's name
-   * @param my_king The player's king
-   * @param my_pieces The player's pieces
-   */
-  Player(std::string name);
 
-  /**
-   * The destructor for the player class
-   */
-  ~Player();
+  virtual ~Player() = default;
 
-  /**
-   * @return The name of the player
-   */
   std::string const& get_name() const;
 
-  /**
-   * Prompts the user for a move and returns the beginning and ending squares
-   * @param in The input stream to read the prompt from
-   * @param out The output stream to print prompts to.
-   * @return A std::pair of squares representing the beginning and ending of the
-   * std::string. Note: The std::pair and both squares must be deleted. Returns nullptr
-   * if the player resigns.
-   */
-  std::optional<std::string> prompt_move(std::istream& in, std::ostream& out) const;
+  // Called when a move is made successfully, either by this player or the opponent
+  virtual void notify(std::string const& move) = 0;
 
+  // Return empty if the player resigns
+  virtual std::optional<std::string> get_next_move(std::istream& in, std:: ostream& out) = 0;
+
+  // Called at the start of a new game
+  virtual void reset() = 0;
+
+protected:
+  Player(std::string name);
 private:
-  /**
-   * Checks if the input std::string is contains the correct form of the
-   * move input.
-   * @param std::string The std::string of which to check the validity
-   * @return true if the std::string is of the form "A2 D2"
-   */
-  static bool is_valid_(const std::string& line);
-
   std::string m_name;
 };
+
+class Engine_player : public Player
+{
+public:
+  Engine_player(std::string name);
+
+  ~Engine_player() override = default;
+
+  std::optional<std::string> get_next_move(std::istream& in, std:: ostream& out) override;
+
+  void notify(std::string const& move) override;
+
+  void reset() override;
+private:
+  Meneldor_engine m_engine{};
+};
+
+class User_player : public Player
+{
+public:
+  User_player(std::string name);
+
+  ~User_player() override = default;
+
+  std::optional<std::string> get_next_move(std::istream& in, std:: ostream& out) override;
+
+  void notify(std::string const& move) override;
+
+  void reset() override;
+private:
+  Board m_board{};
+};
+
+
+
 #endif
