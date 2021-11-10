@@ -1,7 +1,10 @@
-Generate moves
-  Do pawn promotions not show up in attacked squares?
+Implement draws
+  stalemate
+  3fold repitition
+  50 moves rule
+  insufficient material
 
-Compare with stockfish: https://chess.stackexchange.com/questions/15494/validate-engine-moves-using-perft-and-divide
+Implement quiesence search
 
 This article is good, might also want to just look at the source code for the engine
 https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
@@ -9,40 +12,17 @@ https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
 Article on legal move generation
 https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/
 
-Pseudocode for shallow blue:
-  gen pseudo legal moves
-  array legal_moves
-  for each pseudo legal move
-    board tmpBoard(board)
-    tmpBoard.perform_move(move)
-    if !inCheck() // inCheck uses bitboards to check if a square is under attack
-      save move in legal_moves
-  
-  # Purple has move logic related to whether or not a move is legal (check if piece is pinned, etc)
-
 Another good look at move generation
   Contains pesudocode for bitboard -> move function
 https://www.josherv.in/2021/03/19/chess-1/
-
-Pseudocode for purple:
-  for piece in get_white_rooks():
-    gen_rook_moves()
-  
-  // separate function
-  extract_pawn_moves(Bitboard of pawn pushes, int pawn_direction) -> list of moves
-
-  // Useful to be able to iterate through 1 bits in bitboard?
 
 https://www.chessprogramming.org/Classical_Approach
 https://www.chessprogramming.org/Bitboard_Board-Definition
 https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#Bitboard_Board-Definition
 https://www.chessprogramming.org/General_Setwise_Operations#UpdateByMove
 
-Integrate UCI protocol
-  Likely use this?
+Integrated UCI protocol using
   https://github.com/zd3nik/SenjoUCIAdapter
-
-Implement engine functionality
 
 qperft runs at 170,000,000 nodes/sec on my macbook
 Stockfish is somewhere around 120,000,000 nodes/sec (very rough estimate)

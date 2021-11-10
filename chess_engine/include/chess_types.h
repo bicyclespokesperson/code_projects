@@ -84,6 +84,19 @@ private:
   Value m_value;
 };
 
+class Threefold_repetition_detector
+{
+  public:
+    Threefold_repetition_detector() = default;
+
+    // Call this after every move, passing it a fen str of the current game
+    // returns true if the game is a draw due to threefold repetition
+    bool add_fen(std::string_view fen);
+
+  private:
+    std::unordered_map <std::string, uint8_t> m_previous_positions;
+};
+
 constexpr Piece to_piece_enum(Color c)
 {
   return static_cast<Piece>(c);

@@ -21,6 +21,22 @@ Piece from_char(char c)
   }
 }
 
+
+bool Threefold_repetition_detector::add_fen(std::string_view fen)
+{
+  // Move counts don't matter for threefold repetition, so find the end
+  // of the fen string that doesn't include those
+  auto index = fen.find_last_not_of(' ');
+  index = fen.find_last_of(' ', index);
+  index = fen.find_last_not_of(' ', index);
+  index = fen.find_last_of(' ', index);
+  index = fen.find_last_not_of(' ', index);
+
+  std::string abridged_fen{fen.substr(0, index)};
+
+  return (++m_previous_positions[abridged_fen]) >= 3;
+}
+
 std::ostream& operator<<(std::ostream& os, Piece const& self)
 {
   switch (self)

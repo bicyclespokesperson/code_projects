@@ -515,3 +515,12 @@ TEST_CASE("Evaluate", "[Meneldor_engine]")
   // Black to move -> should return a positive value to indicate black is better
   REQUIRE(engine.evaluate(board, Color::black) > 0);
 }
+
+TEST_CASE("Threefold repetition", "[Threefold_repetition_detector]")
+{
+  Threefold_repetition_detector detector;
+  REQUIRE(!detector.add_fen("r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 1 1"));
+  REQUIRE(!detector.add_fen("r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 30 10 "));
+  REQUIRE(!detector.add_fen("r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 19"));
+  REQUIRE(detector.add_fen("r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 10 1 "));
+}

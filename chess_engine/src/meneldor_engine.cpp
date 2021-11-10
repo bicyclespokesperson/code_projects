@@ -13,15 +13,37 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   constexpr static std::array pieces{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
   static_assert(piece_values.size() == pieces.size());
 
-  if (board.get_active_color() == Color::white && board.is_in_checkmate(Color::white))
+  //TODO: Optimize these to make fewer total calls to Move_generator
+  if (board.get_active_color() == Color::white)
   {
-    return multiplier * (std::numeric_limits<int>::min() + 1);
+    if (board.is_in_checkmate(Color::white))
+    {
+      return multiplier * (std::numeric_limits<int>::min() + 1);
+    }
+    if (board.is_in_stalemate(Color::white))
+    {
+      return 0;
+    }
   }
 
-  if (board.get_active_color() == Color::black && board.is_in_checkmate(Color::black))
+  if (board.get_active_color() == Color::black)
   {
-    return multiplier * (std::numeric_limits<int>::max() - 1);
+    if (board.is_in_checkmate(Color::black))
+    {
+      return multiplier * (std::numeric_limits<int>::max() - 1);
+    }
+    if (board.is_in_stalemate(Color::black))
+    {
+      return 0;
+    }
   }
+
+  if (board.get_halfmove_clock() >= 50)
+  {
+    return 0;
+  }
+
+  //TODO: repitition, insufficient material
 
   std::array<int, pieces.size()> black_piece_counts{};
   std::transform(pieces.cbegin(), pieces.cend(), black_piece_counts.begin(),
@@ -43,14 +65,32 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   return multiplier * (white_material - black_material);
 }
 
-int Meneldor_engine::quiesce_(Board const& board, Color color) const
+int Meneldor_engine::quiesce_(Board const& board, Color color, int /* alpha */, int /* beta */) const
 {
+  int eval = evaluate(board, color);
+#if 0
+  if (eval >= beta)
+  {
+    return beta;
+  }
+  if (alpha > eval)
+  {
+    alpha = eval;
+  }
+
   // TODO: Actually implement quiescence search
-  return evaluate(board, color);
+  return alpha;
+#endif
+  return eval;
 }
 
-// alpha - upper bound result (best for player)
-// beta - lower bound result (opponent doesn't want to allow anything better than this)
+/*
+ * On white's decision, it sets alpha
+ *  alpha - white has an option to reach this
+ * On black's decision, it sets beta
+ *  beta - black has an option to reach this
+ */
+
 int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, int depth_remaining)
 {
   std::string indents;
@@ -61,7 +101,7 @@ int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, in
 
   if (depth_remaining == 0)
   {
-    auto result = quiesce_(board, color);
+    auto result = quiesce_(board, color, alpha, beta);
      
     return result;
   }
@@ -266,7 +306,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     auto negative_inf = std::numeric_limits<int>::min() + 1;
 
     auto const score = -negamax_(tmp_board, color, -positive_inf, -negative_inf, depth);
-    std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
+    //std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
 
     if (score > best.second)
     {

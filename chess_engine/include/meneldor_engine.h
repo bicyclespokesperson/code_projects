@@ -79,7 +79,7 @@ public:
 
 private:
   int negamax_(Board& board, Color color, int alpha, int beta, int depth_remaining);
-  int quiesce_(Board const& board, Color color) const;
+  int quiesce_(Board const& board, Color color, int alpha, int beta) const;
 
   bool m_is_debug{true};
   std::atomic_flag m_stop_requested{false};

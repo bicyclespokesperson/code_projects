@@ -136,6 +136,8 @@ public:
 
   bool is_in_checkmate(Color color) const;
 
+  bool is_in_stalemate(Color color) const;
+
   Bitboard get_piece_set(Color color, Piece piece) const;
 
   Bitboard get_all(Piece piece) const;

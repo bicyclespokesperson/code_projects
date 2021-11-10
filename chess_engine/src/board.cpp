@@ -769,6 +769,22 @@ bool Board::is_in_check(Color color) const
   return !(king_location & attacked_squares).is_empty();
 }
 
+bool Board::is_in_stalemate(Color color) const
+{
+  if (get_active_color() != color)
+  {
+    // A player cannot be in checkmate if it is not their turn
+    return false;
+  }
+
+  if (is_in_check(color))
+  {
+    return false;
+  }
+
+  return Move_generator::generate_legal_moves(*this).empty();
+}
+
 bool Board::is_in_checkmate(Color color) const
 {
   //TODO: Doesn't support blocks

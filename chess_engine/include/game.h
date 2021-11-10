@@ -35,6 +35,8 @@ public:
 
   void player_vs_computer(Color player_color);
 
+  void computer_vs_computer();
+
   /**
    * Returns the opposite of the opposing player
    * @param player The player whose opponent to return
