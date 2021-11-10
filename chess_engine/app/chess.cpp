@@ -42,9 +42,43 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
 int main(int argc, char* argv[])
 {
 #if 1
+  if (argc > 2)
+  {
+    // h -> human, c -> computer
+    std::cerr << "Usage: chess_game [hh/hc/ch/cc]\n";
+    exit(-1);
+  }
+
   Game game;
-  game.computer_vs_computer();
-  //game.player_vs_computer(Color::white);
+  std::string param{"hc"};
+  if (argc == 2)
+  {
+    param = argv[1];
+  }
+
+
+  if (param == "hh")
+  {
+    game.player_vs_player();
+  }
+  else if (param == "hc")
+  {
+    game.player_vs_computer(Color::white);
+  }
+  else if (param == "ch")
+  {
+    game.player_vs_computer(Color::black);
+  }
+  else if (param == "cc")
+  {
+    game.computer_vs_computer();
+  }
+  else
+  {
+    // h -> human, c -> computer
+    std::cerr << "Usage: chess [hh/hc/ch/cc]\n";
+    exit(-1);
+  }
 #else
 
 #endif
