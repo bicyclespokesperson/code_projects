@@ -32,16 +32,16 @@ std::optional<std::string> User_player::get_next_move(std::istream& in, std::ost
 {
   constexpr static bool uci_mode{false};
 
-  if (!in.good())
-  {
-    return {};
-  }
-
   std::string line = "";
   line.reserve(64);
 
   do
   {
+    if (!in.good())
+    {
+      return {};
+    }
+
     out << get_name() << ", please enter the beginning and ending squares of the move (ex: "
         << (uci_mode ? std::string{"e2e4"} : std::string{"Bxc7"}) << "): ";
 

@@ -19,7 +19,7 @@ public:
     black_victory,
   };
 
-  Game() = default;
+  Game();
 
   ~Game() = default;
 
@@ -35,8 +35,11 @@ public:
 
   void computer_vs_computer();
 
+  // Ctrl-C to stop move (after the current player's turn) and print out moves
+  // Ctrl-Z will force a stop, but the moves will not be printed out
   void play_game(Player& white_player, Player& black_player);
 
 private:
+  void init_handler_();
 };
 #endif

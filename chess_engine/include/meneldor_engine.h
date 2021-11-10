@@ -86,6 +86,10 @@ private:
 
   int quiesce_(Board const& board, Color color, int alpha, int beta) const;
 
+  int quiesce_max_(Board const& board, Color color, int alpha, int beta) const;
+
+  int quiesce_min_(Board const& board, Color color, int alpha, int beta) const;
+
   bool m_is_debug{true};
   std::atomic_flag m_stop_requested{false};
   Board m_board;

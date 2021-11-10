@@ -24,8 +24,10 @@ target_precompile_headers(chess_engine_lib
     <random>
     <set>
     <span>
+    <signal.h>
     <string>
     <sstream>
+    <unistd.h>    
     <unordered_map>
     <vector>
 )

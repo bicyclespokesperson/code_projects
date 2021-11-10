@@ -3,6 +3,33 @@
 #include "meneldor_engine.h"
 #include "player.h"
 
+namespace {
+//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) Can't be a member variable because we want to use it in a handler
+std::atomic_flag is_cancelled;
+} // namespace
+
+void my_handler(int /* s */){
+  is_cancelled.test_and_set();
+}
+
+Game::Game()
+{
+  init_handler_();
+}
+
+void Game::init_handler_()
+{
+  // We still want to print out moves if the game is cancelled, so
+  // set a handler for ctrl-c that sets a flag that is tested in the loop
+  struct sigaction sigIntHandler{};
+
+  sigIntHandler.sa_handler = my_handler;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+
+  sigaction(SIGINT, &sigIntHandler, nullptr);
+}
+
 void Game::player_vs_player()
 {
   User_player white_player("White player");
@@ -107,8 +134,14 @@ void Game::play_game(Player& white_player, Player& black_player)
     {
       state = (white_to_move) ? Game_state::black_victory : Game_state::white_victory;
     }
+
+    if (is_cancelled.test())
+    {
+      state = Game_state::draw;
+    }
   }
 
+  std::cout << "\n";
   if (state == Game_state::draw)
   {
     std::cout << "Game is a draw\n";

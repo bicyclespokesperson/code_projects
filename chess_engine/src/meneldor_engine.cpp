@@ -69,10 +69,44 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   return multiplier * (white_material - black_material);
 }
 
-int Meneldor_engine::quiesce_(Board const& board, Color color, int /* alpha */, int /* beta */) const
+int Meneldor_engine::quiesce_(Board const& /*board*/, Color /*color*/, int /*alpha*/, int /*beta*/) const
 {
-  int eval = evaluate(board, color);
+  MY_ASSERT(false, "Not implemented");
+  return 0;
+}
+
+int Meneldor_engine::quiesce_min_(Board const& board, Color color, int alpha, int beta) const
+{
+  //auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
+
+  auto const attacks = Move_generator::generate_legal_attack_moves(board);
+  if (attacks.empty())
+  {
+    return evaluate(board, color);
+  }
+  for (auto move : attacks)
+  {
+    Board tmp_board{board};
+    tmp_board.move_no_verify(move);
+    int score = quiesce_max_(tmp_board, color, alpha, beta);
+    //std::cout << indents << "Response (in min): " << move << " " << score << "\n";
+    if (score <= alpha)
+    {
+      return alpha;
+    }
+
+    if (score < beta)
+    {
+      beta = score;
+    }
+  }
+  return beta;
+}
+
+int Meneldor_engine::quiesce_max_(Board const& board, Color color, int alpha, int beta) const
+{
 #if 0
+  int eval = evaluate(board, color);
   if (eval >= beta)
   {
     return beta;
@@ -84,8 +118,33 @@ int Meneldor_engine::quiesce_(Board const& board, Color color, int /* alpha */, 
 
   // TODO: Actually implement quiescence search
   return alpha;
-#endif
   return eval;
+#endif
+
+  //auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
+
+  auto const attacks = Move_generator::generate_legal_attack_moves(board);
+  if (attacks.empty())
+  {
+    return evaluate(board, color);
+  }
+  for (auto move : attacks)
+  {
+    Board tmp_board{board};
+    tmp_board.move_no_verify(move);
+    int score = quiesce_min_(tmp_board, color, alpha, beta);
+    //std::cout << indents << "Response (in max): " << move << " " << score << "\n";
+    if (score >= beta)
+    {
+      return beta;
+    }
+
+    if (score > alpha)
+    {
+      alpha = score;
+    }
+  }
+  return alpha;
 }
 
 int Meneldor_engine::alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
@@ -94,14 +153,14 @@ int Meneldor_engine::alpha_beta_max_(Board const& board, Color color, int alpha,
 
   if (depth_remaining == 0)
   {
-    return quiesce_(board, color, alpha, beta);
+    return quiesce_min_(board, color, alpha, beta);
   }
   for (auto move : Move_generator::generate_legal_moves(board))
   {
     Board tmp_board{board};
     tmp_board.move_no_verify(move);
     int score = alpha_beta_min_(tmp_board, color, alpha, beta, depth_remaining - 1);
-    //std::cout << indents << "Response (in max): " << move << " " << score << "\n";
+    //std::cout << indents << "response (in max): " << move << " " << score << "\n";
     if (score >= beta)
     {
       return beta;
@@ -121,7 +180,7 @@ int Meneldor_engine::alpha_beta_min_(Board const& board, Color color, int alpha,
 
   if (depth_remaining == 0)
   {
-    return -quiesce_(board, color, alpha, beta);
+    return -quiesce_max_(board, color, alpha, beta);
   }
   for (auto move : Move_generator::generate_legal_moves(board))
   {
