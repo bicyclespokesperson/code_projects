@@ -34,7 +34,16 @@ bool Threefold_repetition_detector::add_fen(std::string_view fen)
 
   std::string abridged_fen{fen.substr(0, index)};
 
-  return (++m_previous_positions[abridged_fen]) >= 3;
+  if ((++m_previous_positions[abridged_fen]) >= 3)
+  {
+    m_is_drawn = true;
+  }
+  return m_is_drawn;
+}
+
+bool Threefold_repetition_detector::is_drawn() const
+{
+  return m_is_drawn;
 }
 
 std::ostream& operator<<(std::ostream& os, Piece const& self)

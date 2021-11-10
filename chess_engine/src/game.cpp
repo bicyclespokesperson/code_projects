@@ -33,15 +33,37 @@ void Game::computer_vs_computer()
   play_game(white_player, black_player);
 }
 
+bool is_drawn(Board const& board, Threefold_repetition_detector const& detector)
+{
+  auto color = board.get_active_color();
+  if (board.is_in_stalemate(color))
+  {
+    return true;
+  }
+
+  if (!(board.has_sufficient_material(color) && board.has_sufficient_material(opposite_color(color))))
+  {
+    return true;
+  }
+
+  if (board.get_halfmove_clock() >= 50)
+  {
+    return true;
+  }
+
+  return detector.is_drawn();
+}
+
 void Game::play_game(Player& white_player, Player& black_player)
 {
   Board board;
+  Threefold_repetition_detector detector;
   std::vector<std::string> move_list;
   bool white_to_move{true};
-  bool game_in_progress{true};
+  Game_state state{Game_state::in_progress};
 
   std::cout << board;
-  while (game_in_progress)
+  while (state == Game_state::in_progress)
   {
     std::optional<std::string> move;
     if (white_to_move)
@@ -61,16 +83,19 @@ void Game::play_game(Player& white_player, Player& black_player)
         black_player.notify(*move);
         move_list.push_back(*move);
         white_to_move = !white_to_move;
-
-        //TODO: Handle draws
+        detector.add_fen(board.to_fen());
 
         std::cout << "Board state after " << move_list.size() << " half moves\n";
         std::cout << board;
         auto const color = board.get_active_color();
         if (board.is_in_checkmate(color))
         {
-          game_in_progress = false;
+          state = (white_to_move) ? Game_state::black_victory : Game_state::white_victory;
+        }
 
+        if (is_drawn(board, detector))
+        {
+          state = Game_state::draw;
         }
       }
       else
@@ -80,12 +105,19 @@ void Game::play_game(Player& white_player, Player& black_player)
     }
     else
     {
-      game_in_progress = false;
+      state = (white_to_move) ? Game_state::black_victory : Game_state::white_victory;
     }
   }
 
-  std::string winning_player = (white_to_move ? std::string{"Black"} : std::string{"White"});
-  std::cout << winning_player << " is victorious!\n";
+  if (state == Game_state::draw)
+  {
+    std::cout << "Game is a draw\n";
+  }
+  else
+  {
+    std::string winning_player = ((state == Game_state::black_victory) ? std::string{"Black"} : std::string{"White"});
+    std::cout << winning_player << " is victorious!\n";
+  }
 
   std::cout << "Moves: ";
   for (auto const& move : move_list)

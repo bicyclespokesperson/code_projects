@@ -505,6 +505,24 @@ uint8_t Board::get_move_count() const
   return m_fullmove_count;
 }
 
+bool Board::has_sufficient_material(Color color) const
+{
+  if (!get_piece_set(color, Piece::pawn).is_empty() || 
+      !get_piece_set(color, Piece::rook).is_empty() ||
+      !get_piece_set(color, Piece::queen).is_empty())
+  {
+    return true;
+  }
+
+  if ((get_piece_set(color, Piece::bishop).occupancy() + 
+        get_piece_set(color, Piece::knight).occupancy()) >= 2)
+  {
+    return true;
+  }
+
+  return false;
+}
+
 Move Board::find_castling_rook_move_(Coordinates king_destination) const
 {
   if (king_destination == Coordinates{2, 0})

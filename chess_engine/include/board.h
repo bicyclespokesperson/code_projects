@@ -158,6 +158,9 @@ public:
 
   uint8_t get_move_count() const;
 
+  // Returns true if color has enough material to win the game
+  bool has_sufficient_material(Color color) const;
+
 private:
   /**
    * Private constructor that doesn't initialize pieces

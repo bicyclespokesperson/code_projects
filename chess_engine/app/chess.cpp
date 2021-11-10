@@ -43,8 +43,8 @@ int main(int argc, char* argv[])
 {
 #if 1
   Game game;
-  //game.computer_vs_computer();
-  game.player_vs_computer(Color::white);
+  game.computer_vs_computer();
+  //game.player_vs_computer(Color::white);
 #else
 
 #endif

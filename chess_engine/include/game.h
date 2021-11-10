@@ -11,6 +11,14 @@ class Player;
 class Game
 {
 public:
+  enum class Game_state
+  {
+    in_progress = 0,
+    draw,
+    white_victory,
+    black_victory,
+  };
+
   Game() = default;
 
   ~Game() = default;
