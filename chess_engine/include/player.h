@@ -12,7 +12,6 @@
 class Player
 {
 public:
-
   virtual ~Player() = default;
 
   std::string const& get_name() const;
@@ -21,13 +20,14 @@ public:
   virtual void notify(std::string const& move) = 0;
 
   // Return empty if the player resigns
-  virtual std::optional<std::string> get_next_move(std::istream& in, std:: ostream& out) = 0;
+  virtual std::optional<std::string> get_next_move(std::istream& in, std::ostream& out) = 0;
 
   // Called at the start of a new game
   virtual void reset() = 0;
 
 protected:
   Player(std::string name);
+
 private:
   std::string m_name;
 };
@@ -39,11 +39,12 @@ public:
 
   ~Engine_player() override = default;
 
-  std::optional<std::string> get_next_move(std::istream& in, std:: ostream& out) override;
+  std::optional<std::string> get_next_move(std::istream& in, std::ostream& out) override;
 
   void notify(std::string const& move) override;
 
   void reset() override;
+
 private:
   Meneldor_engine m_engine{};
 };
@@ -55,15 +56,14 @@ public:
 
   ~User_player() override = default;
 
-  std::optional<std::string> get_next_move(std::istream& in, std:: ostream& out) override;
+  std::optional<std::string> get_next_move(std::istream& in, std::ostream& out) override;
 
   void notify(std::string const& move) override;
 
   void reset() override;
+
 private:
   Board m_board{};
 };
-
-
 
 #endif

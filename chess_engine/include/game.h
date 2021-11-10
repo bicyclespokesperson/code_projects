@@ -36,6 +36,7 @@ public:
   void computer_vs_computer();
 
   void play_game(Player& white_player, Player& black_player);
+
 private:
 };
 #endif

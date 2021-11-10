@@ -21,7 +21,6 @@ Piece from_char(char c)
   }
 }
 
-
 bool Threefold_repetition_detector::add_fen(std::string_view fen)
 {
   // Move counts don't matter for threefold repetition, so find the end

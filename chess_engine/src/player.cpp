@@ -23,8 +23,7 @@ std::string const& Player::get_name() const
   return m_name;
 }
 
-User_player::User_player(std::string name)
-: Player(std::move(name))
+User_player::User_player(std::string name) : Player(std::move(name))
 {
   reset();
 }
@@ -44,7 +43,8 @@ std::optional<std::string> User_player::get_next_move(std::istream& in, std::ost
 
   do
   {
-    out << get_name() << ", please enter the beginning and ending squares of the move (ex: " << (uci_mode ? std::string{"e2e4"} : std::string{"Bxc7"}) << "): ";
+    out << get_name() << ", please enter the beginning and ending squares of the move (ex: "
+        << (uci_mode ? std::string{"e2e4"} : std::string{"Bxc7"}) << "): ";
 
     // Get move from the user and ensure that it is of the correct form
     getline(in, line);
@@ -54,12 +54,12 @@ std::optional<std::string> User_player::get_next_move(std::istream& in, std::ost
       return {};
     }
 
-    if (auto move = uci_mode ? m_board.move_from_uci(line) : m_board.move_from_algebraic(line, m_board.get_active_color()))
+    if (auto move =
+          uci_mode ? m_board.move_from_uci(line) : m_board.move_from_algebraic(line, m_board.get_active_color()))
     {
       return move_to_string(*move);
     }
   } while (true);
-
 }
 
 void User_player::notify(std::string const& move)
@@ -72,24 +72,24 @@ void User_player::reset()
   m_board = {};
 }
 
-Engine_player::Engine_player(std::string name)
-: Player(std::move(name))
+Engine_player::Engine_player(std::string name) : Player(std::move(name))
 {
   reset();
 }
 
-std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, std:: ostream& out)
+std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, std::ostream& out)
 {
-    out << get_name() << " thinking\n";
-    senjo::GoParams params;
-    auto const start = std::chrono::system_clock::now();
-    auto const engine_move = m_engine.go(params, nullptr);
-    auto const end = std::chrono::system_clock::now();
-    std::chrono::duration<double> const elapsed_seconds = end - start;
+  out << get_name() << " thinking\n";
+  senjo::GoParams params;
+  auto const start = std::chrono::system_clock::now();
+  auto const engine_move = m_engine.go(params, nullptr);
+  auto const end = std::chrono::system_clock::now();
+  std::chrono::duration<double> const elapsed_seconds = end - start;
 
-    out << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2) << elapsed_seconds.count() << " seconds\n";
+  out << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2)
+      << elapsed_seconds.count() << " seconds\n";
 
-    return engine_move;
+  return engine_move;
 }
 
 void Engine_player::notify(std::string const& move)
@@ -102,4 +102,3 @@ void Engine_player::reset()
   m_engine.resetEngineStats();
   m_engine.initialize();
 }
-

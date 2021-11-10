@@ -1,7 +1,7 @@
 #include "game.h"
 #include "board.h"
-#include "player.h"
 #include "meneldor_engine.h"
+#include "player.h"
 
 void Game::player_vs_player()
 {
@@ -126,4 +126,3 @@ void Game::play_game(Player& white_player, Player& black_player)
   }
   std::cout << "\n";
 }
-

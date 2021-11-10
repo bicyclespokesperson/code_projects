@@ -59,8 +59,10 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
                    return board.get_piece_set(Color::white, piece).occupancy();
                  });
 
-  auto const black_material = std::inner_product(black_piece_counts.cbegin(), black_piece_counts.cend(), piece_values.cbegin(), 0);
-  auto const white_material = std::inner_product(white_piece_counts.cbegin(), white_piece_counts.cend(), piece_values.cbegin(), 0);
+  auto const black_material =
+    std::inner_product(black_piece_counts.cbegin(), black_piece_counts.cend(), piece_values.cbegin(), 0);
+  auto const white_material =
+    std::inner_product(white_piece_counts.cbegin(), white_piece_counts.cend(), piece_values.cbegin(), 0);
 
   return multiplier * (white_material - black_material);
 }
@@ -84,6 +86,54 @@ int Meneldor_engine::quiesce_(Board const& board, Color color, int /* alpha */, 
   return eval;
 }
 
+int Meneldor_engine::alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
+{
+  if (depth_remaining == 0)
+  {
+    return quiesce_(board, color, alpha, beta);
+  }
+  for (auto move : Move_generator::generate_legal_moves(board))
+  {
+    Board tmp_board{board};
+    tmp_board.move_no_verify(move);
+    int score = alpha_beta_min_(board, color, alpha, beta, depth_remaining - 1);
+    if (score >= beta)
+    {
+      return beta;
+    }
+
+    if (score > alpha)
+    {
+      alpha = score;
+    }
+  }
+  return alpha;
+}
+
+int Meneldor_engine::alpha_beta_min_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
+{
+  if (depth_remaining == 0)
+  {
+    return -quiesce_(board, color, alpha, beta);
+  }
+  for (auto move : Move_generator::generate_legal_moves(board))
+  {
+    Board tmp_board{board};
+    tmp_board.move_no_verify(move);
+    int score = alpha_beta_max_(board, color, alpha, beta, depth_remaining - 1);
+    if (score <= alpha)
+    {
+      return alpha;
+    }
+
+    if (score < beta)
+    {
+      beta = score;
+    }
+  }
+  return beta;
+}
+
 /*
  * On white's decision, it sets alpha
  *  alpha - white has an option to reach this
@@ -102,7 +152,7 @@ int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, in
   if (depth_remaining == 0)
   {
     auto result = quiesce_(board, color, alpha, beta);
-     
+
     return result;
   }
 

@@ -79,6 +79,11 @@ public:
 
 private:
   int negamax_(Board& board, Color color, int alpha, int beta, int depth_remaining);
+
+  int alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depthleft);
+
+  int alpha_beta_min_(Board const& board, Color color, int alpha, int beta, int depthleft);
+
   int quiesce_(Board const& board, Color color, int alpha, int beta) const;
 
   bool m_is_debug{true};

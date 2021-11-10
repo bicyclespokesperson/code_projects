@@ -3,8 +3,8 @@
 
 #include "bitboard.h"
 #include "board.h"
-#include "move_generator.h"
 #include "meneldor_engine.h"
+#include "move_generator.h"
 
 namespace
 {
