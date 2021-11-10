@@ -77,6 +77,7 @@ int Meneldor_engine::quiesce_(Board const& /*board*/, Color /*color*/, int /*alp
 
 int Meneldor_engine::quiesce_min_(Board const& board, Color color, int alpha, int beta) const
 {
+  ++m_visited_nodes;
   //auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
 
   auto const attacks = Move_generator::generate_legal_attack_moves(board);
@@ -105,6 +106,7 @@ int Meneldor_engine::quiesce_min_(Board const& board, Color color, int alpha, in
 
 int Meneldor_engine::quiesce_max_(Board const& board, Color color, int alpha, int beta) const
 {
+  ++m_visited_nodes;
 #if 0
   int eval = evaluate(board, color);
   if (eval >= beta)
@@ -149,6 +151,7 @@ int Meneldor_engine::quiesce_max_(Board const& board, Color color, int alpha, in
 
 int Meneldor_engine::alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
 {
+  ++m_visited_nodes;
   auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
 
   if (depth_remaining == 0)
@@ -176,6 +179,7 @@ int Meneldor_engine::alpha_beta_max_(Board const& board, Color color, int alpha,
 
 int Meneldor_engine::alpha_beta_min_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
 {
+  ++m_visited_nodes;
   auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
 
   if (depth_remaining == 0)
@@ -402,6 +406,7 @@ uint64_t Meneldor_engine::perft(const int depth)
 
 std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)
 {
+  m_visited_nodes = 0;
   m_stop_requested.clear();
 
   auto const color = m_board.get_active_color();
@@ -448,6 +453,11 @@ senjo::SearchStats Meneldor_engine::getSearchStats() const
 {
   MY_ASSERT(false, "Not implemented");
   return {};
+}
+
+uint32_t Meneldor_engine::previous_move_nodes_searched() const
+{
+  return m_visited_nodes;
 }
 
 void Meneldor_engine::resetEngineStats()

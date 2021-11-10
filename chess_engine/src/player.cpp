@@ -12,6 +12,15 @@ std::string move_to_string(Move m)
   return ss.str();
 }
 
+template<class T>
+std::string format_with_commas(T value)
+{
+    std::stringstream ss;
+    ss.imbue(std::locale(""));
+    ss << std::fixed << std::setprecision(2) << value;
+    return ss.str();
+}
+
 } // namespace
 
 Player::Player(std::string name) : m_name(std::move(name))
@@ -84,9 +93,10 @@ std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, 
   auto const engine_move = m_engine.go(params, nullptr);
   auto const end = std::chrono::system_clock::now();
   std::chrono::duration<double> const elapsed_seconds = end - start;
+  auto nodes_searched = m_engine.previous_move_nodes_searched();
 
   out << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2)
-      << elapsed_seconds.count() << " seconds\n";
+      << format_with_commas(elapsed_seconds.count()) << " seconds and searching " << format_with_commas(nodes_searched) << " nodes (" << format_with_commas(nodes_searched / elapsed_seconds.count()) << " nodes/sec)\n";
 
   return engine_move;
 }

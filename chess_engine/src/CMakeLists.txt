@@ -17,6 +17,8 @@ target_precompile_headers(chess_engine_lib
     <filesystem>
     <fstream>
     <iostream>
+    <iomanip>
+    <locale>
     <limits>
     <map>
     <numeric>

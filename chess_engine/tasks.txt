@@ -4,6 +4,15 @@ Implement draws
   50 moves rule
   insufficient material
 
+Search
+  Iterative deepening
+  Transposition table
+    Zobrist hashing
+  Move ordering
+  Better quiescence search
+    https://chess.stackexchange.com/questions/27257/chess-engine-quiescence-search-increases-required-time-by-a-factor-of-20
+
+
 Implement quiesence search
 
 This article is good, might also want to just look at the source code for the engine

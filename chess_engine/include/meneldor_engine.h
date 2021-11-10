@@ -49,6 +49,7 @@ public:
   void registerLater() override;
 
   bool doRegistration(const std::string& name, const std::string& code) override;
+
   bool isCopyProtected() const override;
 
   bool copyIsOK() override;
@@ -77,6 +78,8 @@ public:
 
   int evaluate(Board const& board, Color color) const;
 
+  uint32_t previous_move_nodes_searched() const;
+
 private:
   int negamax_(Board& board, Color color, int alpha, int beta, int depth_remaining);
 
@@ -93,6 +96,8 @@ private:
   bool m_is_debug{true};
   std::atomic_flag m_stop_requested{false};
   Board m_board;
+
+  mutable uint32_t m_visited_nodes{0};
 };
 
 #endif // MENELDOR_ENGINE
