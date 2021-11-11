@@ -1,4 +1,4 @@
-add_executable(chess_game chess.cpp)
+add_executable(chess_game chess_game.cpp)
 target_compile_features(chess_game PRIVATE cxx_std_20)
 target_include_directories(chess_game PUBLIC ../include)
 target_precompile_headers(chess_game

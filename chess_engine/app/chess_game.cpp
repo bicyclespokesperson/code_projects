@@ -14,7 +14,7 @@
 #include "move_generator.h"
 #include "my_assert.h"
 #include "player.h"
-#include <sstream>
+#include "zobrist_hasher.h"
 
 void print_bitboard_with_squares(std::vector<std::string> const& squares)
 {
@@ -41,7 +41,7 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
  */
 int main(int argc, char* argv[])
 {
-#if 1
+#if 0
   if (argc > 2)
   {
     // h -> human, c -> computer
@@ -79,6 +79,8 @@ int main(int argc, char* argv[])
     exit(-1);
   }
 #else
+
+  Zobrist_hasher zh;
 
 #endif
   return 0;

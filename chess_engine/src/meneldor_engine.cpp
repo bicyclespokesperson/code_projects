@@ -1,7 +1,7 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 
-constexpr int c_default_depth{4};
+constexpr int c_default_depth{1};
 
 int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
 {
