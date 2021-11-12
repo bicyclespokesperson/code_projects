@@ -55,7 +55,6 @@ Zobrist_hash::Zobrist_hash(Board const& board)
       auto const rand_index = c_black_pieces_offset + (c_board_dimension_squared * piece_offset) + sq_index;
       m_hash ^= m_random_numbers[rand_index];
     }
-    //TODO: Is this correct?
     for (auto const sq_index : board.get_piece_set(Color::white, piece))
     {
       auto const rand_index = c_white_pieces_offset + (c_board_dimension_squared * piece_offset) + sq_index;
@@ -92,11 +91,15 @@ void Zobrist_hash::update_castling_rights(Castling_rights rights)
   m_hash ^= m_random_numbers[c_castling_rights_offset + as_uint8];
 }
 
-void Zobrist_hash::update_with_move(Piece piece, Move m)
+void Zobrist_hash::update_with_move(Piece piece, Color color, Move m)
 {
+  // This array can be indexed by color
+  constexpr static std::array piece_offsets{c_black_pieces_offset, c_white_pieces_offset};
+
   auto const piece_offset = static_cast<uint8_t>(piece) - static_cast<uint8_t>(Piece::pawn);
-  m_hash ^= m_random_numbers[c_board_dimension_squared * piece_offset + m.to.square_index()];
-  m_hash ^= m_random_numbers[c_board_dimension_squared * piece_offset + m.from.square_index()];
+  auto const rand_index_base = piece_offsets[static_cast<uint8_t>(color)] + (c_board_dimension_squared * piece_offset);
+  m_hash ^= m_random_numbers[rand_index_base + m.to.square_index()];
+  m_hash ^= m_random_numbers[rand_index_base + m.from.square_index()];
 }
 
 void Zobrist_hash::update_player_to_move()
@@ -107,4 +110,10 @@ void Zobrist_hash::update_player_to_move()
 zhash_t Zobrist_hash::get_hash() const
 {
   return m_hash;
+}
+
+std::ostream& operator<<(std::ostream& os, Zobrist_hash const& self)
+{
+  os << std::to_string(self.get_hash());
+  return os;
 }

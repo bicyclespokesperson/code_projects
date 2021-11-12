@@ -13,6 +13,10 @@ constexpr void update_if_in_bounds_(Bitboard& bb, int x, int y)
   }
 }
 
+// The following functions rely on colors casting to these values
+static_assert(static_cast<uint8_t>(Color::black) == 0);
+static_assert(static_cast<uint8_t>(Color::white) == 1);
+
 using shift_fn = Bitboard (Bitboard::*)(int32_t) const;
 
 // This array can be indexed by Color, so the operator to be used for black pawns is first

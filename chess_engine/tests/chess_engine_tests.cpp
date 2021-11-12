@@ -528,35 +528,62 @@ TEST_CASE("Zobrist hashing", "[Zobrist_hash]")
 
   auto hash1 = Zobrist_hash(board);
 
-  // Ensure that white to play yields a different hash
-  static const std::string fen_string2{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 w kq f3 1 1"};
-  auto board2 = *Board::from_fen(fen_string2);
-  auto hash2 = Zobrist_hash(board2);
-  REQUIRE(hash1 != hash2);
-  hash2.update_player_to_move();
-  REQUIRE(hash1 == hash2);
+  SECTION("White to play should change hash")
+  {
+    // Ensure that white to play yields a different hash
+    static const std::string fen_string2{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 w kq f3 1 1"};
+    auto board2 = *Board::from_fen(fen_string2);
+    auto hash2 = Zobrist_hash(board2);
+    REQUIRE(hash1 != hash2);
+    hash2.update_player_to_move();
+    REQUIRE(hash1 == hash2);
+  }
 
-  // Ensure no en passant square yields a different hash
-  static const std::string fen_string3{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq - 1 1"};
-  auto board3 = *Board::from_fen(fen_string3);
-  auto hash3 = Zobrist_hash(board3);
-  REQUIRE(hash1 != hash3);
+  SECTION("Different en passant square should change hash")
+  {
+    static const std::string fen_string2{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq - 1 1"};
+    auto board2 = *Board::from_fen(fen_string2);
+    auto hash2 = Zobrist_hash(board2);
+    REQUIRE(hash1 != hash2);
+  }
 
-  // Ensure different castling rights yields a different hash
-  static const std::string fen_string4{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kQ f3 1 1"};
-  auto board4 = *Board::from_fen(fen_string4);
-  auto hash4 = Zobrist_hash(board4);
-  REQUIRE(hash1 != hash4);
-  Castling_rights to_remove = board4.get_castling_rights();
-  Castling_rights to_add = board.get_castling_rights();
-  hash4.update_castling_rights(to_remove);
-  hash4.update_castling_rights(to_add);
-  REQUIRE(hash1 == hash4);
+  SECTION("Different castling rights should change hash")
+  {
+    static const std::string fen_string2{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kQ f3 1 1"};
+    auto board2 = *Board::from_fen(fen_string2);
+    auto hash2 = Zobrist_hash(board2);
+    REQUIRE(hash1 != hash2);
+    Castling_rights to_remove = board2.get_castling_rights();
+    Castling_rights to_add = board.get_castling_rights();
+    hash2.update_castling_rights(to_remove);
+    hash2.update_castling_rights(to_add);
+    REQUIRE(hash1 == hash2);
+  }
 
-  // Require that playing a move changes the hash
-  auto move = board.move_from_algebraic("Rb8", board.get_active_color());
-  REQUIRE(move.has_value());
-  auto old_hash = hash1;
-  hash1.update_with_move(Piece::rook, *move);
-  REQUIRE(hash1 != old_hash);
+  SECTION("Playing a move should change the hash")
+  {
+    // Require that playing a move changes the hash
+    auto color = board.get_active_color();
+    auto move = board.move_from_algebraic("Rb8", color);
+    REQUIRE(move.has_value());
+    auto old_hash = hash1;
+    hash1.update_with_move(Piece::rook, color, *move);
+    REQUIRE(hash1 != old_hash);
+  }
+
+  SECTION("The same board with piece colors swapped should change the hash")
+  {
+    static const std::string fen_string2{"r1bqk2r/p2p1pbp/1Pn3p1/1p1Np2n/4PP2/p2P4/1PP1N1PP/R1B2RK1 b kq f3 1 1"};
+    auto board2 = *Board::from_fen(fen_string2);
+    auto hash2 = Zobrist_hash(board2);
+    REQUIRE(hash1 != hash2);
+  }
+
+  SECTION("The same board with piece colors swapped should change the hash")
+  {
+    static const std::string fen_string2{"r1bqk2r/p2p1pbp/1Pn3p1/1p1Np2n/4PP2/p2P4/1PP1N1PP/R1B2RK1 b kq f3 1 1"};
+    auto board2 = *Board::from_fen(fen_string2);
+    auto hash2 = Zobrist_hash(board2);
+    REQUIRE(hash1 != hash2);
+  }
 }

@@ -21,7 +21,7 @@ public:
 
   void update_en_passant_square(Bitboard ep_square);
   void update_castling_rights(Castling_rights rights);
-  void update_with_move(Piece piece, Move m);
+  void update_with_move(Piece piece, Color color, Move m);
   void update_player_to_move();
 
   zhash_t get_hash() const;
@@ -31,5 +31,7 @@ private:
 
   static const std::array<zhash_t, 793> m_random_numbers;
 };
+
+std::ostream& operator<<(std::ostream& os, Zobrist_hash const& self);
 
 #endif // ZOBRIST_HASH_H
