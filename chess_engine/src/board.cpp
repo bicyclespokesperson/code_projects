@@ -1377,6 +1377,16 @@ std::string Board::to_fen() const
   return result.str();
 }
 
+void Board::set_use_unicode_output(bool value)
+{
+  s_use_unicode_output = value;
+}
+
+bool Board::get_use_unicode_output()
+{
+  return s_use_unicode_output;
+}
+
 std::string square_str(Coordinates location, Board const& board)
 {
   auto const piece = board.get_piece(location);
@@ -1410,25 +1420,98 @@ std::string square_str(Coordinates location, Board const& board)
   return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& out, Board const& self)
+auto piece_to_unicode_symbol(Color color, Piece piece)
 {
-  out << std::endl;
-  for (int i = c_board_dimension - 1; i >= 0; i--)
+  if (color == Color::black)
   {
-    out << (i + 1) << "  ";
-    for (int j = 0; j < c_board_dimension; j++)
+    switch(piece)
     {
-      out << square_str({j, i}, self);
+      case Piece::pawn:
+        return "♟︎";
+      case Piece::knight:
+        return "♞";
+      case Piece::bishop:
+        return "♝";
+      case Piece::rook:
+        return "♜";
+      case Piece::queen:
+        return "♛";
+      case Piece::king:
+        return "♚";
+      default:
+        MY_ASSERT(false, "Invalid piece");
+        return "_";
     }
-    out << std::endl << std::endl;
   }
 
-  out << "   ";
-  for (int i = 0; i < c_board_dimension; i++)
+  switch(piece)
   {
-    out << " " << static_cast<char>(i + 'A') << "  ";
+      case Piece::pawn:
+        return "♙";
+      case Piece::knight:
+        return "♘";
+      case Piece::bishop:
+        return "♗";
+      case Piece::rook:
+        return "♖";
+      case Piece::queen:
+        return "♕";
+      case Piece::king:
+        return "♔";
+      default:
+        MY_ASSERT(false, "Invalid piece");
+        return "_";
   }
-  out << std::endl;
+
+}
+
+std::ostream& operator<<(std::ostream& out, Board const& self)
+{
+  if (Board::get_use_unicode_output())
+  {
+    out << "\n";
+    for (int i = c_board_dimension - 1; i >= 0; i--)
+    {
+      out << (i + 1) << "  "; // Print rank
+      for (int j = 0; j < c_board_dimension; j++)
+      {
+        auto location = Coordinates{j, i};
+        auto piece = self.get_piece(location);
+        out << " " << ((piece == Piece::empty) ? "." : piece_to_unicode_symbol(self.get_piece_color(location), piece)) << " ";
+      }
+      out << "\n\n";
+    }
+
+    out << "   ";
+
+    // Print files
+    for (int i = 0; i < c_board_dimension; i++)
+    {
+      out << " " << static_cast<char>(i + 'A') << " ";
+    }
+    out << "\n";
+  }
+  else
+  {
+    out << "\n";
+    for (int i = c_board_dimension - 1; i >= 0; i--)
+    {
+      out << (i + 1) << "  "; // Print rank
+      for (int j = 0; j < c_board_dimension; j++)
+      {
+        out << square_str({j, i}, self);
+      }
+      out << "\n\n";
+    }
+
+    // Print files
+    out << "   ";
+    for (int i = 0; i < c_board_dimension; i++)
+    {
+      out << " " << static_cast<char>(i + 'A') << "  ";
+    }
+    out << "\n";
+  }
 
   return out;
 }

@@ -75,6 +75,16 @@ void User_player::notify(std::string const& move)
   m_board.try_move_uci(move);
 }
 
+bool User_player::set_position(std::string_view fen)
+{
+  if (auto board = Board::from_fen(fen))
+  {
+    m_board = *board;
+    return true;
+  }
+  return false;
+}
+
 void User_player::reset()
 {
   m_board = {};
@@ -104,6 +114,11 @@ std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, 
 void Engine_player::notify(std::string const& move)
 {
   m_engine.makeMove(move);
+}
+
+bool Engine_player::set_position(std::string_view fen)
+{
+  return m_engine.setPosition(std::string{fen});
 }
 
 void Engine_player::reset()

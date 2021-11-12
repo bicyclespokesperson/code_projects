@@ -25,6 +25,10 @@ public:
   // Return empty if the player resigns
   virtual std::optional<std::string> get_next_move(std::istream& in, std::ostream& out) = 0;
 
+  // Set the starting position for the game
+  // Return false if the fen string could not be parsed
+  virtual bool set_position(std::string_view fen) = 0;
+
   // Called at the start of a new game
   virtual void reset() = 0;
 
@@ -46,6 +50,8 @@ public:
 
   void notify(std::string const& move) override;
 
+  bool set_position(std::string_view fen) override;
+
   void reset() override;
 
 private:
@@ -62,6 +68,8 @@ public:
   std::optional<std::string> get_next_move(std::istream& in, std::ostream& out) override;
 
   void notify(std::string const& move) override;
+
+  bool set_position(std::string_view fen) override;
 
   void reset() override;
 

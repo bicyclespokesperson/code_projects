@@ -84,6 +84,7 @@ bool is_drawn(Board const& board, Threefold_repetition_detector const& detector)
 void Game::play_game(Player& white_player, Player& black_player)
 {
   Board board;
+  Board::set_use_unicode_output(true);
   Threefold_repetition_detector detector;
   std::vector<std::string> move_list;
   bool white_to_move{true};

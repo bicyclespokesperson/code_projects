@@ -17,10 +17,9 @@ public:
   [[nodiscard]] zhash_t update_en_passant_square(Bitboard ep_square, zhash_t zhash) const;
   [[nodiscard]] zhash_t update_castling_rights(Castling_rights rights, zhash_t zhash) const;
   [[nodiscard]] zhash_t update_with_move(Piece piece, Move m, zhash_t zhash) const;
-  [[nodiscard]] zhash_t update_with_undo_move(Piece piece, Move m, zhash_t zhash) const;
+  [[nodiscard]] zhash_t update_player_to_move(zhash_t zhash) const;
 
 private:
-  [[nodiscard]] zhash_t update_player_to_move_(zhash_t zhash) const;
   std::array <zhash_t, 781> m_random_numbers{};
 };
 

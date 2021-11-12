@@ -39,22 +39,21 @@ zhash_t Zobrist_hasher::hash_from_position(Board const& board) const
   constexpr static std::array piece_types{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
   for (auto piece : piece_types)
   {
-    auto piece_offset = static_cast<uint8_t>(piece) - static_cast<uint8_t>(Piece::pawn);
+    auto const piece_offset = static_cast<uint8_t>(piece) - static_cast<uint8_t>(Piece::pawn);
     for (auto sq_index : board.get_piece_set(Color::black, piece))
     {
-      auto rand_index = c_board_dimension_squared * piece_offset + sq_index;
+      auto const rand_index = c_board_dimension_squared * piece_offset + sq_index;
       result ^= m_random_numbers[rand_index];
     }
   }
   
   if (board.get_active_color() == Color::black)
   {
-    result ^= m_random_numbers[c_black_to_move_offset];
+    result = update_player_to_move(result);
   }
 
   result = update_en_passant_square(board.get_en_passant_square(), result);
-
-  //TODO: Castling rights
+  result = update_castling_rights(board.get_castling_rights(), result);
 
   return result;
 }
@@ -74,31 +73,22 @@ zhash_t Zobrist_hasher::update_castling_rights(Castling_rights rights, zhash_t z
   static_assert(sizeof(Castling_rights) == 1);
 
   //NOLINTNEXTLINE
-  auto as_uint8 = *reinterpret_cast<uint8_t*>(&rights);
+  auto const as_uint8 = *reinterpret_cast<uint8_t*>(&rights);
   MY_ASSERT(as_uint8 < c_castling_rights_region_size, "Value is not a valid castling rights object");
 
   return zhash ^ m_random_numbers[c_castling_rights_offset + as_uint8];
 }
 
-zhash_t Zobrist_hasher::update_player_to_move_(zhash_t zhash) const
+zhash_t Zobrist_hasher::update_player_to_move(zhash_t zhash) const
 {
   return zhash ^ m_random_numbers[c_black_to_move_offset];
 }
 
 zhash_t Zobrist_hasher::update_with_move(Piece piece, Move m, zhash_t zhash) const
 {
-  auto piece_offset = static_cast<uint8_t>(piece) - static_cast<uint8_t>(Piece::pawn);
+  auto const piece_offset = static_cast<uint8_t>(piece) - static_cast<uint8_t>(Piece::pawn);
   zhash ^= m_random_numbers[c_board_dimension_squared * piece_offset + m.to.square_index()];
   zhash ^= m_random_numbers[c_board_dimension_squared * piece_offset + m.from.square_index()];
-  zhash ^= m_random_numbers[c_black_to_move_offset];
   return zhash;
-
-  //TODO: Update side to move
-  //TODO: Handle captures
-  //return zhash ^ m_random_numbers[c_board_dimension_squared * piece_offset + location.square_index()];
-  //return zhash ^ m_random_numbers[c_board_dimension_squared * piece_offset + location.square_index()];
 }
 
-zhash_t Zobrist_hasher::update_with_undo_move(Piece piece, Move m, zhash_t zhash) const
-{
-}

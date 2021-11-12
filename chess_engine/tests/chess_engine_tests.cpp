@@ -21,7 +21,6 @@ std::optional<std::string> read_file_contents(std::string const& filename)
 
 } // namespace
 
-//NOLINTNEXTLINE
 static const std::string c_fischer_spassky_result = R"(
 8  ___ ___ ___ ___ ___ ___ ___ ___ 
 
@@ -42,7 +41,6 @@ static const std::string c_fischer_spassky_result = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-//NOLINTNEXTLINE
 static const std::string c_sigrist_result = R"(
 8  R_b ___ ___ ___ ___ ___ ___ ___ 
 
@@ -63,7 +61,6 @@ static const std::string c_sigrist_result = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-//NOLINTNEXTLINE
 static const std::string c_fen_test_result = R"(
 8  R_b ___ ___ ___ K_b ___ ___ R_b 
 
@@ -84,7 +81,6 @@ static const std::string c_fen_test_result = R"(
     A   B   C   D   E   F   G   H  
 )";
 
-//NOLINTNEXTLINE
 static const std::string c_uci_moves_result = R"(
 8  R_b N_b B_b Q_b K_b B_b ___ R_b 
 
@@ -536,32 +532,31 @@ TEST_CASE("Zobrist hashing", "[Zobrist_hasher]")
   // Ensure that white to play yields a different hash
   static const std::string fen_string2{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 w kq f3 1 1"};
   auto board2 = *Board::from_fen(fen_string2);
-  auto hash2 = zh.hash_from_position(board);
+  auto hash2 = zh.hash_from_position(board2);
   REQUIRE(hash1 != hash2);
+  hash2 = zh.update_player_to_move(hash2);
+  REQUIRE(hash1 == hash2);
 
   // Ensure no en passant square yields a different hash
   static const std::string fen_string3{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq - 1 1"};
   auto board3 = *Board::from_fen(fen_string3);
-  auto hash3 = zh.hash_from_position(board);
+  auto hash3 = zh.hash_from_position(board3);
   REQUIRE(hash1 != hash3);
 
   // Ensure different castling rights yields a different hash
   static const std::string fen_string4{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kQ f3 1 1"};
   auto board4 = *Board::from_fen(fen_string4);
-  auto hash4 = zh.hash_from_position(board);
-  REQUIRE(hash1 != hash3);
+  auto hash4 = zh.hash_from_position(board4);
+  REQUIRE(hash1 != hash4);
+  Castling_rights to_remove = board4.get_castling_rights();
+  Castling_rights to_add = board.get_castling_rights();
+  hash4 = zh.update_castling_rights(to_remove, hash4);
+  hash4 = zh.update_castling_rights(to_add, hash4);
+  REQUIRE(hash1 == hash4);
 
   // Require that playing a move changes the hash
-  auto move = board.move_from_algebraic("Rb1", board.get_active_color());
-  auto hash1_updated = zh.update_with_move(*move, hash1); //TODO: Updating a move will also require updating the castling rights and en passant
+  auto move = board.move_from_algebraic("Rb8", board.get_active_color());
+  REQUIRE(move.has_value());
+  auto hash1_updated = zh.update_with_move(Piece::rook, *move, hash1);
   REQUIRE(hash1 != hash1_updated);
-
-  // Require that undoing a move yields the same hash as before
-  hash1_updated = zh.update_with_undo_move(*move, hash1);
-  REQUIRE(hash1 == hash1_updated);
-
-  //zhash_t hash_from_position(Board const& board);
-  //zhash_t update_with_move(Move m, zhash_t);
-  //zhash_t update_with_undo_move(Move m, zhash_t);
 }
-

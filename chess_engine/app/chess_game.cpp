@@ -6,7 +6,6 @@
  * Created on March 24, 2013, 5:02 PM
  */
 
-#include "chess.h"
 #include "bitboard.h"
 #include "board.h"
 #include "game.h"
@@ -41,7 +40,7 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
  */
 int main(int argc, char* argv[])
 {
-#if 0
+#if 1
   if (argc > 2)
   {
     // h -> human, c -> computer
@@ -80,7 +79,11 @@ int main(int argc, char* argv[])
   }
 #else
 
-  Zobrist_hasher zh;
+  static const std::string fen_string{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq - 1 1"};
+  std::cout << *Board::from_fen(fen_string) << "\n";
+  Engine_player engine{"Engine player"};
+  //engine.set_position(fen_string);
+  engine.get_next_move(std::cin, std::cout);
 
 #endif
   return 0;

@@ -1,7 +1,7 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 
-constexpr int c_default_depth{1};
+constexpr int c_default_depth{4};
 
 int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
 {
@@ -77,6 +77,7 @@ int Meneldor_engine::quiesce_(Board const& /*board*/, Color /*color*/, int /*alp
 
 int Meneldor_engine::quiesce_min_(Board const& board, Color color, int alpha, int beta) const
 {
+#if 0
   ++m_visited_nodes;
   //auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
 
@@ -102,26 +103,15 @@ int Meneldor_engine::quiesce_min_(Board const& board, Color color, int alpha, in
     }
   }
   return beta;
+#else
+  return evaluate(board, color);
+#endif
 }
 
 int Meneldor_engine::quiesce_max_(Board const& board, Color color, int alpha, int beta) const
 {
-  ++m_visited_nodes;
 #if 0
-  int eval = evaluate(board, color);
-  if (eval >= beta)
-  {
-    return beta;
-  }
-  if (alpha > eval)
-  {
-    alpha = eval;
-  }
-
-  // TODO: Actually implement quiescence search
-  return alpha;
-  return eval;
-#endif
+  ++m_visited_nodes;
 
   //auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
 
@@ -147,6 +137,9 @@ int Meneldor_engine::quiesce_max_(Board const& board, Color color, int alpha, in
     }
   }
   return alpha;
+#else
+  return -evaluate(board, color);
+#endif
 }
 
 int Meneldor_engine::alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
@@ -415,7 +408,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   const int depth = (params.depth > 0) ? params.depth : c_default_depth;
 
-  std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board, color)) << "\n";
+  //std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board, color)) << "\n";
   std::pair<Move, int> best{legal_moves.front(), std::numeric_limits<int>::min()};
   for (auto move : legal_moves)
   {
@@ -431,7 +424,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     //auto const score = -negamax_(tmp_board, color, -positive_inf, -negative_inf, depth);
     auto const score =
       alpha_beta_min_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
-    std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
+    //std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
 
     if (score > best.second)
     {

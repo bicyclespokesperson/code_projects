@@ -1,5 +1,4 @@
 #include "chess_types.h"
-
 Piece from_char(char c)
 {
   switch (c)

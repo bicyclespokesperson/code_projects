@@ -12,6 +12,10 @@ public:
 
   static std::optional<Board> from_fen(std::string_view fen);
 
+  static void set_use_unicode_output(bool value);
+
+  static bool get_use_unicode_output();
+
   Board();
 
   Board(Board const& other) = default;
@@ -181,6 +185,9 @@ private:
   Color m_active_color{Color::white};
   uint8_t m_halfmove_clock{0};
   uint8_t m_fullmove_count{1};
+
+  //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) Only used internally by board
+  static inline bool s_use_unicode_output{false};
 };
 
 std::ostream& operator<<(std::ostream& out, Board const& self);
