@@ -8,14 +8,6 @@
 class Board
 {
 public:
-  struct Castling_rights
-  {
-    bool white_can_short_castle : 1 {true};
-    bool white_can_long_castle : 1 {true};
-    bool black_can_short_castle : 1 {true};
-    bool black_can_long_castle : 1 {true};
-  };
-
   static std::optional<Board> from_pgn(std::string_view pgn);
 
   static std::optional<Board> from_fen(std::string_view fen);
@@ -183,7 +175,7 @@ private:
   void add_piece_(Color color, Piece piece, Coordinates to_add);
   void remove_piece_(Color color, Piece piece, Coordinates to_remove);
 
-  std::array<Bitboard, static_cast<size_t>(Piece::_count)> m_bitboards;
+  std::array<Bitboard, static_cast<uint8_t>(Piece::_count)> m_bitboards;
   Bitboard m_en_passant_square{0};
   Castling_rights m_rights;
   Color m_active_color{Color::white};

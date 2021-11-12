@@ -34,6 +34,14 @@ enum class Move_type : uint8_t
   _count,
 };
 
+struct Castling_rights
+{
+  bool white_can_short_castle : 1 {true};
+  bool white_can_long_castle : 1 {true};
+  bool black_can_short_castle : 1 {true};
+  bool black_can_long_castle : 1 {true};
+};
+
 class Compass_dir
 {
 public:

@@ -251,7 +251,7 @@ Piece Board::get_piece(Coordinates square) const
   return (search == piece_types.cend()) ? Piece::empty : *search;
 }
 
-Board::Castling_rights Board::get_castling_rights() const
+Castling_rights Board::get_castling_rights() const
 {
   return m_rights;
 }

@@ -5,6 +5,7 @@
 #include "board.h"
 #include "meneldor_engine.h"
 #include "move_generator.h"
+#include "zobrist_hasher.h"
 
 namespace
 {
@@ -523,3 +524,44 @@ TEST_CASE("Threefold repetition", "[Threefold_repetition_detector]")
   REQUIRE(!detector.add_fen("r3k2r/qppb1pp1/2nbpn2/1B1N4/pP1PP1qP/P1P3N1/3BQP2/R3K2R b Qk b3 0 19"));
   REQUIRE(detector.add_fen("r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 10 1 "));
 }
+
+TEST_CASE("Zobrist hashing", "[Zobrist_hasher]")
+{
+  static const std::string fen_string{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 1 1"};
+  auto board = *Board::from_fen(fen_string);
+
+  Zobrist_hasher zh;
+  auto hash1 = zh.hash_from_position(board);
+
+  // Ensure that white to play yields a different hash
+  static const std::string fen_string2{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 w kq f3 1 1"};
+  auto board2 = *Board::from_fen(fen_string2);
+  auto hash2 = zh.hash_from_position(board);
+  REQUIRE(hash1 != hash2);
+
+  // Ensure no en passant square yields a different hash
+  static const std::string fen_string3{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq - 1 1"};
+  auto board3 = *Board::from_fen(fen_string3);
+  auto hash3 = zh.hash_from_position(board);
+  REQUIRE(hash1 != hash3);
+
+  // Ensure different castling rights yields a different hash
+  static const std::string fen_string4{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kQ f3 1 1"};
+  auto board4 = *Board::from_fen(fen_string4);
+  auto hash4 = zh.hash_from_position(board);
+  REQUIRE(hash1 != hash3);
+
+  // Require that playing a move changes the hash
+  auto move = board.move_from_algebraic("Rb1", board.get_active_color());
+  auto hash1_updated = zh.update_with_move(*move, hash1); //TODO: Updating a move will also require updating the castling rights and en passant
+  REQUIRE(hash1 != hash1_updated);
+
+  // Require that undoing a move yields the same hash as before
+  hash1_updated = zh.update_with_undo_move(*move, hash1);
+  REQUIRE(hash1 == hash1_updated);
+
+  //zhash_t hash_from_position(Board const& board);
+  //zhash_t update_with_move(Move m, zhash_t);
+  //zhash_t update_with_undo_move(Move m, zhash_t);
+}
+

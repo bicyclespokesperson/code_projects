@@ -6,6 +6,7 @@ Implement draws
 
 Search
   Iterative deepening
+    Measure alpha/beta success rate? ID ostensibly speeds up search by improving that
   Transposition table
     Zobrist hashing
   Move ordering
