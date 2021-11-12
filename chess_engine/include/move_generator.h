@@ -41,10 +41,6 @@ public:
   static Bitboard pawn_west_attacks_with_promote(Color color, Bitboard pawns, Bitboard enemies);
 
 private:
-  static std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> initialize_ray_attacks_();
-  static std::array<Bitboard, c_board_dimension_squared> initialize_knight_attacks_();
-  static std::array<Bitboard, c_board_dimension_squared> initialize_king_attacks_();
-
   static Bitboard get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
   static Bitboard get_negative_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
 
@@ -54,14 +50,11 @@ private:
                                      Bitboard occupied);
 
   // [square][direction]
-  //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
-  static std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks;
+  static const std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> m_ray_attacks;
 
-  //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
-  static std::array<Bitboard, c_board_dimension_squared> m_knight_attacks;
+  static const std::array<Bitboard, c_board_dimension_squared> m_knight_attacks;
 
-  //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) // Easiest way to initialize
-  static std::array<Bitboard, c_board_dimension_squared> m_king_attacks;
+  static const std::array<Bitboard, c_board_dimension_squared> m_king_attacks;
 };
 
 struct Bitboard_constants

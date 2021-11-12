@@ -5,7 +5,7 @@
 #include "board.h"
 #include "meneldor_engine.h"
 #include "move_generator.h"
-#include "zobrist_hasher.h"
+#include "zobrist_hash.h"
 
 namespace
 {
@@ -521,42 +521,42 @@ TEST_CASE("Threefold repetition", "[Threefold_repetition_detector]")
   REQUIRE(detector.add_fen("r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 10 1 "));
 }
 
-TEST_CASE("Zobrist hashing", "[Zobrist_hasher]")
+TEST_CASE("Zobrist hashing", "[Zobrist_hash]")
 {
   static const std::string fen_string{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 1 1"};
   auto board = *Board::from_fen(fen_string);
 
-  Zobrist_hasher zh;
-  auto hash1 = zh.hash_from_position(board);
+  auto hash1 = Zobrist_hash(board);
 
   // Ensure that white to play yields a different hash
   static const std::string fen_string2{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 w kq f3 1 1"};
   auto board2 = *Board::from_fen(fen_string2);
-  auto hash2 = zh.hash_from_position(board2);
+  auto hash2 = Zobrist_hash(board2);
   REQUIRE(hash1 != hash2);
-  hash2 = zh.update_player_to_move(hash2);
+  hash2.update_player_to_move();
   REQUIRE(hash1 == hash2);
 
   // Ensure no en passant square yields a different hash
   static const std::string fen_string3{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq - 1 1"};
   auto board3 = *Board::from_fen(fen_string3);
-  auto hash3 = zh.hash_from_position(board3);
+  auto hash3 = Zobrist_hash(board3);
   REQUIRE(hash1 != hash3);
 
   // Ensure different castling rights yields a different hash
   static const std::string fen_string4{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kQ f3 1 1"};
   auto board4 = *Board::from_fen(fen_string4);
-  auto hash4 = zh.hash_from_position(board4);
+  auto hash4 = Zobrist_hash(board4);
   REQUIRE(hash1 != hash4);
   Castling_rights to_remove = board4.get_castling_rights();
   Castling_rights to_add = board.get_castling_rights();
-  hash4 = zh.update_castling_rights(to_remove, hash4);
-  hash4 = zh.update_castling_rights(to_add, hash4);
+  hash4.update_castling_rights(to_remove);
+  hash4.update_castling_rights(to_add);
   REQUIRE(hash1 == hash4);
 
   // Require that playing a move changes the hash
   auto move = board.move_from_algebraic("Rb8", board.get_active_color());
   REQUIRE(move.has_value());
-  auto hash1_updated = zh.update_with_move(Piece::rook, *move, hash1);
-  REQUIRE(hash1 != hash1_updated);
+  auto old_hash = hash1;
+  hash1.update_with_move(Piece::rook, *move);
+  REQUIRE(hash1 != old_hash);
 }

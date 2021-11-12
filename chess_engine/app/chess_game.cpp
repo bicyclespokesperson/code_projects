@@ -13,7 +13,7 @@
 #include "move_generator.h"
 #include "my_assert.h"
 #include "player.h"
-#include "zobrist_hasher.h"
+#include "zobrist_hash.h"
 
 void print_bitboard_with_squares(std::vector<std::string> const& squares)
 {

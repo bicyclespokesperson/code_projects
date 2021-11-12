@@ -1424,7 +1424,7 @@ auto piece_to_unicode_symbol(Color color, Piece piece)
 {
   if (color == Color::black)
   {
-    switch(piece)
+    switch (piece)
     {
       case Piece::pawn:
         return "♟︎";
@@ -1444,25 +1444,24 @@ auto piece_to_unicode_symbol(Color color, Piece piece)
     }
   }
 
-  switch(piece)
+  switch (piece)
   {
-      case Piece::pawn:
-        return "♙";
-      case Piece::knight:
-        return "♘";
-      case Piece::bishop:
-        return "♗";
-      case Piece::rook:
-        return "♖";
-      case Piece::queen:
-        return "♕";
-      case Piece::king:
-        return "♔";
-      default:
-        MY_ASSERT(false, "Invalid piece");
-        return "_";
+    case Piece::pawn:
+      return "♙";
+    case Piece::knight:
+      return "♘";
+    case Piece::bishop:
+      return "♗";
+    case Piece::rook:
+      return "♖";
+    case Piece::queen:
+      return "♕";
+    case Piece::king:
+      return "♔";
+    default:
+      MY_ASSERT(false, "Invalid piece");
+      return "_";
   }
-
 }
 
 std::ostream& operator<<(std::ostream& out, Board const& self)
@@ -1477,7 +1476,8 @@ std::ostream& operator<<(std::ostream& out, Board const& self)
       {
         auto location = Coordinates{j, i};
         auto piece = self.get_piece(location);
-        out << " " << ((piece == Piece::empty) ? "." : piece_to_unicode_symbol(self.get_piece_color(location), piece)) << " ";
+        out << " " << ((piece == Piece::empty) ? "." : piece_to_unicode_symbol(self.get_piece_color(location), piece))
+            << " ";
       }
       out << "\n\n";
     }

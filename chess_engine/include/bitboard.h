@@ -227,38 +227,34 @@ private:
 
 constexpr Bitboard::Iterator Bitboard::begin() const
 {
-  return {*this,
-                  [](Bitboard& b)
-                  {
-                    return b.bitscan_forward();
-                  }};
+  return {*this, [](Bitboard& b)
+          {
+            return b.bitscan_forward();
+          }};
 }
 
 constexpr Bitboard::Iterator Bitboard::end() const
 {
-  return {Bitboard{0},
-                  [](Bitboard& b)
-                  {
-                    return b.bitscan_forward();
-                  }};
+  return {Bitboard{0}, [](Bitboard& b)
+          {
+            return b.bitscan_forward();
+          }};
 }
 
 constexpr Bitboard::Iterator Bitboard::rbegin() const
 {
-  return {*this,
-                  [](Bitboard& b)
-                  {
-                    return b.bitscan_reverse();
-                  }};
+  return {*this, [](Bitboard& b)
+          {
+            return b.bitscan_reverse();
+          }};
 }
 
 constexpr Bitboard::Iterator Bitboard::rend() const
 {
-  return {Bitboard{0},
-                  [](Bitboard& b)
-                  {
-                    return b.bitscan_reverse();
-                  }};
+  return {Bitboard{0}, [](Bitboard& b)
+          {
+            return b.bitscan_reverse();
+          }};
 }
 
 std::ostream& operator<<(std::ostream& os, Bitboard const& self);

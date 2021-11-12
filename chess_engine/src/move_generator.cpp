@@ -66,28 +66,7 @@ constexpr int32_t get_west_capture_offset(Color color)
   return c_west_offsets[static_cast<int32_t>(color)];
 }
 
-} // namespace
-
-//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) Easiest way to initialize
-std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> Move_generator::m_ray_attacks = []
-{
-  return Move_generator::initialize_ray_attacks_();
-}();
-
-//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) Easiest way to initialize
-std::array<Bitboard, c_board_dimension_squared> Move_generator::m_knight_attacks = []
-{
-  return Move_generator::initialize_knight_attacks_();
-}();
-
-//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) Easiest way to initialize
-std::array<Bitboard, c_board_dimension_squared> Move_generator::m_king_attacks = []
-{
-  return Move_generator::initialize_king_attacks_();
-}();
-
-std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared>
-Move_generator::initialize_ray_attacks_()
+auto initialize_ray_attacks_() -> std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared>
 {
   std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
@@ -153,7 +132,7 @@ Move_generator::initialize_ray_attacks_()
   return result;
 } // initialize_ray_attacks
 
-std::array<Bitboard, c_board_dimension_squared> Move_generator::initialize_knight_attacks_()
+auto initialize_knight_attacks_() -> std::array<Bitboard, c_board_dimension_squared>
 {
   std::array<Bitboard, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
@@ -176,7 +155,7 @@ std::array<Bitboard, c_board_dimension_squared> Move_generator::initialize_knigh
   return result;
 }
 
-std::array<Bitboard, c_board_dimension_squared> Move_generator::initialize_king_attacks_()
+auto initialize_king_attacks_() -> std::array<Bitboard, c_board_dimension_squared>
 {
   std::array<Bitboard, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
@@ -184,7 +163,7 @@ std::array<Bitboard, c_board_dimension_squared> Move_generator::initialize_king_
     for (int8_t y{0}; y < c_board_dimension; ++y)
     {
       auto square_index = Coordinates{x, y}.square_index();
-      auto& bb = m_king_attacks[square_index];
+      auto& bb = result[square_index];
 
       for (int i = -1; i <= 1; ++i)
       {
@@ -201,6 +180,22 @@ std::array<Bitboard, c_board_dimension_squared> Move_generator::initialize_king_
 
   return result;
 }
+} // namespace
+
+const auto Move_generator::m_ray_attacks = []
+{
+  return initialize_ray_attacks_();
+}();
+
+const auto Move_generator::m_knight_attacks = []
+{
+  return initialize_knight_attacks_();
+}();
+
+const auto Move_generator::m_king_attacks = []
+{
+  return initialize_king_attacks_();
+}();
 
 Bitboard Move_generator::get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied)
 {

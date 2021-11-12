@@ -12,13 +12,13 @@ std::string move_to_string(Move m)
   return ss.str();
 }
 
-template<class T>
+template <class T>
 std::string format_with_commas(T value)
 {
-    std::stringstream ss;
-    ss.imbue(std::locale(""));
-    ss << std::fixed << std::setprecision(2) << value;
-    return ss.str();
+  std::stringstream ss;
+  ss.imbue(std::locale(""));
+  ss << std::fixed << std::setprecision(2) << value;
+  return ss.str();
 }
 
 } // namespace
@@ -106,7 +106,8 @@ std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, 
   auto nodes_searched = m_engine.previous_move_nodes_searched();
 
   out << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2)
-      << format_with_commas(elapsed_seconds.count()) << " seconds and searching " << format_with_commas(nodes_searched) << " nodes (" << format_with_commas(nodes_searched / elapsed_seconds.count()) << " nodes/sec)\n";
+      << format_with_commas(elapsed_seconds.count()) << " seconds and searching " << format_with_commas(nodes_searched)
+      << " nodes (" << format_with_commas(nodes_searched / elapsed_seconds.count()) << " nodes/sec)\n";
 
   return engine_move;
 }
