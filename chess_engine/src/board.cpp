@@ -407,7 +407,8 @@ std::optional<Piece> Board::try_move(Move m)
     return {};
   }
 
-  return move_no_verify(m, false);
+  constexpr static bool skip_check_detection{false};
+  return move_no_verify(m, skip_check_detection);
 }
 
 std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
@@ -675,6 +676,7 @@ void Board::reset()
   }
 
   m_rights = {true, true, true, true};
+  m_zhash = {*this};
 
   MY_ASSERT(validate_(), "Board is in an incorrect state");
 }
@@ -867,6 +869,12 @@ bool Board::validate_() const
         }
       }
     }
+  }
+
+  Zobrist_hash new_hash{*this};
+  if (new_hash != m_zhash)
+  {
+    return false;
   }
 
   return true;

@@ -11,11 +11,12 @@ using zhash_t = uint64_t;
 class Zobrist_hash
 {
 public:
+  Zobrist_hash() = default;
   Zobrist_hash(Board const& board);
   Zobrist_hash(Zobrist_hash const& other) = default;
-  Zobrist_hash(Zobrist_hash&& other) = delete;
+  Zobrist_hash(Zobrist_hash&& other) = default;
   Zobrist_hash& operator=(Zobrist_hash const& other) = default;
-  Zobrist_hash& operator=(Zobrist_hash&& other) = delete;
+  Zobrist_hash& operator=(Zobrist_hash&& other) = default;
 
   auto operator<=>(Zobrist_hash const& other) const = default;
 

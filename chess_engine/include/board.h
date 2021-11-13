@@ -4,6 +4,7 @@
 #include "bitboard.h"
 #include "coordinates.h"
 #include "move.h"
+#include "zobrist_hash.h"
 
 class Board
 {
@@ -181,6 +182,7 @@ private:
 
   std::array<Bitboard, static_cast<uint8_t>(Piece::_count)> m_bitboards;
   Bitboard m_en_passant_square{0};
+  Zobrist_hash m_zhash;
   Castling_rights m_rights;
   Color m_active_color{Color::white};
   uint8_t m_halfmove_clock{0};
