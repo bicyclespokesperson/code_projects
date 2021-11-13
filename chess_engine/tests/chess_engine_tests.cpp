@@ -291,7 +291,7 @@ TEST_CASE("Castling rights", "[board]")
   REQUIRE(board.try_move_algebraic("Nc6"));
 
   REQUIRE(!board.try_move_algebraic("O-O")); // Cannot castle kingside if the rook has already moved
-  REQUIRE(board.try_move_algebraic("a3")); // Cannot castle kingside if the rook has already moved
+  REQUIRE(board.try_move_algebraic("a3"));
 
   REQUIRE(!board.try_move_algebraic("O-O-O")); // Cannot castle queenside if the rook has already moved
 }

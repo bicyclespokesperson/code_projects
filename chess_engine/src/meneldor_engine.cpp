@@ -69,13 +69,12 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   return multiplier * (white_material - black_material);
 }
 
-int Meneldor_engine::quiesce_(Board const& /*board*/, Color /*color*/, int /*alpha*/, int /*beta*/) const
+int Meneldor_engine::quiesce_(Board const& board, Color color, int /*alpha*/, int /*beta*/) const
 {
-  MY_ASSERT(false, "Not implemented");
-  return 0;
+  return evaluate(board, color);
 }
 
-int Meneldor_engine::quiesce_min_(Board const& board, Color color, int alpha, int beta) const
+int Meneldor_engine::quiesce_min_(Board const& board, Color color, int /* alpha */, int /* beta */) const
 {
 #if 0
   ++m_visited_nodes;
@@ -108,7 +107,7 @@ int Meneldor_engine::quiesce_min_(Board const& board, Color color, int alpha, in
 #endif
 }
 
-int Meneldor_engine::quiesce_max_(Board const& board, Color color, int alpha, int beta) const
+int Meneldor_engine::quiesce_max_(Board const& board, Color color, int /* alpha */, int /* beta */) const
 {
 #if 0
   ++m_visited_nodes;
@@ -207,6 +206,7 @@ int Meneldor_engine::alpha_beta_min_(Board const& board, Color color, int alpha,
 
 int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, int depth_remaining)
 {
+  ++m_visited_nodes;
   std::string indents;
   for (int i{0}; i < 1 + (c_default_depth - depth_remaining); ++i)
   {
@@ -422,8 +422,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     //auto negative_inf = std::numeric_limits<int>::min() + 1;
 
     //auto const score = -negamax_(tmp_board, color, -positive_inf, -negative_inf, depth);
-    auto const score =
-      alpha_beta_min_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
+    auto const score = alpha_beta_min_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
     //std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
 
     if (score > best.second)

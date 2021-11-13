@@ -271,9 +271,6 @@ std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordi
   add_piece_(color, piece, m.to);
   remove_piece_(color, piece, m.from);
 
-  m_zhash.update_piece_location(color, piece, m.from);
-  m_zhash.update_piece_location(color, piece, m.to);
-
   return captured_piece;
 }
 
@@ -287,8 +284,6 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
 
   remove_piece_(color, piece, m.to);
   add_piece_(color, piece, m.from);
-  m_zhash.update_piece_location(color, piece, m.from);
-  m_zhash.update_piece_location(color, piece, m.to);
 
   if (captured_piece)
   {
@@ -337,8 +332,13 @@ bool Board::undo_move(Move m,
     add_piece_(color, Piece::pawn, m.from);
   }
 
+  m_zhash.update_castling_rights(m_rights);
   m_rights = rights;
+  m_zhash.update_castling_rights(m_rights);
+
+  m_zhash.update_en_passant_square(m_en_passant_square);
   m_en_passant_square = en_passant_square;
+  m_zhash.update_en_passant_square(m_en_passant_square);
 
   if (color == Color::black)
   {
@@ -354,6 +354,7 @@ bool Board::undo_move(Move m,
     --m_halfmove_clock;
   }
 
+  m_zhash.update_player_to_move();
   m_active_color = opposite_color(m_active_color);
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
 
@@ -377,6 +378,8 @@ bool Board::move_results_in_check_destructive(Move m)
 std::optional<Piece> Board::try_move(Move m)
 {
   auto const piece_to_move = get_piece(m.from);
+  MY_ASSERT(piece_to_move == m.piece, "Move has incorrect moving piece");
+
   if (piece_to_move == Piece::empty)
   {
     std::cerr << "Empty start square " << m.from << "\n";
@@ -412,6 +415,9 @@ std::optional<Piece> Board::try_move(Move m)
     return {};
   }
 
+  //auto victim = get_piece(m.to);
+  //MY_ASSERT(victim == m.victim, "Move has incorrect victim piece");
+
   constexpr static bool skip_check_detection{false};
   return move_no_verify(m, skip_check_detection);
 }
@@ -438,7 +444,6 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
   auto capture_result = Piece::empty;
   if (captured_piece)
   {
-    m_zhash.update_piece_location(opposite_color(color), captured_piece->second, captured_piece->first);
     capture_result = captured_piece->second;
   }
 
@@ -548,23 +553,23 @@ Move Board::find_castling_rook_move_(Coordinates king_destination) const
 {
   if (king_destination == Coordinates{2, 0})
   {
-    return {{0, 0}, {3, 0}};
+    return {{0, 0}, {3, 0}, Piece::rook, Piece::empty};
   }
   if (king_destination == Coordinates{6, 0})
   {
-    return {{7, 0}, {5, 0}};
+    return {{7, 0}, {5, 0}, Piece::rook, Piece::empty};
   }
   if (king_destination == Coordinates{2, 7})
   {
-    return {{0, 7}, {3, 7}};
+    return {{0, 7}, {3, 7}, Piece::rook, Piece::empty};
   }
   if (king_destination == Coordinates{6, 7})
   {
-    return {{7, 7}, {5, 7}};
+    return {{7, 7}, {5, 7}, Piece::rook, Piece::empty};
   }
 
   MY_ASSERT(false, "Invalid castling move");
-  return {{0, 0}, {0, 0}};
+  return {{0, 0}, {0, 0}, Piece::empty, Piece::empty};
 }
 
 bool Board::can_castle_to(Coordinates dest) const
@@ -843,14 +848,6 @@ bool Board::is_in_checkmate(Color color) const
   return Move_generator::generate_legal_moves(*this).empty();
 }
 
-void Board::remove_piece_(Color color, Piece piece, Coordinates to_remove)
-{
-  MY_ASSERT(m_bitboards[static_cast<uint8_t>(piece)].is_set(to_remove), "Cannot remove piece that is not present");
-
-  m_bitboards[static_cast<uint8_t>(color)].unset_square(to_remove);
-  m_bitboards[static_cast<uint8_t>(piece)].unset_square(to_remove);
-}
-
 void Board::add_piece_(Color color, Piece piece, Coordinates to_add)
 {
   MY_ASSERT(!m_bitboards[static_cast<uint8_t>(color)].is_set(to_add), "Cannot add piece that is already present");
@@ -858,6 +855,16 @@ void Board::add_piece_(Color color, Piece piece, Coordinates to_add)
 
   m_bitboards[static_cast<uint8_t>(color)].set_square(to_add);
   m_bitboards[static_cast<uint8_t>(piece)].set_square(to_add);
+  m_zhash.update_piece_location(color, piece, to_add);
+}
+
+void Board::remove_piece_(Color color, Piece piece, Coordinates to_remove)
+{
+  MY_ASSERT(m_bitboards[static_cast<uint8_t>(piece)].is_set(to_remove), "Cannot remove piece that is not present");
+
+  m_bitboards[static_cast<uint8_t>(color)].unset_square(to_remove);
+  m_bitboards[static_cast<uint8_t>(piece)].unset_square(to_remove);
+  m_zhash.update_piece_location(color, piece, to_remove);
 }
 
 bool Board::validate_() const
@@ -896,6 +903,7 @@ bool Board::validate_() const
   Zobrist_hash new_hash{*this};
   if (new_hash != m_zhash)
   {
+    std::cout << "Incorrect hash\n";
     return false;
   }
 
@@ -939,10 +947,13 @@ std::optional<Move> Board::move_from_uci(std::string move_str) const
   auto from = Coordinates::from_str(move_str);
   auto to = Coordinates::from_str({move_str.c_str() + 2, 2});
 
+
+
   if (from && to)
   {
-    // TODO: Check for castling and en passant
-    return Move{*from, *to, Move_type::normal, promotion_result};
+    auto moving_piece = get_piece(*from);
+    auto victim_piece = get_piece(*to);
+    return Move{*from, *to, moving_piece, victim_piece, promotion_result};
   }
 
   return {};
@@ -979,11 +990,11 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
   {
     if (color == Color::white)
     {
-      return Move{Coordinates{4, 0}, Coordinates{6, 0}, Move_type::kingside_castle, promotion_result};
+      return Move{Coordinates{4, 0}, Coordinates{6, 0}, Piece::king, Piece::empty};
     }
     else
     {
-      return Move{Coordinates{4, 7}, Coordinates{6, 7}, Move_type::kingside_castle, promotion_result};
+      return Move{Coordinates{4, 7}, Coordinates{6, 7}, Piece::king, Piece::empty};
     }
   }
 
@@ -991,11 +1002,11 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
   {
     if (color == Color::white)
     {
-      return Move{Coordinates{4, 0}, Coordinates{2, 0}, Move_type::queenside_castle, promotion_result};
+      return Move{Coordinates{4, 0}, Coordinates{2, 0},  Piece::king, Piece::empty};
     }
     else
     {
-      return Move{Coordinates{4, 7}, Coordinates{2, 7}, Move_type::queenside_castle, promotion_result};
+      return Move{Coordinates{4, 7}, Coordinates{2, 7},  Piece::king, Piece::empty};
     }
   }
 
@@ -1036,7 +1047,7 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
     // Exactly one piece can move to the target square
 
     // TODO: Check for en passent
-    return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
+    return Move{candidates.front(), *target_square, piece, get_piece(*target_square), promotion_result};
   }
 
   if (move_str.empty())
@@ -1061,7 +1072,7 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
     {
       // Exactly one piece can move to the target square
       // TODO: Check for en passent
-      return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
+      return Move{candidates.front(), *target_square, piece, get_piece(*target_square), promotion_result};
     }
   }
 
@@ -1087,7 +1098,7 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
       // TODO: Check for en passent
 
       // Exactly one piece can move to the target square
-      return Move{candidates.front(), *target_square, Move_type::normal, promotion_result};
+      return Move{candidates.front(), *target_square, piece, get_piece(*target_square), promotion_result};
     }
   }
 
