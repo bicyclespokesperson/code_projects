@@ -423,7 +423,7 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
     capture_location = en_passant_capture_location(color, m.to);
   }
 
-  auto captured_piece = perform_move_(m, capture_location);
+  auto const captured_piece = perform_move_(m, capture_location);
   if (!skip_check_detection && is_in_check(color))
   {
     unperform_move_(m, captured_piece);
@@ -435,7 +435,7 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
   // Move rook if the move was a castle
   if (piece_to_move == Piece::king && distance_between(m.from, m.to) == 2)
   {
-    auto rook_move = find_castling_rook_move_(m.to);
+    auto const rook_move = find_castling_rook_move_(m.to);
     perform_move_(rook_move, rook_move.to);
   }
 

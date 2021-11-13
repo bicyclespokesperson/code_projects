@@ -20,9 +20,14 @@ public:
 
   auto operator<=>(Zobrist_hash const& other) const = default;
 
+  // These functions are their own inverses. To keep the hash up to date, they should be called 
+  // with both the old and new values of a change in board state, to unset the old value and then
+  // set the new value.
   void update_en_passant_square(Bitboard ep_square);
   void update_castling_rights(Castling_rights rights);
-  void update_with_move(Piece piece, Color color, Move m);
+  void update_piece_location(Piece piece, Color color, Coordinates location);
+
+  // Should be called once when the player to move changes
   void update_player_to_move();
 
   zhash_t get_hash() const;
