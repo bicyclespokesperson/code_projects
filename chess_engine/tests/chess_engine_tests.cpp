@@ -567,8 +567,8 @@ TEST_CASE("Zobrist hashing", "[Zobrist_hash]")
     auto move = board.move_from_algebraic("Rb8", color);
     REQUIRE(move.has_value());
     auto old_hash = hash1;
-    hash1.update_piece_location(Piece::rook, color, move->from);
-    hash1.update_piece_location(Piece::rook, color, move->to);
+    hash1.update_piece_location(color, Piece::rook, move->from);
+    hash1.update_piece_location(color, Piece::rook, move->to);
     REQUIRE(hash1 != old_hash);
   }
 

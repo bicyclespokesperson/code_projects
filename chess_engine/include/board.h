@@ -158,6 +158,8 @@ public:
   // Returns true if color has enough material to win the game
   bool has_sufficient_material(Color color) const;
 
+  Zobrist_hash get_hash_code() const;
+
 private:
   /**
    * Private constructor that doesn't initialize pieces

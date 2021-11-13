@@ -91,7 +91,7 @@ void Zobrist_hash::update_castling_rights(Castling_rights rights)
   m_hash ^= m_random_numbers[c_castling_rights_offset + as_uint8];
 }
 
-void Zobrist_hash::update_piece_location(Piece piece, Color color, Coordinates location)
+void Zobrist_hash::update_piece_location(Color color, Piece piece, Coordinates location)
 {
   // This array can be indexed by color
   constexpr static std::array piece_offsets{c_black_pieces_offset, c_white_pieces_offset};

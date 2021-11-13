@@ -271,6 +271,9 @@ std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordi
   add_piece_(color, piece, m.to);
   remove_piece_(color, piece, m.from);
 
+  m_zhash.update_piece_location(color, piece, m.from);
+  m_zhash.update_piece_location(color, piece, m.to);
+
   return captured_piece;
 }
 
@@ -284,6 +287,8 @@ void Board::unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>>
 
   remove_piece_(color, piece, m.to);
   add_piece_(color, piece, m.from);
+  m_zhash.update_piece_location(color, piece, m.from);
+  m_zhash.update_piece_location(color, piece, m.to);
 
   if (captured_piece)
   {
@@ -430,7 +435,16 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
     return {};
   }
 
+  auto capture_result = Piece::empty;
+  if (captured_piece)
+  {
+    m_zhash.update_piece_location(opposite_color(color), captured_piece->second, captured_piece->first);
+    capture_result = captured_piece->second;
+  }
+
+  m_zhash.update_castling_rights(m_rights);
   update_castling_rights_(color, piece_to_move, m);
+  m_zhash.update_castling_rights(m_rights);
 
   // Move rook if the move was a castle
   if (piece_to_move == Piece::king && distance_between(m.from, m.to) == 2)
@@ -447,12 +461,14 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
   }
 
   // Set en passant square if applicable
+  m_zhash.update_en_passant_square(m_en_passant_square);
   m_en_passant_square.unset_all();
   if (piece_to_move == Piece::pawn && distance_between(m.from, m.to) == 2)
   {
     int const offset = (color == Color::white) ? -1 : 1;
     m_en_passant_square.set_square(Coordinates{m.to.x(), m.to.y() + offset});
   }
+  m_zhash.update_en_passant_square(m_en_passant_square);
 
   if (color == Color::black)
   {
@@ -468,9 +484,10 @@ std::optional<Piece> Board::move_no_verify(Move m, bool skip_check_detection)
   }
 
   m_active_color = opposite_color(m_active_color);
+  m_zhash.update_player_to_move();
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
-  return {captured_piece.has_value() ? captured_piece->second : Piece::empty};
+  return capture_result;
 }
 
 std::optional<Piece> Board::try_move_algebraic(std::string_view move_str)
@@ -520,6 +537,11 @@ bool Board::has_sufficient_material(Color color) const
   }
 
   return false;
+}
+
+Zobrist_hash Board::get_hash_code() const
+{
+  return m_zhash;
 }
 
 Move Board::find_castling_rook_move_(Coordinates king_destination) const
@@ -1315,6 +1337,7 @@ std::optional<Board> Board::from_fen(std::string_view fen)
     board->m_fullmove_count = static_cast<uint8_t>(std::stoi(fen_str.substr(index), &last_char));
   }
 
+  board->m_zhash = {*board};
   MY_ASSERT(board->validate_(), "Invalid board created during fen parsing");
 
   return board;
