@@ -77,7 +77,7 @@ bool is_drawn(Board const& board, Threefold_repetition_detector const& detector)
     return true;
   }
 
-  if (board.get_halfmove_clock() >= 50)
+  if (board.get_halfmove_clock() >= 100)
   {
     return true;
   }

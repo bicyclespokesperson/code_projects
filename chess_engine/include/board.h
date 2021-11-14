@@ -76,13 +76,13 @@ public:
    * Returns an empty optional for an illegal move, Piece::empty if the move succeeded
    * but no piece was captured, and the piece if a piece was captured.
    */
-  std::optional<Piece> try_move(Move m);
+  bool try_move(Move m);
 
   /**
    * Performs a move without validating the move
    * @param skip_check_detection If this is false, the method will make sure the king is not in check
    */
-  std::optional<Piece> move_no_verify(Move m, bool skip_check_detection = true);
+  bool move_no_verify(Move m, bool skip_check_detection = true);
 
   /**
    * A fast try move method that will return true if the move results in check.
@@ -94,8 +94,7 @@ public:
   /**
    * Captured piece can be Piece::empty to signify no capture was performed
    */
-  bool
-  undo_move(Move m, Piece captured_piece, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock);
+  bool undo_move(Move m, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock);
 
   /**
    * Attempt to make a move encoded in uci format ("e2 e4")
@@ -103,7 +102,7 @@ public:
    * Returns an empty optional for an illegal move or invalid string, Piece::empty if the move succeeded
    * but no piece was captured, and the piece if a piece was captured.
    */
-  std::optional<Piece> try_move_uci(std::string_view move_str);
+  bool try_move_uci(std::string_view move_str);
 
   /**
    * Attempt to make a move encoded in algebraic notation ("Bxc3")
@@ -111,7 +110,7 @@ public:
    * Returns an empty optional for an illegal move or invalid string, Piece::empty if the move succeeded
    * but no piece was captured, and the piece if a piece was captured.
    */
-  std::optional<Piece> try_move_algebraic(std::string_view move_str);
+  bool try_move_algebraic(std::string_view move_str);
 
   std::optional<Move> move_from_algebraic(std::string_view move_param, Color color) const;
 
@@ -176,7 +175,7 @@ private:
   std::string castling_rights_to_fen_() const;
 
   std::optional<std::pair<Coordinates, Piece>> perform_move_(Move m, Coordinates capture_location);
-  void unperform_move_(Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
+  void unperform_move_(Color color, Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece);
   Move find_castling_rook_move_(Coordinates king_destination) const;
 
   void add_piece_(Color color, Piece piece, Coordinates to_add);

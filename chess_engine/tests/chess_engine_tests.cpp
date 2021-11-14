@@ -442,9 +442,9 @@ TEST_CASE("Undo move", "[board]")
   auto castling_rights = board->get_castling_rights();
   auto halfmove_clock = board->get_halfmove_clock();
   auto m = board->move_from_algebraic("axb3", color);
-  auto captured_piece = board->try_move(*m);
+  REQUIRE(board->try_move(*m));
 
-  board->undo_move(*m, *captured_piece, en_passant_square, castling_rights, halfmove_clock);
+  board->undo_move(*m, en_passant_square, castling_rights, halfmove_clock);
 
   REQUIRE(board->to_fen() == fen_string);
 }
@@ -460,9 +460,9 @@ TEST_CASE("Undo move 2", "[board]")
   auto halfmove_clock = board->get_halfmove_clock();
 
   auto m = board->move_from_uci("e1c1");
-  auto captured_piece = board->move_no_verify(*m);
+  REQUIRE(board->move_no_verify(*m));
 
-  board->undo_move(*m, *captured_piece, en_passant_square, castling_rights, halfmove_clock);
+  board->undo_move(*m, en_passant_square, castling_rights, halfmove_clock);
 
   REQUIRE(board->to_fen() == fen_string);
 }

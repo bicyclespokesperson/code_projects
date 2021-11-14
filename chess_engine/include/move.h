@@ -19,13 +19,16 @@ struct Move
     promotion(promotion_piece),
     type(move_type)
   {
-    MY_ASSERT(!(static_cast<uint8_t>(moving_piece) & 0xf0), "Ensure we aren't throwing away any information about the piece");
-    MY_ASSERT(!(static_cast<uint8_t>(victim_piece) & 0xf0), "Ensure we aren't throwing away any information about the piece");
-    MY_ASSERT(!(static_cast<uint8_t>(promotion_piece) & 0xf0), "Ensure we aren't throwing away any information about the piece");
+    MY_ASSERT(!(static_cast<uint8_t>(moving_piece) & 0xf0),
+              "Ensure we aren't throwing away any information about the piece");
+    MY_ASSERT(!(static_cast<uint8_t>(victim_piece) & 0xf0),
+              "Ensure we aren't throwing away any information about the piece");
+    MY_ASSERT(!(static_cast<uint8_t>(promotion_piece) & 0xf0),
+              "Ensure we aren't throwing away any information about the piece");
   }
 
   Coordinates from; // 8
-  Coordinates to;   // 8
+  Coordinates to; // 8
   Piece piece : 4;
 
   // Piece::empty represents no piece will be captured by this move

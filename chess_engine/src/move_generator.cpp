@@ -427,7 +427,8 @@ void Move_generator::generate_piece_moves(Board const& board, Color color, std::
       }
       for (auto end_location : possible_attacks)
       {
-        moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], board.get_piece(Coordinates{end_location}));
+        moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i],
+                           board.get_piece(Coordinates{end_location}));
       }
     }
   }
@@ -449,7 +450,8 @@ void Move_generator::generate_piece_attacks(Board const& board, Color color, std
       attacks &= board.get_all(opposite_color(color)); // Throw out any moves that are not captures
       for (auto end_location : attacks)
       {
-        moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], board.get_piece(Coordinates{end_location}));
+        moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i],
+                           board.get_piece(Coordinates{end_location}));
       }
     }
   }
@@ -514,14 +516,16 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
   for (auto location :
        pawn_short_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
-    moves.emplace_back(Coordinates{location + offset_from_end_square}, Coordinates{location}, Piece::pawn, Piece::empty);
+    moves.emplace_back(Coordinates{location + offset_from_end_square}, Coordinates{location}, Piece::pawn,
+                       Piece::empty);
     MY_ASSERT(moves.back().to.y() != 0 && moves.back().to.y() != 7, "Promotions should be handled separately");
   }
 
   // Handle long advances
   for (auto location : pawn_long_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
-    moves.emplace_back(Coordinates{location + 2 * offset_from_end_square}, Coordinates{location}, Piece::pawn, Piece::empty);
+    moves.emplace_back(Coordinates{location + 2 * offset_from_end_square}, Coordinates{location}, Piece::pawn,
+                       Piece::empty);
   }
 
   // Handle promotions
@@ -540,14 +544,16 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
   for (auto location :
        pawn_east_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
-    moves.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Piece::pawn, Piece::pawn, Piece::empty, Move_type::en_passant);
+    moves.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
+                       Piece::empty, Move_type::en_passant);
   }
 
   auto const west_offset = get_west_capture_offset(color);
   for (auto location :
        pawn_west_attacks_no_promote(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
-    moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Piece::pawn, Piece::pawn, Piece::empty, Move_type::en_passant);
+    moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
+                       Piece::empty, Move_type::en_passant);
   }
 
   generate_pawn_attacks(board, color, moves);
@@ -644,8 +650,8 @@ uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_can
   for (auto m : moves)
   {
     auto tmp_board = Board{board};
-    [[maybe_unused]] auto captured_piece = tmp_board.move_no_verify(m);
-    MY_ASSERT(captured_piece.has_value(), "Invalid move");
+    [[maybe_unused]] auto succeeded = tmp_board.move_no_verify(m);
+    MY_ASSERT(succeeded, "Invalid move");
 
     if (!tmp_board.is_in_check(color))
     {
