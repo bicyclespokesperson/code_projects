@@ -5,6 +5,7 @@
 #include "board.h"
 #include "chess_types.h"
 #include "coordinates.h"
+#include "move_orderer.h"
 #include "senjo/ChessEngine.h"
 
 class Meneldor_engine : public senjo::ChessEngine
@@ -95,7 +96,9 @@ private:
 
   bool m_is_debug{true};
   std::atomic_flag m_stop_requested{false};
+  std::atomic_flag m_is_searching{false};
   Board m_board;
+  Move_orderer m_orderer{};
 
   mutable uint32_t m_visited_nodes{0};
 };

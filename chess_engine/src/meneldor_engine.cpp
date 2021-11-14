@@ -1,7 +1,7 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 
-constexpr int c_default_depth{4};
+constexpr int c_default_depth{5};
 
 int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
 {
@@ -220,7 +220,9 @@ int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, in
     return result;
   }
 
-  for (auto move : Move_generator::generate_legal_moves(board))
+  auto moves = Move_generator::generate_legal_moves(board);
+  m_orderer.sort_moves(moves, board);
+  for (auto move : moves)
   {
     Board tmp_board{board};
     tmp_board.move_no_verify(move);
@@ -267,13 +269,12 @@ std::string Meneldor_engine::getCountryName() const
 
 std::list<senjo::EngineOption> Meneldor_engine::getOptions() const
 {
-  //MY_ASSERT(false, "Not implemented");
+  // This engine does not currently advertise any options / settings
   return {};
 }
 
 bool Meneldor_engine::setEngineOption(const std::string& /* optionName */, const std::string& /* optionValue */)
 {
-  //MY_ASSERT(false, "Not implemented");
   return false;
 }
 
@@ -325,29 +326,29 @@ bool Meneldor_engine::whiteToMove() const
 
 void Meneldor_engine::clearSearchData()
 {
-  MY_ASSERT(false, "Not implemented");
+  // No data persists between searches currently
 }
 
 void Meneldor_engine::ponderHit()
 {
-  MY_ASSERT(false, "Not implemented");
+  // Notifies the engine that the ponder move was played
 }
 
 bool Meneldor_engine::isRegistered() const
 {
-  MY_ASSERT(false, "Not implemented");
-  return false;
+  // This engine does not need to be registered to function
+  return true;
 }
 
 void Meneldor_engine::registerLater()
 {
-  MY_ASSERT(false, "Not implemented");
+  // This engine does not need to be registered to function
 }
 
 bool Meneldor_engine::doRegistration(const std::string& /* name */, const std::string& /* code */)
 {
-  MY_ASSERT(false, "Not implemented");
-  return false;
+  // This engine does not need to be registered to function
+  return true;
 }
 
 bool Meneldor_engine::isCopyProtected() const
@@ -372,8 +373,7 @@ bool Meneldor_engine::isDebugOn() const
 
 bool Meneldor_engine::isSearching()
 {
-  MY_ASSERT(false, "Not implemented");
-  return false;
+  return m_is_searching.test();
 }
 
 void Meneldor_engine::stopSearching()
@@ -388,7 +388,8 @@ bool Meneldor_engine::stopRequested() const
 
 void Meneldor_engine::waitForSearchFinish()
 {
-  MY_ASSERT(false, "Not implemented");
+  constexpr bool old_value{true};
+  m_is_searching.wait(old_value);
 }
 
 uint64_t Meneldor_engine::perft(const int depth)
@@ -401,10 +402,12 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 {
   m_visited_nodes = 0;
   m_stop_requested.clear();
+  m_is_searching.test_and_set();
 
   auto const color = m_board.get_active_color();
-  auto const legal_moves = Move_generator::generate_legal_moves(m_board);
+  auto legal_moves = Move_generator::generate_legal_moves(m_board);
   MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
+  m_orderer.sort_moves(legal_moves, m_board);
 
   const int depth = (params.depth > 0) ? params.depth : c_default_depth;
 
@@ -418,13 +421,12 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     //auto const score = alpha_beta_max_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
 
     // Stay one away from the limits so negating the values doesn't cause problems
-    //auto positive_inf = std::numeric_limits<int>::max() - 1;
-    //auto negative_inf = std::numeric_limits<int>::min() + 1;
+    auto positive_inf = std::numeric_limits<int>::max() - 1;
+    auto negative_inf = std::numeric_limits<int>::min() + 1;
+    auto const score = -negamax_(tmp_board, color, -positive_inf, -negative_inf, depth);
 
-    //auto const score = -negamax_(tmp_board, color, -positive_inf, -negative_inf, depth);
-    auto const score =
-      alpha_beta_min_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
-    //std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
+    //auto const score = alpha_beta_min_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
+    std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
 
     if (score > best.second)
     {
@@ -439,13 +441,21 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   std::stringstream ss;
   ss << best.first;
+  m_is_searching.clear();
   return ss.str();
 }
 
 senjo::SearchStats Meneldor_engine::getSearchStats() const
 {
-  MY_ASSERT(false, "Not implemented");
-  return {};
+  senjo::SearchStats result;
+
+  result.depth = c_default_depth;
+  result.seldepth = c_default_depth;
+  result.nodes = m_visited_nodes;
+  result.qnodes = 0; // TODO: Update once engine supports quiescence searching
+  result.msecs = 0; // TODO: Update once engine supports time
+
+  return result;
 }
 
 uint32_t Meneldor_engine::previous_move_nodes_searched() const
