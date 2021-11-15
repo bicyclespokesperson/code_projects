@@ -6,6 +6,12 @@
 
 struct Move
 {
+  constexpr Move()
+  : from({0,0}),
+    to({0,0})
+  {
+  }
+
   constexpr Move(Coordinates from_coord,
                  Coordinates to_coord,
                  Piece moving_piece,
@@ -29,12 +35,12 @@ struct Move
 
   Coordinates from; // 8
   Coordinates to; // 8
-  Piece piece : 4;
+  Piece piece : 4 {Piece::empty};
 
   // Piece::empty represents no piece will be captured by this move
-  Piece victim : 4;
-  Piece promotion : 4;
-  Move_type type : 4;
+  Piece victim : 4 {Piece::empty};
+  Piece promotion : 4 {Piece::empty};
+  Move_type type : 4 {Move_type::null};
 };
 
 constexpr void test_fn()

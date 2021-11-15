@@ -29,8 +29,7 @@ enum class Move_type : uint8_t
 {
   normal = 0,
   en_passant,
-  kingside_castle, //TODO: Are these useful for anything? // Could I pack en passant in somewhere else if only two flags are needed?
-  queenside_castle,
+  null,
   _count,
 };
 
