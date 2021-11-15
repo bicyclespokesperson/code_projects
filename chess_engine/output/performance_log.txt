@@ -110,6 +110,7 @@ For position: 8/6p1/k1P2p1p/7K/8/8/8/8 w - - 0 1
 For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
   Engine found c7c8n after thinking for 0.18 seconds and searching 127,654 nodes (693,417.49 nodes/sec)
 
+// Combine checkmate and stalemate detection
 Test run starting: 11/15/2021 at 07:25:24
 For position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
   Engine found a2a3 after thinking for 0.35 seconds and searching 754,343 nodes (2,149,027.39 nodes/sec)
@@ -125,3 +126,20 @@ For position: 8/6p1/k1P2p1p/7K/8/8/8/8 w - - 0 1
   Engine found h5g6 after thinking for 0.00 seconds and searching 5,245 nodes (2,605,563.84 nodes/sec)
 For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
   Engine found c7c8n after thinking for 0.06 seconds and searching 127,654 nodes (2,276,324.47 nodes/sec)
+
+// Implement mvv/lva move ordering
+Test run starting: 11/15/2021 at 08:00:52
+For position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+  Engine found a2a3 after thinking for 0.30 seconds and searching 539,702 nodes (1,810,066.17 nodes/sec)
+For position: rnbqkbnr/pppp4/7p/8/2B1PppP/8/PPPP2P1/RNBQK2R w KQ - 2 8
+  Engine found d1g4 after thinking for 0.70 seconds and searching 1,108,045 nodes (1,593,057.83 nodes/sec)
+For position: rn3rk1/pp2bp1p/6pQ/q2pPb2/2pP4/2P2N2/P1P1B1PP/R1B1K2R w KQ - 4 13
+  Engine found e1d2 after thinking for 0.99 seconds and searching 1,402,737 nodes (1,418,429.08 nodes/sec)
+For position: r1bq1rk1/p4ppp/1pnbpn2/2ppN3/3P4/2PBP1B1/PP1N1PPP/R2QK2R b KQ - 1 9
+  Engine found d6e5 after thinking for 1.56 seconds and searching 3,097,084 nodes (1,980,168.17 nodes/sec)
+For position: 5q2/n2P1k2/2b5/8/8/3N4/4BK2/6Q1 w - - 0 1
+  Engine found f2e1 after thinking for 0.48 seconds and searching 812,722 nodes (1,700,187.65 nodes/sec)
+For position: 8/6p1/k1P2p1p/7K/8/8/8/8 w - - 0 1
+  Engine found h5g6 after thinking for 0.00 seconds and searching 4,654 nodes (2,636,827.20 nodes/sec)
+For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
+  Engine found c7c8n after thinking for 0.05 seconds and searching 127,653 nodes (2,573,441.66 nodes/sec)
