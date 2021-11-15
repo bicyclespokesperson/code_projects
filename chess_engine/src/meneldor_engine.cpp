@@ -426,7 +426,10 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     auto const score = -negamax_(tmp_board, color, -positive_inf, -negative_inf, depth);
 
     //auto const score = alpha_beta_min_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
-    std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
+    if (m_is_debug)
+    {
+      std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";
+    }
 
     if (score > best.second)
     {

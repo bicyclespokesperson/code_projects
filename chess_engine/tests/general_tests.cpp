@@ -5,6 +5,7 @@
 #include "board.h"
 #include "meneldor_engine.h"
 #include "move_generator.h"
+#include "utils.h"
 #include "zobrist_hash.h"
 
 namespace
@@ -588,3 +589,4 @@ TEST_CASE("Zobrist hashing", "[Zobrist_hash]")
     REQUIRE(hash1 != hash2);
   }
 }
+

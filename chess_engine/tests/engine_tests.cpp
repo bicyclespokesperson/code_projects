@@ -1,0 +1,97 @@
+#include <catch2/catch.hpp>
+
+#include "meneldor_engine.h"
+#include "utils.h"
+
+namespace
+{
+auto engine_stats_from_position(std::string_view fen)
+{
+  static std::string const c_performance_log_filename{"./output/performance_log.txt"};
+  std::ofstream outfile{c_performance_log_filename, std::ios_base::app};
+  MY_ASSERT(outfile.good(), "Outfile could not be opened");
+
+  static bool first_call{true};
+  if (first_call)
+  {
+    auto t = std::time(nullptr);
+    auto current_time = std::localtime(&t);
+
+    outfile << "\nTest run starting: " << std::put_time(current_time, "%m/%d/%Y at %H:%M:%S") << "\n";
+    first_call = false;
+  }
+
+  Meneldor_engine engine;
+  engine.setDebug(false);
+  engine.initialize();
+  engine.setPosition(std::string{fen});
+  
+  senjo::GoParams params;
+  params.depth = 0; // ignored for now
+  params.nodes = 0; // ignored for now
+
+  auto const start = std::chrono::system_clock::now();
+  auto const engine_move = engine.go(params, nullptr);
+  auto const end = std::chrono::system_clock::now();
+  std::chrono::duration<double> const elapsed_seconds = end - start;
+  auto search_stats = engine.getSearchStats();
+
+
+  std::stringstream out;
+
+  out << "For position: " << fen << "\n  Engine found " << engine_move << " after thinking for " << std::fixed << std::setprecision(2)
+      << format_with_commas(elapsed_seconds.count()) << " seconds and searching " << format_with_commas(search_stats.nodes)
+      << " nodes (" << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n";
+
+  std::cout << out.str();
+  outfile << out.str();
+}
+
+} // namespace
+
+TEST_CASE("Search_opening", "[.Meneldor_engine]")
+{
+  std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  engine_stats_from_position(fen);
+}
+
+TEST_CASE("Search_mid1", "[.Meneldor_engine]")
+{
+  // King's gambit accepted line
+  std::string fen = "rnbqkbnr/pppp4/7p/8/2B1PppP/8/PPPP2P1/RNBQK2R w KQ - 2 8";
+  engine_stats_from_position(fen);
+}
+
+TEST_CASE("Search_mid2", "[.Meneldor_engine]")
+{
+  // Vienna gambit main line
+  std::string fen = "rn3rk1/pp2bp1p/6pQ/q2pPb2/2pP4/2P2N2/P1P1B1PP/R1B1K2R w KQ - 4 13";
+  engine_stats_from_position(fen);
+}
+
+TEST_CASE("Search_mid3", "[.Meneldor_engine]")
+{
+  // London main line
+  std::string fen = "r1bq1rk1/p4ppp/1pnbpn2/2ppN3/3P4/2PBP1B1/PP1N1PPP/R2QK2R b KQ - 1 9";
+  engine_stats_from_position(fen);
+}
+
+TEST_CASE("Search_end1", "[.Meneldor_engine]")
+{
+  std::string fen = "5q2/n2P1k2/2b5/8/8/3N4/4BK2/6Q1 w - - 0 1";
+  engine_stats_from_position(fen);
+}
+
+TEST_CASE("Search_end2", "[.Meneldor_engine]")
+{
+  std::string fen = "8/6p1/k1P2p1p/7K/8/8/8/8 w - - 0 1";
+  engine_stats_from_position(fen);
+}
+
+TEST_CASE("Search_end3", "[.Meneldor_engine]")
+{
+  // Knight underpromotion 
+  std::string fen = "8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1";
+  engine_stats_from_position(fen);
+}
+
