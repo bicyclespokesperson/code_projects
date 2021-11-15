@@ -14,7 +14,8 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   constexpr static std::array pieces{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
   static_assert(piece_values.size() == pieces.size());
 
-  //TODO: Optimize these to make fewer total calls to Move_generator
+  //TODO: Skipping these makes searching 6x faster. Optimize somehow, maybe
+  //      by caching get_attacked_squares or something like that
   if (board.get_active_color() == Color::white)
   {
     if (board.is_in_checkmate(Color::white))
