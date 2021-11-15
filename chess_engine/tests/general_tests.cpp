@@ -579,4 +579,3 @@ TEST_CASE("Zobrist hashing", "[Zobrist_hash]")
     REQUIRE(hash1 != hash2);
   }
 }
-

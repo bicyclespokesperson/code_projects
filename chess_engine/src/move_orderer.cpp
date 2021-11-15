@@ -3,7 +3,7 @@
 void Move_orderer::sort_moves(std::span<Move> moves, Board const& /* board */) const
 {
   // Sort by (victim value) - (attacker value)
-  // This isn't quite MVV/LVA; it may be worth implementing that at some point. 
+  // This isn't quite MVV/LVA; it may be worth implementing that at some point.
   // This one penalizes any move that isn't a capture quite a bit, and prioritizes moving lower value pieces
   std::sort(moves.begin(), moves.end(),
             [](Move m1, Move m2)

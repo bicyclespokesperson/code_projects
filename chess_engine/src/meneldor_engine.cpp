@@ -1,17 +1,17 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 
-namespace {
+namespace
+{
 constexpr int c_default_depth{5}; //TODO: This should be a property on the engine
 constexpr int positive_inf = std::numeric_limits<int>::max();
 constexpr int negative_inf = std::numeric_limits<int>::min() + 1;
 static_assert(positive_inf == -negative_inf, "Values should be inverses of each other");
-}
+} // namespace
 
 // Returns a number that is positive if the side to move is winning, and negative if losing
 int Meneldor_engine::evaluate(Board const& board) const
 {
-
   // Case:
   //  White to play
   //    white is winning +
@@ -29,10 +29,11 @@ int Meneldor_engine::evaluate(Board const& board) const
 
   //TODO: Skipping these makes searching 6x faster. Optimize somehow, maybe
   //      by caching get_attacked_squares or something like that
-  auto const state= board.calc_game_state();
+  auto const state = board.calc_game_state();
   if (state == Game_state::white_victory || state == Game_state::black_victory)
   {
-    return negative_inf + c_default_depth; // Add depth so the search function can return a slightly higher value if it finds an earlier mate
+    return negative_inf +
+           c_default_depth; // Add depth so the search function can return a slightly higher value if it finds an earlier mate
   }
   if (state == Game_state::draw)
   {

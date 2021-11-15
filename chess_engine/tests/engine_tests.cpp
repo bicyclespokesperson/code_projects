@@ -25,7 +25,7 @@ auto engine_stats_from_position(std::string_view fen)
   engine.setDebug(false);
   engine.initialize();
   engine.setPosition(std::string{fen});
-  
+
   senjo::GoParams params;
   params.depth = 0; // ignored for now
   params.nodes = 0; // ignored for now
@@ -36,12 +36,12 @@ auto engine_stats_from_position(std::string_view fen)
   std::chrono::duration<double> const elapsed_seconds = end - start;
   auto search_stats = engine.getSearchStats();
 
-
   std::stringstream out;
 
-  out << "For position: " << fen << "\n  Engine found " << engine_move << " after thinking for " << std::fixed << std::setprecision(2)
-      << format_with_commas(elapsed_seconds.count()) << " seconds and searching " << format_with_commas(search_stats.nodes)
-      << " nodes (" << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n";
+  out << "For position: " << fen << "\n  Engine found " << engine_move << " after thinking for " << std::fixed
+      << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
+      << format_with_commas(search_stats.nodes) << " nodes ("
+      << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n";
 
   std::cout << out.str();
   outfile << out.str();
@@ -102,7 +102,7 @@ TEST_CASE("Search_end2", "[.Meneldor_engine]")
 
 TEST_CASE("Search_end3", "[.Meneldor_engine]")
 {
-  // Knight underpromotion 
+  // Knight underpromotion
   std::string fen = "8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1";
   engine_stats_from_position(fen);
 }
@@ -122,5 +122,3 @@ TEST_CASE("Search_mate1", "[Meneldor_engine]")
   auto best_move = engine.go(params);
   REQUIRE(best_move == "f3g4");
 }
-
-

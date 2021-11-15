@@ -639,7 +639,6 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
 // Faster than generating all moves and checking if the list is empty
 bool Move_generator::has_any_legal_moves(Board const& board)
 {
-
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
   constexpr static std::array piece_types{Piece::king, Piece::queen, Piece::knight, Piece::bishop, Piece::rook};
   constexpr static std::array piece_move_functions{&Move_generator::king_attacks, &Move_generator::queen_attacks,
@@ -659,20 +658,21 @@ bool Move_generator::has_any_legal_moves(Board const& board)
 
       for (auto end_location : possible_moves)
       {
-         tmp_board = board;
-         if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], Piece::empty}))
-         {
-           return true;
-         }
+        tmp_board = board;
+        if (!tmp_board.move_results_in_check_destructive(
+              {Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], Piece::empty}))
+        {
+          return true;
+        }
       }
 
       for (auto end_location : possible_attacks)
       {
-         if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location}, piece_types[i],
-                           board.get_piece(Coordinates{end_location})}))
-         {
-           return true;
-         }
+        if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location},
+                                                          piece_types[i], board.get_piece(Coordinates{end_location})}))
+        {
+          return true;
+        }
       }
     }
   }
@@ -681,7 +681,8 @@ bool Move_generator::has_any_legal_moves(Board const& board)
   pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
 
   generate_pawn_moves(board, color, pseudo_legal_moves);
-  return std::any_of(pseudo_legal_moves.cbegin(), pseudo_legal_moves.cend(), [&](auto m)
+  return std::any_of(pseudo_legal_moves.cbegin(), pseudo_legal_moves.cend(),
+                     [&](auto m)
                      {
                        tmp_board = board;
                        return !tmp_board.move_results_in_check_destructive(m);

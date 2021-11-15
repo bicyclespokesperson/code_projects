@@ -808,7 +808,7 @@ Game_state Board::calc_game_state() const
   auto const color = get_active_color();
 
   //TODO: Should insufficient material, repetition, and 50 move rule be here as well?
-  
+
   if (Move_generator::has_any_legal_moves(*this))
   {
     return Game_state::in_progress;
