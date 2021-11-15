@@ -1,16 +1,28 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 
+namespace {
 constexpr int c_default_depth{5};
+constexpr int positive_inf = std::numeric_limits<int>::max() - 1;
+constexpr int negative_inf = std::numeric_limits<int>::min() + 1;
+}
 
-int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
+// Returns a number that is positive if the side to move is winning, and negative if losing
+int Meneldor_engine::evaluate(Board const& board) const
 {
-  //color = Color::black;
+
+  // Case:
+  //  White to play
+  //    white is winning +
+  //    white is losing -
+  //  Black to play
+  //    black is winning +
+  //    black is losing -
+
   auto const multiplier = (board.get_active_color() == Color::white) ? 1 : -1;
-  //auto const multiplier = 1;
 
   // These arrays can be iterated in parallel
-  constexpr static std::array piece_values{1, 3, 3, 5, 9, 10};
+  constexpr static std::array piece_values{100, 300, 300, 500, 900, 1000};
   constexpr static std::array pieces{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
   static_assert(piece_values.size() == pieces.size());
 
@@ -20,7 +32,7 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   {
     if (board.is_in_checkmate(Color::white))
     {
-      return multiplier * (std::numeric_limits<int>::min() + 1);
+      return multiplier * negative_inf;
     }
     if (board.is_in_stalemate(Color::white))
     {
@@ -32,7 +44,7 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   {
     if (board.is_in_checkmate(Color::black))
     {
-      return multiplier * (std::numeric_limits<int>::max() - 1);
+      return multiplier * positive_inf; // Bug here? Maybe it should be negative inf for both colors?
     }
     if (board.is_in_stalemate(Color::black))
     {
@@ -66,136 +78,12 @@ int Meneldor_engine::evaluate(Board const& board, Color /* color */) const
   auto const white_material =
     std::inner_product(white_piece_counts.cbegin(), white_piece_counts.cend(), piece_values.cbegin(), 0);
 
-  //std::cout << "                             eval returning: " << multiplier * (white_material - black_material) << "\n";
   return multiplier * (white_material - black_material);
 }
 
-int Meneldor_engine::quiesce_(Board const& board, Color color, int /*alpha*/, int /*beta*/) const
+int Meneldor_engine::quiesce_(Board const& board, int /*alpha*/, int /*beta*/) const
 {
-  return evaluate(board, color);
-}
-
-int Meneldor_engine::quiesce_min_(Board const& board, Color color, int /* alpha */, int /* beta */) const
-{
-#if 0
-  ++m_visited_nodes;
-  //auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
-
-  auto const attacks = Move_generator::generate_legal_attack_moves(board);
-  if (attacks.empty())
-  {
-    return evaluate(board, color);
-  }
-  for (auto move : attacks)
-  {
-    Board tmp_board{board};
-    tmp_board.move_no_verify(move);
-    int score = quiesce_max_(tmp_board, color, alpha, beta);
-    //std::cout << indents << "Response (in min): " << move << " " << score << "\n";
-    if (score <= alpha)
-    {
-      return alpha;
-    }
-
-    if (score < beta)
-    {
-      beta = score;
-    }
-  }
-  return beta;
-#else
-  return evaluate(board, color);
-#endif
-}
-
-int Meneldor_engine::quiesce_max_(Board const& board, Color color, int /* alpha */, int /* beta */) const
-{
-#if 0
-  ++m_visited_nodes;
-
-  //auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
-
-  auto const attacks = Move_generator::generate_legal_attack_moves(board);
-  if (attacks.empty())
-  {
-    return evaluate(board, color);
-  }
-  for (auto move : attacks)
-  {
-    Board tmp_board{board};
-    tmp_board.move_no_verify(move);
-    int score = quiesce_min_(tmp_board, color, alpha, beta);
-    //std::cout << indents << "Response (in max): " << move << " " << score << "\n";
-    if (score >= beta)
-    {
-      return beta;
-    }
-
-    if (score > alpha)
-    {
-      alpha = score;
-    }
-  }
-  return alpha;
-#else
-  return -evaluate(board, color);
-#endif
-}
-
-int Meneldor_engine::alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
-{
-  ++m_visited_nodes;
-  auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
-
-  if (depth_remaining == 0)
-  {
-    return quiesce_min_(board, color, alpha, beta);
-  }
-  for (auto move : Move_generator::generate_legal_moves(board))
-  {
-    Board tmp_board{board};
-    tmp_board.move_no_verify(move);
-    int score = alpha_beta_min_(tmp_board, color, alpha, beta, depth_remaining - 1);
-    //std::cout << indents << "response (in max): " << move << " " << score << "\n";
-    if (score >= beta)
-    {
-      return beta;
-    }
-
-    if (score > alpha)
-    {
-      alpha = score;
-    }
-  }
-  return alpha;
-}
-
-int Meneldor_engine::alpha_beta_min_(Board const& board, Color color, int alpha, int beta, int depth_remaining)
-{
-  ++m_visited_nodes;
-  auto const indents = std::string(c_default_depth - depth_remaining + 1, ' ');
-
-  if (depth_remaining == 0)
-  {
-    return -quiesce_max_(board, color, alpha, beta);
-  }
-  for (auto move : Move_generator::generate_legal_moves(board))
-  {
-    Board tmp_board{board};
-    tmp_board.move_no_verify(move);
-    int score = alpha_beta_max_(tmp_board, color, alpha, beta, depth_remaining - 1);
-    //std::cout << indents << "Response (in min): " << move << " " << score << "\n";
-    if (score <= alpha)
-    {
-      return alpha;
-    }
-
-    if (score < beta)
-    {
-      beta = score;
-    }
-  }
-  return beta;
+  return evaluate(board);
 }
 
 /*
@@ -205,29 +93,29 @@ int Meneldor_engine::alpha_beta_min_(Board const& board, Color color, int alpha,
  *  beta - black has an option to reach this
  */
 
-int Meneldor_engine::negamax_(Board& board, Color color, int alpha, int beta, int depth_remaining)
+int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remaining)
 {
   ++m_visited_nodes;
-  std::string indents;
-  for (int i{0}; i < 1 + (c_default_depth - depth_remaining); ++i)
-  {
-    indents += " ";
-  }
 
   if (depth_remaining == 0)
   {
-    auto result = quiesce_(board, color, alpha, beta);
-
+    auto result = quiesce_(board, alpha, beta);
     return result;
   }
 
   auto moves = Move_generator::generate_legal_moves(board);
+  /*
+  if (moves.empty())
+  {
+    return positive_inf;
+  }
+  */
   m_orderer.sort_moves(moves, board);
   for (auto move : moves)
   {
     Board tmp_board{board};
     tmp_board.move_no_verify(move);
-    int score = -negamax_(tmp_board, color, -beta, -alpha, depth_remaining - 1);
+    int score = -negamax_(tmp_board, -beta, -alpha, depth_remaining - 1);
     if (score >= beta)
     {
       return beta; // Opposing player has a move that gives a worse position for us than our current best move
@@ -412,21 +300,19 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   const int depth = (params.depth > 0) ? params.depth : c_default_depth;
 
-  //std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board, color)) << "\n";
+  if (m_is_debug)
+  {
+    std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board)) << "\n";
+  }
   std::pair<Move, int> best{legal_moves.front(), std::numeric_limits<int>::min()};
   for (auto move : legal_moves)
   {
     auto tmp_board = m_board;
     tmp_board.move_no_verify(move);
 
-    //auto const score = alpha_beta_max_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
-
     // Stay one away from the limits so negating the values doesn't cause problems
-    auto positive_inf = std::numeric_limits<int>::max() - 1;
-    auto negative_inf = std::numeric_limits<int>::min() + 1;
-    auto const score = -negamax_(tmp_board, color, -positive_inf, -negative_inf, depth);
+    auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth);
 
-    //auto const score = alpha_beta_min_(tmp_board, color, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), depth);
     if (m_is_debug)
     {
       std::cout << "Evaluating move: " << move << ", score: " << std::to_string(score) << "\n";

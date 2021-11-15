@@ -49,6 +49,18 @@ auto engine_stats_from_position(std::string_view fen)
 
 } // namespace
 
+TEST_CASE("Evaluate", "[Meneldor_engine]")
+{
+  std::string fen = "r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 0 10";
+  auto board = *Board::from_fen(fen);
+
+  Meneldor_engine engine;
+
+  // The evaluation function will change over time, but black is clearly winning in this position
+  // Black to move -> should return a positive value to indicate black is better
+  REQUIRE(engine.evaluate(board) > 0);
+}
+
 TEST_CASE("Search_opening", "[.Meneldor_engine]")
 {
   std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -94,4 +106,21 @@ TEST_CASE("Search_end3", "[.Meneldor_engine]")
   std::string fen = "8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1";
   engine_stats_from_position(fen);
 }
+
+TEST_CASE("Search_mate1", "[Meneldor_engine]")
+{
+  std::string fen = "k5r1/8/8/8/7K/5q2/7P/8 b - - 0 1";
+
+  Meneldor_engine engine;
+  engine.setDebug(false);
+  engine.initialize();
+  engine.setPosition(std::string{fen});
+
+  senjo::GoParams params;
+  params.depth = 5;
+
+  auto best_move = engine.go(params);
+  REQUIRE(best_move == "f3g4");
+}
+
 

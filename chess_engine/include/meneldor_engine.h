@@ -77,24 +77,16 @@ public:
 
   void showEngineStats() const override;
 
-  int evaluate(Board const& board, Color color) const;
+  int evaluate(Board const& board) const;
 
   uint32_t previous_move_nodes_searched() const;
 
 private:
-  int negamax_(Board& board, Color color, int alpha, int beta, int depth_remaining);
+  int negamax_(Board& board, int alpha, int beta, int depth_remaining);
 
-  int alpha_beta_max_(Board const& board, Color color, int alpha, int beta, int depthleft);
+  int quiesce_(Board const& board, int alpha, int beta) const;
 
-  int alpha_beta_min_(Board const& board, Color color, int alpha, int beta, int depthleft);
-
-  int quiesce_(Board const& board, Color color, int alpha, int beta) const;
-
-  int quiesce_max_(Board const& board, Color color, int alpha, int beta) const;
-
-  int quiesce_min_(Board const& board, Color color, int alpha, int beta) const;
-
-  bool m_is_debug{true};
+  bool m_is_debug{false};
   std::atomic_flag m_stop_requested{false};
   std::atomic_flag m_is_searching{false};
   Board m_board;

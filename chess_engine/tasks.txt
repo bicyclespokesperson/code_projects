@@ -45,3 +45,7 @@ Python chess lib is 60,000 nodes/sec
 My perft implementation runs at 7,000,000 by comparison
 
 Adding a simple move ordering (sort by victim value - attacker value) Dropped my searched nodes from 3.8M to 1.5M for black's first move after 1. e4
+
+WORST CODE OF ALL TIME
+https://home.hccnet.nl/h.g.muller/delay.html
+

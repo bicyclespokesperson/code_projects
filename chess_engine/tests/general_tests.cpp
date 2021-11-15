@@ -501,18 +501,6 @@ TEST_CASE("Move counts", "[board]")
   REQUIRE(board.get_halfmove_clock() == 1);
 }
 
-TEST_CASE("Evaluate", "[Meneldor_engine]")
-{
-  std::string fen = "r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq f3 0 10";
-  auto board = *Board::from_fen(fen);
-
-  Meneldor_engine engine;
-
-  // The evaluation function will change over time, but black is clearly winning in this position
-  // Black to move -> should return a positive value to indicate black is better
-  REQUIRE(engine.evaluate(board, Color::black) > 0);
-}
-
 TEST_CASE("Threefold repetition", "[Threefold_repetition_detector]")
 {
   Threefold_repetition_detector detector;
