@@ -112,7 +112,7 @@ TEST_CASE("Search_mate1", "[Meneldor_engine]")
   std::string fen = "k5r1/8/8/8/7K/5q2/7P/8 b - - 0 1";
 
   Meneldor_engine engine;
-  engine.setDebug(false);
+  engine.setDebug(true);
   engine.initialize();
   engine.setPosition(std::string{fen});
 

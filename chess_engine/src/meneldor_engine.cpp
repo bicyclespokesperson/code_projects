@@ -2,9 +2,10 @@
 #include "move_generator.h"
 
 namespace {
-constexpr int c_default_depth{5};
-constexpr int positive_inf = std::numeric_limits<int>::max() - 1;
+constexpr int c_default_depth{5}; //TODO: This should be a property on the engine
+constexpr int positive_inf = std::numeric_limits<int>::max();
 constexpr int negative_inf = std::numeric_limits<int>::min() + 1;
+static_assert(positive_inf == -negative_inf, "Values should be inverses of each other");
 }
 
 // Returns a number that is positive if the side to move is winning, and negative if losing
@@ -28,31 +29,16 @@ int Meneldor_engine::evaluate(Board const& board) const
 
   //TODO: Skipping these makes searching 6x faster. Optimize somehow, maybe
   //      by caching get_attacked_squares or something like that
-  if (board.get_active_color() == Color::white)
+  if (board.is_in_checkmate(board.get_active_color()))
   {
-    if (board.is_in_checkmate(Color::white))
-    {
-      return multiplier * negative_inf;
-    }
-    if (board.is_in_stalemate(Color::white))
-    {
-      return 0;
-    }
+    return negative_inf + c_default_depth; // Add depth so the search function can return a slightly higher value if it finds an earlier mate
+  }
+  if (board.is_in_stalemate(board.get_active_color()))
+  {
+    return 0;
   }
 
-  if (board.get_active_color() == Color::black)
-  {
-    if (board.is_in_checkmate(Color::black))
-    {
-      return multiplier * positive_inf; // Bug here? Maybe it should be negative inf for both colors?
-    }
-    if (board.is_in_stalemate(Color::black))
-    {
-      return 0;
-    }
-  }
-
-  if (board.get_halfmove_clock() >= 50)
+  if (board.get_halfmove_clock() >= 100)
   {
     return 0;
   }
@@ -104,12 +90,14 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   }
 
   auto moves = Move_generator::generate_legal_moves(board);
-  /*
   if (moves.empty())
   {
-    return positive_inf;
+    if (board.is_in_check(board.get_active_color()))
+    {
+      return negative_inf + (c_default_depth - depth_remaining);
+    }
+    return 0;
   }
-  */
   m_orderer.sort_moves(moves, board);
   for (auto move : moves)
   {
