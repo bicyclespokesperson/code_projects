@@ -803,36 +803,23 @@ bool Board::is_in_check(Color color) const
   return !(king_location & attacked_squares).is_empty();
 }
 
-bool Board::is_in_stalemate(Color color) const
+Game_state Board::calc_game_state() const
 {
-  if (get_active_color() != color)
+  auto const color = get_active_color();
+
+  //TODO: Should insufficient material, repetition, and 50 move rule be here as well?
+  
+  if (Move_generator::has_any_legal_moves(*this))
   {
-    // A player cannot be in checkmate if it is not their turn
-    return false;
+    return Game_state::in_progress;
   }
 
   if (is_in_check(color))
   {
-    return false;
+    return (color == Color::black) ? Game_state::white_victory : Game_state::black_victory;
   }
 
-  return Move_generator::generate_legal_moves(*this).empty();
-}
-
-bool Board::is_in_checkmate(Color color) const
-{
-  if (get_active_color() != color)
-  {
-    // A player cannot be in checkmate if it is not their turn
-    return false;
-  }
-
-  if (!is_in_check(color))
-  {
-    return false;
-  }
-
-  return Move_generator::generate_legal_moves(*this).empty();
+  return Game_state::draw;
 }
 
 void Board::add_piece_(Color color, Piece piece, Coordinates to_add)

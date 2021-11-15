@@ -29,11 +29,12 @@ int Meneldor_engine::evaluate(Board const& board) const
 
   //TODO: Skipping these makes searching 6x faster. Optimize somehow, maybe
   //      by caching get_attacked_squares or something like that
-  if (board.is_in_checkmate(board.get_active_color()))
+  auto const state= board.calc_game_state();
+  if (state == Game_state::white_victory || state == Game_state::black_victory)
   {
     return negative_inf + c_default_depth; // Add depth so the search function can return a slightly higher value if it finds an earlier mate
   }
-  if (board.is_in_stalemate(board.get_active_color()))
+  if (state == Game_state::draw)
   {
     return 0;
   }

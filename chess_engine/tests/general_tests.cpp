@@ -335,16 +335,18 @@ TEST_CASE("Check for checkmate", "[board]")
   board.try_move_algebraic("Bc4");
   board.try_move_algebraic("Nc6");
   board.try_move_algebraic("Qh5");
-  REQUIRE(!board.is_in_checkmate(Color::black));
+  REQUIRE(board.calc_game_state() == Game_state::in_progress);
   board.try_move_algebraic("Nf6");
-  REQUIRE(!board.is_in_checkmate(Color::black));
+  REQUIRE(board.calc_game_state() == Game_state::in_progress);
   board.try_move_algebraic("Qxf7#");
 
-  REQUIRE(!board.is_in_checkmate(Color::white));
-  REQUIRE(board.is_in_checkmate(Color::black));
+  REQUIRE(board.calc_game_state() == Game_state::white_victory);
 
   board = *Board::from_fen("rnb1kbnr/p2ppppp/2p5/qp6/3PP3/1B6/PPP2PPP/RNBQK1NR w KQkq - 2 5");
-  REQUIRE(!board.is_in_checkmate(Color::white));
+  REQUIRE(board.calc_game_state() == Game_state::in_progress);
+
+  board = *Board::from_fen("rn2k1nr/pp4pp/3p4/b1pP4/P1P2p1q/1b2pPRP/1P1NP1PQ/2B1KBNR w Kkq - 0 13");
+  REQUIRE(board.calc_game_state() == Game_state::draw);
 }
 
 TEST_CASE("bitboard", "[bitboard]")

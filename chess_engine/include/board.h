@@ -130,9 +130,7 @@ public:
 
   bool is_in_check(Color color) const;
 
-  bool is_in_checkmate(Color color) const;
-
-  bool is_in_stalemate(Color color) const;
+  Game_state calc_game_state() const;
 
   Bitboard get_piece_set(Color color, Piece piece) const;
 

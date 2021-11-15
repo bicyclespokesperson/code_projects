@@ -636,6 +636,58 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
   return attacked_squares | pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn));
 }
 
+// Faster than generating all moves and checking if the list is empty
+bool Move_generator::has_any_legal_moves(Board const& board)
+{
+
+  // Parallel arrays that can be iterated together to get the piece type and the function that matches it
+  constexpr static std::array piece_types{Piece::king, Piece::queen, Piece::knight, Piece::bishop, Piece::rook};
+  constexpr static std::array piece_move_functions{&Move_generator::king_attacks, &Move_generator::queen_attacks,
+                                                   &Move_generator::knight_attacks, &Move_generator::bishop_attacks,
+                                                   &Move_generator::rook_attacks};
+
+  Board tmp_board{board};
+  auto const color = board.get_active_color();
+  for (size_t i{0}; i < piece_types.size(); ++i)
+  {
+    for (auto piece_location : board.get_piece_set(color, piece_types[i]))
+    {
+      auto possible_moves = piece_move_functions[i](Coordinates{piece_location}, board.get_occupied_squares());
+      possible_moves &= ~board.get_all(color); // Throw out any moves to a square that is already occupied by our color
+      auto const possible_attacks = possible_moves & board.get_all(opposite_color(color));
+      possible_moves &= ~possible_attacks; // Handle attacks separately
+
+      for (auto end_location : possible_moves)
+      {
+         tmp_board = board;
+         if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], Piece::empty}))
+         {
+           return true;
+         }
+      }
+
+      for (auto end_location : possible_attacks)
+      {
+         if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location}, piece_types[i],
+                           board.get_piece(Coordinates{end_location})}))
+         {
+           return true;
+         }
+      }
+    }
+  }
+
+  std::vector<Move> pseudo_legal_moves;
+  pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
+
+  generate_pawn_moves(board, color, pseudo_legal_moves);
+  return std::any_of(pseudo_legal_moves.cbegin(), pseudo_legal_moves.cend(), [&](auto m)
+                     {
+                       tmp_board = board;
+                       return !tmp_board.move_results_in_check_destructive(m);
+                     });
+}
+
 uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_cancelled)
 {
   uint64_t nodes{0};

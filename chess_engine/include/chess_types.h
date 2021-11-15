@@ -34,6 +34,14 @@ enum class Move_type : uint8_t
   _count,
 };
 
+enum class Game_state
+{
+  in_progress = 0,
+  draw,
+  white_victory,
+  black_victory,
+};
+
 struct Castling_rights
 {
   bool white_can_short_castle : 1 {true};

@@ -67,10 +67,6 @@ void Game::computer_vs_computer()
 bool is_drawn(Board const& board, Threefold_repetition_detector const& detector)
 {
   auto color = board.get_active_color();
-  if (board.is_in_stalemate(color))
-  {
-    return true;
-  }
 
   if (!(board.has_sufficient_material(color) && board.has_sufficient_material(opposite_color(color))))
   {
@@ -119,13 +115,8 @@ void Game::play_game(Player& white_player, Player& black_player)
 
         std::cout << "Board state after " << move_list.size() << " half moves\n";
         std::cout << board;
-        auto const color = board.get_active_color();
-        if (board.is_in_checkmate(color))
-        {
-          state = (white_to_move) ? Game_state::black_victory : Game_state::white_victory;
-        }
-
-        if (is_drawn(board, detector))
+        state = board.calc_game_state();
+        if (state == Game_state::in_progress && is_drawn(board, detector))
         {
           state = Game_state::draw;
         }
