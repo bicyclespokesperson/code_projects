@@ -32,6 +32,11 @@ public:
 
   zhash_t get_hash() const;
 
+  constexpr operator zhash_t() const
+  {
+    return m_hash;
+  }
+
 private:
   zhash_t m_hash{0};
 

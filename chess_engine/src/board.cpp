@@ -533,7 +533,7 @@ bool Board::has_sufficient_material(Color color) const
   return false;
 }
 
-Zobrist_hash Board::get_hash_code() const
+Zobrist_hash Board::get_hash_key() const
 {
   return m_zhash;
 }

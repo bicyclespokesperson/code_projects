@@ -13,6 +13,7 @@
 #include "move_generator.h"
 #include "my_assert.h"
 #include "player.h"
+#include "transposition_table.h"
 #include "zobrist_hash.h"
 
 void print_bitboard_with_squares(std::vector<std::string> const& squares)
@@ -40,7 +41,7 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
  */
 int main(int argc, char* argv[])
 {
-#if 1
+#if 0
   if (argc > 2)
   {
     // h -> human, c -> computer
@@ -79,11 +80,7 @@ int main(int argc, char* argv[])
   }
 #else
 
-  static const std::string fen_string{"r1bqk2r/p2p1pbp/1pn3p1/1p1Np2n/4PP2/P2P4/1PP1N1PP/R1B2RK1 b kq - 1 1"};
-  std::cout << *Board::from_fen(fen_string) << "\n";
-  Engine_player engine{"Engine player"};
-  //engine.set_position(fen_string);
-  engine.get_next_move(std::cin, std::cout);
+Transposition_table table{2048};
 
 #endif
   return 0;

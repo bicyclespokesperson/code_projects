@@ -18,6 +18,9 @@ Search
     https://chess.stackexchange.com/questions/27257/chess-engine-quiescence-search-increases-required-time-by-a-factor-of-20
 
 
+Transposition table articles:
+http://mediocrechess.blogspot.com/2007/01/guide-transposition-tables.html
+https://adamberent.com/2019/03/02/transposition-table-and-zobrist-hashing/
 
 Implement quiesence search
 

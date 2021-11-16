@@ -668,6 +668,7 @@ bool Move_generator::has_any_legal_moves(Board const& board)
 
       for (auto end_location : possible_attacks)
       {
+        tmp_board = board;
         if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location},
                                                           piece_types[i], board.get_piece(Coordinates{end_location})}))
         {

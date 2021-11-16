@@ -6,6 +6,7 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
 #include "utils.h"
+#include "transposition_table.h"
 #include "zobrist_hash.h"
 
 namespace
@@ -579,3 +580,40 @@ TEST_CASE("Zobrist hashing", "[Zobrist_hash]")
     REQUIRE(hash1 != hash2);
   }
 }
+
+TEST_CASE("Transposition table", "[Transposition_table]")
+{
+  Transposition_table tt{1024 * sizeof(Transposition_table::Entry)};
+
+  Board board;
+  board.try_move_algebraic("e4");
+  board.try_move_algebraic("e5");
+  board.try_move_algebraic("Nf3");
+  board.try_move_algebraic("Nc6");
+  board.try_move_algebraic("d4");
+  board.try_move_algebraic("d6");
+
+  auto m = board.move_from_uci("a2 a3");
+  Transposition_table::Entry e{board.get_hash_key(), 2, 1, *m, Transposition_table::Eval_type::alpha};
+
+  tt.insert(board.get_hash_key(), e);
+
+  Board board2;
+
+  board2.try_move_algebraic("d4");
+  board2.try_move_algebraic("d6");
+
+  board2.try_move_algebraic("e4");
+  board2.try_move_algebraic("e5");
+
+  board2.try_move_algebraic("Nf3");
+  board2.try_move_algebraic("Nc6");
+
+  REQUIRE(board.get_hash_key() == board2.get_hash_key());
+  REQUIRE(tt.contains(board2.get_hash_key()));
+  auto e2 = tt.get(board2.get_hash_key());
+  REQUIRE(e2.has_value());
+  REQUIRE(e2->evaluation == 1);
+
+}
+
