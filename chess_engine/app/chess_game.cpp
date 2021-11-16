@@ -41,7 +41,7 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
  */
 int main(int argc, char* argv[])
 {
-#if 0
+#if 1
   if (argc > 2)
   {
     // h -> human, c -> computer

@@ -5,7 +5,7 @@ size_t Transposition_table::hash_fn_(zhash_t key) const
   // We'd like to store two entries at each position. This 
   // ensures that the indices given are always even numbers, and the odd 
   // number will be the second entry for the two tiered replacement scheme
-  return (key % (m_table_capacity / 2)) * 2;
+  return (key % (m_table_capacity / c_entries_per_key)) * c_entries_per_key;
 }
 
 Transposition_table::Transposition_table(size_t table_size_bytes)
@@ -81,5 +81,10 @@ Transposition_table::Entry* Transposition_table::walk_(zhash_t key)
   // Idiom for sharing implementation between const and non-const versions of a method
   //NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast) 
   return const_cast<Entry*>(std::as_const(*this).walk_(key));
+}
+
+size_t Transposition_table::get_capacity() const
+{
+  return m_table_capacity;
 }
 

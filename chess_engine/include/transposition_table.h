@@ -17,12 +17,12 @@ class Transposition_table
     {
       Entry() = default;
 
-      Entry(zhash_t key_, int depth_, int evaluation_, Move m_, Eval_type type_)
+      Entry(zhash_t key_, int depth_, int evaluation_, Move best_move_, Eval_type type_)
         : 
       key(key_),
       depth(depth_),
       evaluation(evaluation_),
-      m(m_),
+      best_move(best_move_),
       type(type_)
       {
       }
@@ -30,14 +30,11 @@ class Transposition_table
       zhash_t key{0};
       int depth{0};
       int evaluation{0};
-      Move m{};
+      Move best_move{};
       Eval_type type{Eval_type::alpha};
       //bool recently_used{false};
     };
     static_assert(sizeof(Entry) == 24);
-
-    // Store two entries per hash value, largest depth and newest
-    static constexpr size_t c_entries_per_key{2};
 
     Transposition_table(size_t table_size_bytes);
 
@@ -49,9 +46,33 @@ class Transposition_table
 
     std::optional<Entry> get(zhash_t key);
 
-  private:
-    Entry* walk_(zhash_t key);
+    size_t get_capacity() const;
 
+    //Debugging
+    size_t count() const
+    {
+      return std::count_if(m_table.cbegin(), m_table.cend(), [](const auto& entry)
+                           {
+                             return entry.best_move.type != Move_type::null;
+                           });
+    }
+
+    void display(std::ostream& out)
+    {
+      for (auto const& entry : m_table)
+      {
+        if (entry.best_move.type != Move_type::null)
+        {
+          out << "depth: " << entry.depth << ", eval: " << entry.evaluation << ", move: " << entry.best_move << "\n";
+        }
+      }
+    }
+
+  private:
+    // Store two entries per hash value, largest depth and newest
+    static constexpr size_t c_entries_per_key{2};
+
+    Entry* walk_(zhash_t key);
     Entry const* walk_(zhash_t key) const;
 
     size_t hash_fn_(zhash_t key) const;
