@@ -7,6 +7,7 @@
 #include "coordinates.h"
 #include "move_orderer.h"
 #include "senjo/ChessEngine.h"
+#include "transposition_table.h"
 
 class Meneldor_engine : public senjo::ChessEngine
 {
@@ -86,11 +87,16 @@ private:
 
   int quiesce_(Board const& board, int alpha, int beta) const;
 
-  bool m_is_debug{false};
+  bool m_is_debug{true};
   std::atomic_flag m_stop_requested{false};
   std::atomic_flag m_is_searching{false};
   Board m_board;
   Move_orderer m_orderer{};
+  constexpr static int c_default_depth{5}; //TODO: This should be a property on the engine
+  int m_depth_for_current_search{c_default_depth};
+
+  constexpr static size_t c_transposition_table_size_bytes{1024UL * 1024UL * 1024UL}; // TODO: Greatly increase
+  Transposition_table m_transpositions{c_transposition_table_size_bytes};
 
   mutable uint32_t m_visited_nodes{0};
 };

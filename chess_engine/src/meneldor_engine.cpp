@@ -3,23 +3,14 @@
 
 namespace
 {
-constexpr int c_default_depth{5}; //TODO: This should be a property on the engine
 constexpr int positive_inf = std::numeric_limits<int>::max();
-constexpr int negative_inf = std::numeric_limits<int>::min() + 1;
+constexpr int negative_inf = -positive_inf;
 static_assert(positive_inf == -negative_inf, "Values should be inverses of each other");
 } // namespace
 
 // Returns a number that is positive if the side to move is winning, and negative if losing
 int Meneldor_engine::evaluate(Board const& board) const
 {
-  // Case:
-  //  White to play
-  //    white is winning +
-  //    white is losing -
-  //  Black to play
-  //    black is winning +
-  //    black is losing -
-
   auto const multiplier = (board.get_active_color() == Color::white) ? 1 : -1;
 
   // These arrays can be iterated in parallel
@@ -27,13 +18,11 @@ int Meneldor_engine::evaluate(Board const& board) const
   constexpr static std::array pieces{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
   static_assert(piece_values.size() == pieces.size());
 
-  //TODO: Skipping these makes searching 6x faster. Optimize somehow, maybe
-  //      by caching get_attacked_squares or something like that
   auto const state = board.calc_game_state();
   if (state == Game_state::white_victory || state == Game_state::black_victory)
   {
     return negative_inf +
-           c_default_depth; // Add depth so the search function can return a slightly higher value if it finds an earlier mate
+           m_depth_for_current_search; // Add depth so the search function can return a slightly higher value if it finds an earlier mate
   }
   if (state == Game_state::draw)
   {
@@ -81,6 +70,10 @@ int Meneldor_engine::quiesce_(Board const& board, int /*alpha*/, int /*beta*/) c
  *  beta - black has an option to reach this
  */
 
+int tt_hits{0};
+int tt_misses{0};
+int tt_sufficient_depth{0};
+
 int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remaining)
 {
   ++m_visited_nodes;
@@ -91,31 +84,77 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     return result;
   }
 
+  if (auto entry = m_transpositions.get(board.get_hash_key()))
+  {
+    ++tt_hits;
+    if (entry->depth >= depth_remaining)
+    {
+      ++tt_sufficient_depth;
+      switch (entry->type)
+      {
+        case Transposition_table::Eval_type::alpha:
+          beta = std::min(beta, entry->evaluation);
+          break;
+        case Transposition_table::Eval_type::beta:
+          alpha = std::max(alpha, entry->evaluation);
+          break;
+        case Transposition_table::Eval_type::exact:
+          return entry->evaluation;
+          break;
+      }
+    }
+    else
+    {
+      // TODO: Set the best move as the first one in our search; even though we need to search to a 
+      // larger depth it still has a good chance of being the best move
+    }
+  }
+  else
+  {
+    ++tt_misses;
+  }
+
   auto moves = Move_generator::generate_legal_moves(board);
   if (moves.empty())
   {
     if (board.is_in_check(board.get_active_color()))
     {
-      return negative_inf + (c_default_depth - depth_remaining);
+      return negative_inf + (m_depth_for_current_search - depth_remaining);
     }
     return 0;
   }
   m_orderer.sort_moves(moves, board);
-  for (auto move : moves)
+
+  // If we don't find a move here that's better than alpha, just save alpha as the upper bound for this position
+  auto eval_type = Transposition_table::Eval_type::alpha;
+  Move best{moves.front()};
+  Board tmp_board{board};
+  for (auto const move : moves)
   {
-    Board tmp_board{board};
+    int score{0};
+    tmp_board = board;
     tmp_board.move_no_verify(move);
-    int score = -negamax_(tmp_board, -beta, -alpha, depth_remaining - 1);
+    score = -negamax_(tmp_board, -beta, -alpha, depth_remaining - 1);
+
     if (score >= beta)
     {
-      return beta; // Opposing player has a move that gives a worse position for us than our current best move
+      // Stop evaluating here since the opposing player won't let us get even this position on their previous move
+      // Our evaluation here is a lower bound
+      auto eval_type = Transposition_table::Eval_type::beta;
+      m_transpositions.insert(board.get_hash_key(), {board.get_hash_key(), depth_remaining, score, move, eval_type});
+
+      return beta;
     }
+
     if (score > alpha)
     {
-      alpha = score; // New best possible score
+      alpha = score; // If this is never hit, we know that the best alpha can be is the alpha that was passed into the function
+      best = move;
+      eval_type = Transposition_table::Eval_type::exact;
     }
   }
 
+  m_transpositions.insert(board.get_hash_key(), {board.get_hash_key(), depth_remaining, alpha, best, eval_type});
   return alpha;
 }
 
@@ -288,20 +327,20 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
   MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
   m_orderer.sort_moves(legal_moves, m_board);
 
-  const int depth = (params.depth > 0) ? params.depth : c_default_depth;
+  m_depth_for_current_search = (params.depth > 0) ? params.depth : c_default_depth;
 
   if (m_is_debug)
   {
     std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board)) << "\n";
   }
-  std::pair<Move, int> best{legal_moves.front(), std::numeric_limits<int>::min()};
+  std::pair<Move, int> best{legal_moves.front(), negative_inf};
   for (auto move : legal_moves)
   {
     auto tmp_board = m_board;
     tmp_board.move_no_verify(move);
 
     // Stay one away from the limits so negating the values doesn't cause problems
-    auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth);
+    auto const score = -negamax_(tmp_board, negative_inf, positive_inf, m_depth_for_current_search);
 
     if (m_is_debug)
     {
@@ -318,6 +357,24 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
       break;
     }
   }
+  
+  //TODO: Save entry to hash table here? Maybe not, since we're playing a move we'll never be in this position again except for repetition
+  
+  if (m_is_debug)
+  {
+    std::cout << "Search depth: " << m_depth_for_current_search << "\n";
+    std::cout << "TT occupancy: " << m_transpositions.count() << "\n";
+    std::cout << "TT fill percentage: " << (static_cast<float>(m_transpositions.count()) / m_transpositions.get_capacity()) << "\n";
+    //m_transpositions.display(std::cout);
+
+    std::cout << "Hits: " << tt_hits << ", total: " << (tt_hits + tt_misses) << 
+      ", sufficient_depth: " << tt_sufficient_depth << 
+      ", hit%: " << (static_cast<float>(tt_hits) / (tt_hits + tt_misses)) << "\n";
+
+    tt_hits = 0;
+    tt_misses = 0;
+    tt_sufficient_depth = 0;
+  }
 
   std::stringstream ss;
   ss << best.first;
@@ -329,8 +386,8 @@ senjo::SearchStats Meneldor_engine::getSearchStats() const
 {
   senjo::SearchStats result;
 
-  result.depth = c_default_depth;
-  result.seldepth = c_default_depth;
+  result.depth = m_depth_for_current_search;
+  result.seldepth = m_depth_for_current_search;
   result.nodes = m_visited_nodes;
   result.qnodes = 0; // TODO: Update once engine supports quiescence searching
   result.msecs = 0; // TODO: Update once engine supports time
