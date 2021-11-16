@@ -92,13 +92,21 @@ private:
   std::atomic_flag m_is_searching{false};
   Board m_board;
   Move_orderer m_orderer{};
-  constexpr static int c_default_depth{5}; //TODO: This should be a property on the engine
+  std::vector<zhash_t> m_previous_positions;
+
+  constexpr static int c_default_depth{5};
   int m_depth_for_current_search{c_default_depth};
 
   constexpr static size_t c_transposition_table_size_bytes{1024UL * 1024UL * 1024UL}; // TODO: Greatly increase
   Transposition_table m_transpositions{c_transposition_table_size_bytes};
 
   mutable uint32_t m_visited_nodes{0};
+
+  // How likely we think we are to win/lose to the opponent. Influences how valuable a draw is.
+  // scores <0 imply we think we will win, so draws should be avoided (draws are worse than an even position). 
+  // 0 means equally strong opponent.
+  // TODO: Not yet supported, needs to be flipped depending on if we or our opponent is playing
+  static constexpr int c_contempt_score{0};
 };
 
 #endif // MENELDOR_ENGINE

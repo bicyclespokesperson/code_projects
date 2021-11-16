@@ -114,11 +114,38 @@ TEST_CASE("Search_mate1", "[.Meneldor_engine]")
   Meneldor_engine engine;
   engine.setDebug(false);
   engine.initialize();
-  engine.setPosition(std::string{fen});
+  engine.setPosition(fen);
 
   senjo::GoParams params;
   params.depth = 5;
 
   auto best_move = engine.go(params);
   REQUIRE(best_move == "f3g4");
+}
+
+TEST_CASE("Search_repetition", "[.Meneldor_engine]")
+{
+  std::string fen = "4k3/p6q/8/7N/8/7P/PP3PP1/R5K1 w - - 0 1";
+
+  Meneldor_engine engine;
+  engine.setDebug(true);
+  engine.initialize();
+  engine.setPosition(fen);
+
+  senjo::GoParams params;
+  params.depth = 5;
+  auto best_move = engine.go(params);
+
+  // The best move is f6 to fork the king and queen
+  REQUIRE(best_move == "h5f6");
+
+  engine.makeMove("h5f6");
+  engine.makeMove("e8f8");
+  engine.makeMove("f6h5");
+  engine.makeMove("f8e8");
+
+  best_move = engine.go(params);
+  
+  // Now f6 would be a draw by repetition, so the engine should find something else
+  REQUIRE(best_move != "h5f6");
 }

@@ -26,15 +26,15 @@ int Meneldor_engine::evaluate(Board const& board) const
   }
   if (state == Game_state::draw)
   {
-    return 0;
+    return c_contempt_score;
   }
 
   if (board.get_halfmove_clock() >= 100)
   {
-    return 0;
+    return c_contempt_score;
   }
 
-  //TODO: repetition, insufficient material
+  //TODO: insufficient material
 
   std::array<int, pieces.size()> black_piece_counts{};
   std::transform(pieces.cbegin(), pieces.cend(), black_piece_counts.begin(),
@@ -84,6 +84,12 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     return result;
   }
 
+
+  if (std::find(m_previous_positions.cbegin(), m_previous_positions.cend(), board.get_hash_key()) != m_previous_positions.cend())
+  {
+    return c_contempt_score; // Draw by repetition
+  }
+
   if (auto entry = m_transpositions.get(board.get_hash_key()))
   {
     ++tt_hits;
@@ -93,9 +99,15 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
       switch (entry->type)
       {
         case Transposition_table::Eval_type::alpha:
+          // Eval_type::alpha implies we didn't find a move from this position that was as good as a move that
+          // we could have made earlier to lead to a different position. That means the position has an evaluation
+          // that is at most "entry.evaluation"
           beta = std::min(beta, entry->evaluation);
           break;
         case Transposition_table::Eval_type::beta:
+          // Eval_type::beta implies that we stopped evaluating last time because we didn't think the opposing player 
+          // would allow this position to be reached. That means the position has an evaluation of at least "entry.evaluation", 
+          // but there may be an even better move that was skipped
           alpha = std::max(alpha, entry->evaluation);
           break;
         case Transposition_table::Eval_type::exact:
@@ -148,8 +160,10 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
 
     if (score > alpha)
     {
-      alpha = score; // If this is never hit, we know that the best alpha can be is the alpha that was passed into the function
+      alpha = score; 
       best = move;
+      
+      // If this is never hit, we know that the best alpha can be is the alpha that was passed into the function
       eval_type = Transposition_table::Eval_type::exact;
     }
   }
@@ -158,7 +172,10 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   return alpha;
 }
 
-Meneldor_engine::Meneldor_engine() = default;
+Meneldor_engine::Meneldor_engine()
+{
+  m_previous_positions.reserve(256);
+}
 
 std::string Meneldor_engine::getEngineName() const
 {
@@ -212,6 +229,7 @@ bool Meneldor_engine::setPosition(const std::string& fen, std::string* /* remain
   if (auto board = Board::from_fen(fen))
   {
     m_board = *board;
+    m_previous_positions.clear();
     return true;
   }
 
@@ -222,8 +240,19 @@ bool Meneldor_engine::makeMove(const std::string& move)
 {
   if (m_board.try_move_uci(move))
   {
+    if (m_board.get_halfmove_clock() == 0)
+    {
+      // If the halfmove clock was zero we just had a capture or pawn move, both
+      // of which make repeating positions impossible. That means we can't repeat
+      // any of the positions in the list, so clear it so we don't have to compare
+      // against them going forward
+      m_previous_positions.clear();
+    }
+
+    m_previous_positions.push_back(m_board.get_hash_key());
     return true;
   }
+
   return false;
 }
 
@@ -339,7 +368,6 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     auto tmp_board = m_board;
     tmp_board.move_no_verify(move);
 
-    // Stay one away from the limits so negating the values doesn't cause problems
     auto const score = -negamax_(tmp_board, negative_inf, positive_inf, m_depth_for_current_search);
 
     if (m_is_debug)
