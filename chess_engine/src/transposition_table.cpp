@@ -49,7 +49,7 @@ bool Transposition_table::contains(zhash_t key) const
 }
 
 //TODO: Is there a more performant way to do this vs. returning an optional?
-std::optional<Transposition_table::Entry> Transposition_table::get(zhash_t key)
+std::optional<Transposition_table::Entry> Transposition_table::get(zhash_t key) const
 {
   MY_ASSERT(hash_fn_(key) < m_table.size(), "Index out of bounds");
   if (auto result = walk_(key))

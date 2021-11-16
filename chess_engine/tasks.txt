@@ -1,10 +1,9 @@
-Benchmark if 64 bit Move is actually slower than 32 bit move
+
+This position leads to a strange move for white, possibly related to repetition?
+r3kb1r/6p1/4p2p/n4p1P/p2P1Pn1/P5P1/3NN3/R1B1K2R w KQkq - 2 24
 
 Implement draws
-  stalemate
-  3fold repitition
-  50 moves rule
-  insufficient material
+  insufficient material? Would this actually affect anything?
 
 Search
   Iterative deepening

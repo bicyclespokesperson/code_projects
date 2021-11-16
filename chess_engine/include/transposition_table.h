@@ -44,7 +44,7 @@ class Transposition_table
 
     bool contains(zhash_t key) const;
 
-    std::optional<Entry> get(zhash_t key);
+    std::optional<Entry> get(zhash_t key) const;
 
     size_t get_capacity() const;
 

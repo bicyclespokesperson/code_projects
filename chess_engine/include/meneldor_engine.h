@@ -80,14 +80,16 @@ public:
 
   int evaluate(Board const& board) const;
 
-  uint32_t previous_move_nodes_searched() const;
+  bool try_print_principle_variation(std::string move_str) const;
 
 private:
   int negamax_(Board& board, int alpha, int beta, int depth_remaining);
 
   int quiesce_(Board const& board, int alpha, int beta) const;
 
-  bool m_is_debug{true};
+
+  bool m_is_debug{false};
+  bool m_use_transposition_table{true};
   std::atomic_flag m_stop_requested{false};
   std::atomic_flag m_is_searching{false};
   Board m_board;
@@ -101,12 +103,13 @@ private:
   Transposition_table m_transpositions{c_transposition_table_size_bytes};
 
   mutable uint32_t m_visited_nodes{0};
+  mutable uint32_t m_visited_quiesence_nodes{0};
 
   // How likely we think we are to win/lose to the opponent. Influences how valuable a draw is.
   // scores <0 imply we think we will win, so draws should be avoided (draws are worse than an even position). 
   // 0 means equally strong opponent.
   // TODO: Not yet supported, needs to be flipped depending on if we or our opponent is playing
-  static constexpr int c_contempt_score{0};
+  static constexpr int c_contempt_score{-1};
 };
 
 #endif // MENELDOR_ENGINE

@@ -5,7 +5,7 @@
 
 namespace
 {
-auto engine_stats_from_position(std::string_view fen)
+auto engine_stats_from_position(std::string_view fen, bool debug = false)
 {
   static std::string const c_performance_log_filename{"./output/performance_log.txt"};
   std::ofstream outfile{c_performance_log_filename, std::ios_base::app};
@@ -22,7 +22,7 @@ auto engine_stats_from_position(std::string_view fen)
   }
 
   Meneldor_engine engine;
-  engine.setDebug(false);
+  engine.setDebug(debug);
   engine.initialize();
   engine.setPosition(std::string{fen});
 
@@ -41,7 +41,8 @@ auto engine_stats_from_position(std::string_view fen)
   out << "For position: " << fen << "\n  Engine found " << engine_move << " after thinking for " << std::fixed
       << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
       << format_with_commas(search_stats.nodes) << " nodes ("
-      << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n";
+      << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n" 
+      << "  QNodes searched: " << format_with_commas(search_stats.qnodes) << "\n";
 
   std::cout << out.str();
   outfile << out.str();
@@ -88,6 +89,36 @@ TEST_CASE("Search_mid3", "[.Meneldor_engine]")
   engine_stats_from_position(fen);
 }
 
+TEST_CASE("Search_mid4", "[.Meneldor_engine]")
+{
+  // Might need to print out principle variation to understand this one. Probably a horizon but not quite sure
+  // I get a better move when commenting out threefold repetition detection, so maybe it thinks it can repeat moves
+  // when it's calculating?
+  
+  // From engine vs. engine game
+  std::string fen = "r3kb1r/6p1/4p2p/n4p1P/p2P1Pn1/P5P1/3NN3/R1B1K2R w KQkq - 2 24";
+
+  Meneldor_engine engine;
+  engine.setDebug(true);
+  engine.initialize();
+  engine.setPosition(std::string{fen});
+
+  senjo::GoParams params;
+  params.depth = 5;
+  params.nodes = 0; // ignored for now
+  auto engine_move = engine.go(params, nullptr);
+  std::cout << "Engine move: " << engine_move << "\n";
+  
+  engine.try_print_principle_variation(engine_move);
+  engine.makeMove(engine_move);
+
+  engine.makeMove("a5b3");
+  engine_move = engine.go(params, nullptr);
+  std::cout << "Engine move: " << engine_move << "\n";
+  engine.try_print_principle_variation(engine_move);
+  engine.try_print_principle_variation("a1a2");
+}
+
 TEST_CASE("Search_end1", "[.Meneldor_engine]")
 {
   std::string fen = "5q2/n2P1k2/2b5/8/8/3N4/4BK2/6Q1 w - - 0 1";
@@ -128,7 +159,7 @@ TEST_CASE("Search_repetition", "[.Meneldor_engine]")
   std::string fen = "4k3/p6q/8/7N/8/7P/PP3PP1/R5K1 w - - 0 1";
 
   Meneldor_engine engine;
-  engine.setDebug(true);
+  engine.setDebug(false);
   engine.initialize();
   engine.setPosition(fen);
 

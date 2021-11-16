@@ -83,6 +83,8 @@ bool is_drawn(Board const& board, Threefold_repetition_detector const& detector)
 
 void Game::play_game(Player& white_player, Player& black_player)
 {
+  auto const start_time = std::chrono::system_clock::now();
+
   Board board;
   Board::set_use_unicode_output(true);
   Threefold_repetition_detector detector;
@@ -137,6 +139,9 @@ void Game::play_game(Player& white_player, Player& black_player)
     }
   }
 
+  auto const end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> const elapsed = end_time - start_time;
+
   std::cout << "\n";
   if (state == Game_state::draw)
   {
@@ -147,6 +152,8 @@ void Game::play_game(Player& white_player, Player& black_player)
     std::string winning_player = ((state == Game_state::black_victory) ? std::string{"Black"} : std::string{"White"});
     std::cout << winning_player << " is victorious!\n";
   }
+
+  std::cout << "Game took " << elapsed.count() << " seconds\n";
 
   std::cout << "Moves: ";
   for (auto const& move : move_list)

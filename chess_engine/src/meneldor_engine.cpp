@@ -58,17 +58,35 @@ int Meneldor_engine::evaluate(Board const& board) const
   return multiplier * (white_material - black_material);
 }
 
-int Meneldor_engine::quiesce_(Board const& board, int /*alpha*/, int /*beta*/) const
+int Meneldor_engine::quiesce_(Board const& board, int alpha, int beta) const
 {
-  return evaluate(board);
-}
+  ++m_visited_quiesence_nodes;
+  auto score = evaluate(board);
+  if (score >= beta)
+  {
+    return beta;
+  }
+  alpha = std::max(alpha, score);
 
-/*
- * On white's decision, it sets alpha
- *  alpha - white has an option to reach this
- * On black's decision, it sets beta
- *  beta - black has an option to reach this
- */
+  auto moves = Move_generator::generate_legal_attack_moves(board);
+  m_orderer.sort_moves(moves, board);
+
+  Board tmp_board{board};
+  for (auto const move : moves)
+  {
+    tmp_board = board;
+    tmp_board.move_no_verify(move);
+    auto const score = -quiesce_(tmp_board, -beta, -alpha);
+
+    if (score >= beta)
+    {
+      return beta;
+    }
+    alpha = std::max(score, alpha);
+  }
+
+  return alpha;
+}
 
 int tt_hits{0};
 int tt_misses{0};
@@ -90,40 +108,43 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     return c_contempt_score; // Draw by repetition
   }
 
-  if (auto entry = m_transpositions.get(board.get_hash_key()))
+  if (m_use_transposition_table)
   {
-    ++tt_hits;
-    if (entry->depth >= depth_remaining)
+    if (auto entry = m_transpositions.get(board.get_hash_key()))
     {
-      ++tt_sufficient_depth;
-      switch (entry->type)
+      ++tt_hits;
+      if (entry->depth >= depth_remaining)
       {
-        case Transposition_table::Eval_type::alpha:
-          // Eval_type::alpha implies we didn't find a move from this position that was as good as a move that
-          // we could have made earlier to lead to a different position. That means the position has an evaluation
-          // that is at most "entry.evaluation"
-          beta = std::min(beta, entry->evaluation);
-          break;
-        case Transposition_table::Eval_type::beta:
-          // Eval_type::beta implies that we stopped evaluating last time because we didn't think the opposing player 
-          // would allow this position to be reached. That means the position has an evaluation of at least "entry.evaluation", 
-          // but there may be an even better move that was skipped
-          alpha = std::max(alpha, entry->evaluation);
-          break;
-        case Transposition_table::Eval_type::exact:
-          return entry->evaluation;
-          break;
+        ++tt_sufficient_depth;
+        switch (entry->type)
+        {
+          case Transposition_table::Eval_type::alpha:
+            // Eval_type::alpha implies we didn't find a move from this position that was as good as a move that
+            // we could have made earlier to lead to a different position. That means the position has an evaluation
+            // that is at most "entry.evaluation"
+            beta = std::min(beta, entry->evaluation);
+            break;
+          case Transposition_table::Eval_type::beta:
+            // Eval_type::beta implies that we stopped evaluating last time because we didn't think the opposing player 
+            // would allow this position to be reached. That means the position has an evaluation of at least "entry.evaluation", 
+            // but there may be an even better move that was skipped
+            alpha = std::max(alpha, entry->evaluation);
+            break;
+          case Transposition_table::Eval_type::exact:
+            return entry->evaluation;
+            break;
+        }
+      }
+      else
+      {
+        // TODO: Set the best move as the first one in our search; even though we need to search to a 
+        // larger depth it still has a good chance of being the best move
       }
     }
     else
     {
-      // TODO: Set the best move as the first one in our search; even though we need to search to a 
-      // larger depth it still has a good chance of being the best move
+      ++tt_misses;
     }
-  }
-  else
-  {
-    ++tt_misses;
   }
 
   auto moves = Move_generator::generate_legal_moves(board);
@@ -143,10 +164,9 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   Board tmp_board{board};
   for (auto const move : moves)
   {
-    int score{0};
     tmp_board = board;
     tmp_board.move_no_verify(move);
-    score = -negamax_(tmp_board, -beta, -alpha, depth_remaining - 1);
+    auto const score = -negamax_(tmp_board, -beta, -alpha, depth_remaining - 1);
 
     if (score >= beta)
     {
@@ -348,6 +368,7 @@ uint64_t Meneldor_engine::perft(const int depth)
 std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)
 {
   m_visited_nodes = 0;
+  m_visited_quiesence_nodes = 0;
   m_stop_requested.clear();
   m_is_searching.test_and_set();
 
@@ -386,14 +407,14 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     }
   }
   
-  //TODO: Save entry to hash table here? Maybe not, since we're playing a move we'll never be in this position again except for repetition
-  
+  std::stringstream ss;
+  ss << best.first;
+
   if (m_is_debug)
   {
     std::cout << "Search depth: " << m_depth_for_current_search << "\n";
     std::cout << "TT occupancy: " << m_transpositions.count() << "\n";
-    std::cout << "TT fill percentage: " << (static_cast<float>(m_transpositions.count()) / m_transpositions.get_capacity()) << "\n";
-    //m_transpositions.display(std::cout);
+    std::cout << "TT percent full: " << (static_cast<float>(m_transpositions.count()) / m_transpositions.get_capacity()) << "\n";
 
     std::cout << "Hits: " << tt_hits << ", total: " << (tt_hits + tt_misses) << 
       ", sufficient_depth: " << tt_sufficient_depth << 
@@ -402,10 +423,9 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     tt_hits = 0;
     tt_misses = 0;
     tt_sufficient_depth = 0;
+    std::cout << "Best move: " << ss.str() << "\n";
   }
 
-  std::stringstream ss;
-  ss << best.first;
   m_is_searching.clear();
   return ss.str();
 }
@@ -417,15 +437,10 @@ senjo::SearchStats Meneldor_engine::getSearchStats() const
   result.depth = m_depth_for_current_search;
   result.seldepth = m_depth_for_current_search;
   result.nodes = m_visited_nodes;
-  result.qnodes = 0; // TODO: Update once engine supports quiescence searching
+  result.qnodes = m_visited_quiesence_nodes;
   result.msecs = 0; // TODO: Update once engine supports time
 
   return result;
-}
-
-uint32_t Meneldor_engine::previous_move_nodes_searched() const
-{
-  return m_visited_nodes;
 }
 
 void Meneldor_engine::resetEngineStats()
@@ -436,4 +451,51 @@ void Meneldor_engine::resetEngineStats()
 void Meneldor_engine::showEngineStats() const
 {
   // Called when "test" command is received
+}
+
+// Must be called after go() but before makeMove()
+bool Meneldor_engine::try_print_principle_variation(std::string move_str) const
+{
+  MY_ASSERT(m_use_transposition_table, "Can't print variation without populated table");
+
+  Board tmp_board{m_board};
+  auto next_move = tmp_board.move_from_uci(std::move(move_str));
+
+  std::cout << "Next move: " << *next_move << "\n";
+  auto depth = m_depth_for_current_search;
+  while (depth > 1)
+  {
+    tmp_board.try_move(*next_move);
+    auto entry = m_transpositions.get(tmp_board.get_hash_key());
+    if (!entry)
+    {
+      std::cout << "Could not find next move in transposition table\n";
+      return false;
+    }
+    depth = entry->depth;
+    next_move = entry->best_move;
+    std::cout << "Next move: " << *next_move;
+
+    switch (entry->type)
+    {
+      case Transposition_table::Eval_type::alpha:
+        // Eval_type::alpha implies we didn't find a move from this position that was as good as a move that
+        // we could have made earlier to lead to a different position. That means the position has an evaluation
+        // that is at most "entry.evaluation"
+        std::cout << " (upper)";
+        break;
+      case Transposition_table::Eval_type::beta:
+        // Eval_type::beta implies that we stopped evaluating last time because we didn't think the opposing player 
+        // would allow this position to be reached. That means the position has an evaluation of at least "entry.evaluation", 
+        // but there may be an even better move that was skipped
+        std::cout << " (lower)";
+        break;
+      case Transposition_table::Eval_type::exact:
+        std::cout << " (exact)";
+        break;
+    }
+    std::cout << "\n";
+  }
+
+  return true;
 }
