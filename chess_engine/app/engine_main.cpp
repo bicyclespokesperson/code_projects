@@ -7,6 +7,7 @@ int main(int argc, char* argv[])
   try
   {
     Meneldor_engine engine;
+    engine.setDebug(false);
     senjo::UCIAdapter adapter(engine);
 
     std::string line;
