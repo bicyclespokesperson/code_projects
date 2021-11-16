@@ -6,9 +6,7 @@
 
 struct Move
 {
-  constexpr Move()
-  : from({0,0}),
-    to({0,0})
+  constexpr Move() : from({0, 0}), to({0, 0})
   {
   }
 

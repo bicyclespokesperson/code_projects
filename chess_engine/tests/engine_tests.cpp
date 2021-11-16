@@ -41,7 +41,7 @@ auto engine_stats_from_position(std::string_view fen, bool debug = false)
   out << "For position: " << fen << "\n  Engine found " << engine_move << " after thinking for " << std::fixed
       << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
       << format_with_commas(search_stats.nodes) << " nodes ("
-      << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n" 
+      << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n"
       << "  QNodes searched: " << format_with_commas(search_stats.qnodes) << "\n";
 
   std::cout << out.str();
@@ -94,7 +94,7 @@ TEST_CASE("Search_mid4", "[.Meneldor_engine]")
   // Might need to print out principle variation to understand this one. Probably a horizon but not quite sure
   // I get a better move when commenting out threefold repetition detection, so maybe it thinks it can repeat moves
   // when it's calculating?
-  
+
   // From engine vs. engine game
   std::string fen = "r3kb1r/6p1/4p2p/n4p1P/p2P1Pn1/P5P1/3NN3/R1B1K2R w KQkq - 2 24";
 
@@ -108,7 +108,7 @@ TEST_CASE("Search_mid4", "[.Meneldor_engine]")
   params.nodes = 0; // ignored for now
   auto engine_move = engine.go(params, nullptr);
   std::cout << "Engine move: " << engine_move << "\n";
-  
+
   engine.try_print_principle_variation(engine_move);
   engine.makeMove(engine_move);
 
@@ -176,7 +176,7 @@ TEST_CASE("Search_repetition", "[.Meneldor_engine]")
   engine.makeMove("f8e8");
 
   best_move = engine.go(params);
-  
+
   // Now f6 would be a draw by repetition, so the engine should find something else
   REQUIRE(best_move != "h5f6");
 }

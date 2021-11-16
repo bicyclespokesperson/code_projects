@@ -97,9 +97,8 @@ std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, 
   auto search_stats = m_engine.getSearchStats();
 
   out << "Engine played " << engine_move << " after thinking for " << std::fixed << std::setprecision(2)
-      << format_with_commas(elapsed_time.count()) << " seconds and searching "
-      << format_with_commas(search_stats.nodes) << " nodes ("
-      << format_with_commas(search_stats.nodes / elapsed_time.count()) << " nodes/sec)\n";
+      << format_with_commas(elapsed_time.count()) << " seconds and searching " << format_with_commas(search_stats.nodes)
+      << " nodes (" << format_with_commas(search_stats.nodes / elapsed_time.count()) << " nodes/sec)\n";
 
   return engine_move;
 }

@@ -5,8 +5,8 @@
 #include "board.h"
 #include "meneldor_engine.h"
 #include "move_generator.h"
-#include "utils.h"
 #include "transposition_table.h"
+#include "utils.h"
 #include "zobrist_hash.h"
 
 namespace
@@ -614,6 +614,4 @@ TEST_CASE("Transposition table", "[Transposition_table]")
   auto e2 = tt.get(board2.get_hash_key());
   REQUIRE(e2.has_value());
   REQUIRE(e2->evaluation == 1);
-
 }
-
