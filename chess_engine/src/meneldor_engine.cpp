@@ -16,11 +16,9 @@ int tt_sufficient_depth{0};
 // Returns a number that is positive if the side to move is winning, and negative if losing
 int Meneldor_engine::evaluate(Board const& board) const
 {
-  auto const multiplier = (board.get_active_color() == Color::white) ? 1 : -1;
-
   // These arrays can be iterated in parallel
-  constexpr static std::array piece_values{100, 300, 300, 500, 900, 1000};
-  constexpr static std::array pieces{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen, Piece::king};
+  constexpr static std::array piece_values{100, 300, 300, 500, 900};
+  constexpr static std::array pieces{Piece::pawn, Piece::knight, Piece::bishop, Piece::rook, Piece::queen};
   static_assert(piece_values.size() == pieces.size());
 
   auto const state = board.calc_game_state();
@@ -39,26 +37,14 @@ int Meneldor_engine::evaluate(Board const& board) const
     return c_contempt_score;
   }
 
-  std::array<int, pieces.size()> black_piece_counts{};
-  std::transform(pieces.cbegin(), pieces.cend(), black_piece_counts.begin(),
-                 [&](Piece piece)
-                 {
-                   return board.get_piece_set(Color::black, piece).occupancy();
-                 });
-
-  std::array<int, pieces.size()> white_piece_counts{};
-  std::transform(pieces.cbegin(), pieces.cend(), white_piece_counts.begin(),
-                 [&](Piece piece)
-                 {
-                   return board.get_piece_set(Color::white, piece).occupancy();
-                 });
-
-  auto const black_material =
-    std::inner_product(black_piece_counts.cbegin(), black_piece_counts.cend(), piece_values.cbegin(), 0);
-  auto const white_material =
-    std::inner_product(white_piece_counts.cbegin(), white_piece_counts.cend(), piece_values.cbegin(), 0);
-
-  return multiplier * (white_material - black_material);
+  auto const color = board.get_active_color();
+  auto const enemy_color = opposite_color(board.get_active_color());
+  int result{0};
+  for (size_t i{0}; i < pieces.size(); ++i)
+  {
+    result += (board.get_piece_set(color, pieces[i]).occupancy() - board.get_piece_set(enemy_color, pieces[i]).occupancy()) * piece_values[i];
+  }
+  return result;
 }
 
 int Meneldor_engine::quiesce_(Board const& board, int alpha, int beta) const
