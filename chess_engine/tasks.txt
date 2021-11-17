@@ -51,3 +51,10 @@ Adding a simple move ordering (sort by victim value - attacker value) Dropped my
 WORST CODE OF ALL TIME
 https://home.hccnet.nl/h.g.muller/delay.html
 
+Findings from Instruments (profiling 1 minute of a computer vs computer game)
+  It takes 1.6 seconds to allocate a 1 GB vector for the transposition table
+  86% of our time is spent in negamax
+  Zero time is spent copying the board? Could probably afford to make it larger
+  Move generation, checking for check, and evaluating all take up time
+  Generating all attack squares takes up a good chunk of time (15% just in evaluate, more in stalemate and checking for check)
+  Almost half the time is spent quiescence searching, up to depth 12

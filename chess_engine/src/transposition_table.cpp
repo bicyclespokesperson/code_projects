@@ -10,8 +10,6 @@ size_t Transposition_table::hash_fn_(zhash_t key) const
 
 Transposition_table::Transposition_table(size_t table_size_bytes) : m_table_capacity(table_size_bytes / sizeof(Entry))
 {
-  std::cout << "Creating transposition table with table size " << table_size_bytes << " to accomodate "
-            << m_table_capacity << " entries\n";
   m_table.resize(m_table_capacity);
 }
 
@@ -48,30 +46,28 @@ bool Transposition_table::contains(zhash_t key) const
   return walk_(key) != nullptr;
 }
 
-//TODO: Is there a more performant way to do this vs. returning an optional?
-std::optional<Transposition_table::Entry> Transposition_table::get(zhash_t key) const
+Transposition_table::Entry const* Transposition_table::get(zhash_t key) const
 {
   MY_ASSERT(hash_fn_(key) < m_table.size(), "Index out of bounds");
   if (auto result = walk_(key))
   {
-    //result->recently_used = true;
-    return *result;
+    return result;
   }
-  return {};
+  return nullptr;
 }
 
 Transposition_table::Entry const* Transposition_table::walk_(zhash_t key) const
 {
   MY_ASSERT(hash_fn_(key) < m_table.size(), "Index out of bounds");
 
-  auto hash_value = hash_fn_(key);
-  for (size_t i{0}; i < c_entries_per_key; ++i)
+  auto const hash_value = hash_fn_(key);
+  if (m_table[hash_value].key == key)
   {
-    auto& entry = m_table[hash_value + i];
-    if (entry.key == key)
-    {
-      return &entry;
-    }
+    return &m_table[hash_value];
+  }
+  if (m_table[hash_value + 1].key == key)
+  {
+    return &m_table[hash_value + 1];
   }
   return nullptr;
 }

@@ -43,7 +43,7 @@ public:
 
   bool contains(zhash_t key) const;
 
-  std::optional<Entry> get(zhash_t key) const;
+  Entry const* get(zhash_t key) const;
 
   size_t get_capacity() const;
 

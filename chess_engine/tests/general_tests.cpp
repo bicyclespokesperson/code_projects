@@ -612,6 +612,6 @@ TEST_CASE("Transposition table", "[Transposition_table]")
   REQUIRE(board.get_hash_key() == board2.get_hash_key());
   REQUIRE(tt.contains(board2.get_hash_key()));
   auto e2 = tt.get(board2.get_hash_key());
-  REQUIRE(e2.has_value());
+  REQUIRE(e2 != nullptr);
   REQUIRE(e2->evaluation == 1);
 }

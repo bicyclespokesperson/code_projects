@@ -44,6 +44,10 @@ int Meneldor_engine::evaluate(Board const& board) const
   {
     result += (board.get_piece_set(color, pieces[i]).occupancy() - board.get_piece_set(enemy_color, pieces[i]).occupancy()) * piece_values[i];
   }
+
+  // Positions that can attack more squares are better
+  result += Move_generator::get_all_attacked_squares(board, board.get_active_color()).occupancy();
+
   return result;
 }
 
