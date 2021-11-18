@@ -31,6 +31,8 @@ struct Move
               "Ensure we aren't throwing away any information about the piece");
   }
 
+  constexpr auto operator<=>(Move const& other) const = default;
+
   Coordinates from; // 8
   Coordinates to; // 8
   Piece piece : 4 {Piece::empty};

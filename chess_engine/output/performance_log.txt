@@ -249,12 +249,6 @@ For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
   Engine found c7c8n after thinking for 0.06 seconds and searching 130,073 nodes (2,081,534.35 nodes/sec)
   QNodes searched: 115,753
 
-
-Test run starting: 11/16/2021 at 23:00:19
-For position: r1bq1rk1/p4ppp/1pnbpn2/2ppN3/3P4/2PBP1B1/PP1N1PPP/R2QK2R b KQ - 1 9
-  Engine found d6e5 after thinking for 2.08 seconds and searching 2,406,491 nodes (1,158,097.09 nodes/sec)
-  QNodes searched: 2,437,064
-
 Test run starting: 11/17/2021 at 10:17:25
 For position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
   Engine found d2d4 after thinking for 1.45 seconds and searching 1,222,124 nodes (842,912.73 nodes/sec)
@@ -278,29 +272,7 @@ For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
   Engine found c7c8n after thinking for 0.06 seconds and searching 130,073 nodes (2,059,257.50 nodes/sec)
   QNodes searched: 115,753
 
-Test run starting: 11/17/2021 at 10:25:13
-For position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-  Engine found d2d4 after thinking for 1.34 seconds and searching 1,222,124 nodes (914,569.74 nodes/sec)
-  QNodes searched: 1,301,320
-For position: rnbqkbnr/pppp4/7p/8/2B1PppP/8/PPPP2P1/RNBQK2R w KQ - 2 8
-  Engine found d1g4 after thinking for 2.70 seconds and searching 1,774,821 nodes (656,166.57 nodes/sec)
-  QNodes searched: 2,917,136
-For position: rn3rk1/pp2bp1p/6pQ/q2pPb2/2pP4/2P2N2/P1P1B1PP/R1B1K2R w KQ - 4 13
-  Engine found h6d2 after thinking for 3.44 seconds and searching 2,612,800 nodes (759,722.38 nodes/sec)
-  QNodes searched: 3,874,427
-For position: r1bq1rk1/p4ppp/1pnbpn2/2ppN3/3P4/2PBP1B1/PP1N1PPP/R2QK2R b KQ - 1 9
-  Engine found d6e5 after thinking for 1.81 seconds and searching 2,406,491 nodes (1,327,307.62 nodes/sec)
-  QNodes searched: 2,437,064
-For position: 5q2/n2P1k2/2b5/8/8/3N4/4BK2/6Q1 w - - 0 1
-  Engine found f2e1 after thinking for 1.12 seconds and searching 1,266,558 nodes (1,126,073.57 nodes/sec)
-  QNodes searched: 1,235,593
-For position: 8/6p1/k1P2p1p/7K/8/8/8/8 w - - 0 1
-  Engine found h5g6 after thinking for 0.00 seconds and searching 4,437 nodes (1,456,186.41 nodes/sec)
-  QNodes searched: 3,911
-For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
-  Engine found c7c8n after thinking for 0.06 seconds and searching 128,149 nodes (2,066,919.35 nodes/sec)
-  QNodes searched: 114,168
-
+// Stop handling pawn promotions separately
 Test run starting: 11/17/2021 at 10:33:52
 For position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
   Engine found d2d4 after thinking for 1.48 seconds and searching 1,222,124 nodes (825,099.38 nodes/sec)
@@ -323,3 +295,26 @@ For position: 8/6p1/k1P2p1p/7K/8/8/8/8 w - - 0 1
 For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
   Engine found c7c8n after thinking for 0.06 seconds and searching 128,149 nodes (2,096,438.56 nodes/sec)
   QNodes searched: 114,168
+
+Test run starting: 11/18/2021 at 09:09:31
+For position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+  Engine found d2d4 after thinking for 1.89 seconds and searching 1,221,806 nodes (645,805.56 nodes/sec)
+  QNodes searched: 1,301,039
+For position: rnbqkbnr/pppp4/7p/8/2B1PppP/8/PPPP2P1/RNBQK2R w KQ - 2 8
+  Engine found d1g4 after thinking for 3.74 seconds and searching 1,774,821 nodes (474,612.24 nodes/sec)
+  QNodes searched: 2,917,136
+For position: rn3rk1/pp2bp1p/6pQ/q2pPb2/2pP4/2P2N2/P1P1B1PP/R1B1K2R w KQ - 4 13
+  Engine found h6d2 after thinking for 4.88 seconds and searching 2,611,578 nodes (535,704.90 nodes/sec)
+  QNodes searched: 3,872,322
+For position: r1bq1rk1/p4ppp/1pnbpn2/2ppN3/3P4/2PBP1B1/PP1N1PPP/R2QK2R b KQ - 1 9
+  Engine found d6e5 after thinking for 2.58 seconds and searching 2,406,491 nodes (933,508.28 nodes/sec)
+  QNodes searched: 2,437,064
+For position: 5q2/n2P1k2/2b5/8/8/3N4/4BK2/6Q1 w - - 0 1
+  Engine found f2e1 after thinking for 1.67 seconds and searching 1,267,173 nodes (757,483.99 nodes/sec)
+  QNodes searched: 1,236,142
+For position: 8/6p1/k1P2p1p/7K/8/8/8/8 w - - 0 1
+  Engine found h5g6 after thinking for 0.01 seconds and searching 4,437 nodes (860,050.40 nodes/sec)
+  QNodes searched: 3,911
+For position: 8/q1P1k3/8/8/8/8/5PP1/6K1 w - - 0 1
+  Engine found c7c8n after thinking for 0.09 seconds and searching 126,916 nodes (1,475,047.07 nodes/sec)
+  QNodes searched: 112,952

@@ -408,11 +408,11 @@ TEST_CASE("Pawn attacks", "[Move_generator}")
   occupancy.set_square(*Coordinates::from_str("h5"));
 
   auto white_pawn_pushes = mg.pawn_short_advances(Color::white, pawns, occupancy);
-  Bitboard expected_white_pawn_pushes{0x0000000002010000};
+  Bitboard expected_white_pawn_pushes{0x4000000002010000};
   REQUIRE(expected_white_pawn_pushes == white_pawn_pushes);
 
   auto black_pawn_pushes = mg.pawn_short_advances(Color::black, pawns, occupancy);
-  Bitboard expected_black_pawn_pushes{0x0000400000800200};
+  Bitboard expected_black_pawn_pushes{0x0000400000800205};
   REQUIRE(expected_black_pawn_pushes == black_pawn_pushes);
 
   auto white_pawn_attacks = mg.pawn_potential_attacks(Color::white, pawns);

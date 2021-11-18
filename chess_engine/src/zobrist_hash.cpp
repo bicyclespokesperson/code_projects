@@ -28,7 +28,7 @@ const auto Zobrist_hash::m_random_numbers = []
   std::array<zhash_t, 793> result;
 
   // Initialize with constant seed for run to run repeatability
-  std::seed_seq seq{267403289, -1616180330, -870258931, -648938664, -1040157715, -195351127, -728458912, 1033321512};
+  std::seed_seq seq{267403289, -1616180330, -870258931, -648938664, -1040157715, -195351127, -728458912, 1033321512}; // original
   std::mt19937 eng(seq);
   std::uniform_int_distribution<int> dist{};
 
