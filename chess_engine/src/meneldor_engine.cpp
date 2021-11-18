@@ -399,7 +399,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   int max_depth = (params.depth > 0) ? params.depth : c_default_depth;
   Move best_move;
-  for (int depth{2}; depth < max_depth; ++depth)
+  for (int depth{2}; depth <= max_depth; ++depth)
   {
     m_depth_for_current_search = depth;
     best_move = search(m_depth_for_current_search);
