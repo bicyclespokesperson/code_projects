@@ -99,7 +99,7 @@ TEST_CASE("Search_mid4", "[.Meneldor_engine]")
   std::string fen = "r3kb1r/6p1/4p2p/n4p1P/p2P1Pn1/P5P1/3NN3/R1B1K2R w KQkq - 2 24";
 
   Meneldor_engine engine;
-  engine.setDebug(false);
+  engine.setDebug(true);
   engine.initialize();
   engine.setPosition(std::string{fen});
 

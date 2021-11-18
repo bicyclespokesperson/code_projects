@@ -1,5 +1,6 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
+#include "utils.h"
 
 namespace
 {
@@ -415,6 +416,8 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     }
   }
 
+  auto const end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> const elapsed_seconds = end_time - start_time;
   std::stringstream ss;
   ss << best_move;
 
@@ -425,14 +428,20 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     std::cout << "TT percent full: " << (static_cast<float>(m_transpositions.count()) / m_transpositions.get_capacity())
               << "\n";
 
-    std::cout << "Hits: " << tt_hits << ", total: " << (tt_hits + tt_misses)
+    std::cout << "TT Hits: " << tt_hits << ", total: " << (tt_hits + tt_misses)
               << ", sufficient_depth: " << tt_sufficient_depth
               << ", hit%: " << (static_cast<float>(tt_hits) / (tt_hits + tt_misses)) << "\n";
+
+    auto search_stats = getSearchStats();
+    std::cout << "For position: " << getFEN() << "\n  Engine found " << ss.str() << " after thinking for " << std::fixed
+        << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
+        << format_with_commas(search_stats.nodes) << " nodes ("
+        << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n"
+        << "  QNodes searched: " << format_with_commas(search_stats.qnodes) << "\n";
 
     tt_hits = 0;
     tt_misses = 0;
     tt_sufficient_depth = 0;
-    std::cout << "Best move: " << ss.str() << "\n";
   }
 
   m_is_searching.clear();
@@ -472,7 +481,12 @@ bool Meneldor_engine::try_print_principle_variation(std::string move_str) const
   auto depth = m_depth_for_current_search;
   while (depth > 1)
   {
-    tmp_board.try_move(*next_move);
+    if (!tmp_board.try_move(*next_move))
+    {
+      std::cout << "Could not find move in transposition table\n";
+      return false;
+    }
+
     auto entry = m_transpositions.get(tmp_board.get_hash_key());
     if (!entry)
     {
