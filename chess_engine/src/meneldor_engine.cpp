@@ -1,6 +1,5 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
-#include "utils.h"
 
 namespace
 {
@@ -98,7 +97,6 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     return c_contempt_score; // Draw by repetition
   }
 
-  Move best_guess{};
   if (auto entry = m_transpositions.get(board.get_hash_key()))
   {
     ++tt_hits;
@@ -124,13 +122,6 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
           break;
       }
     }
-    else if (entry->best_move.type != Move_type::null)
-    {
-      // TODO: Set the best move as the first one in our search; even though we need to search to a
-      // larger depth it still has a good chance of being the best move
-      best_guess = entry->best_move;
-      //std::cout << "Move: " << best_guess << "\n";
-    }
   }
   else
   {
@@ -147,19 +138,6 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     return 0;
   }
   m_orderer.sort_moves(moves, board);
-
-  //TODO: Test this and make into right rotate
-  if (best_guess.type != Move_type::null)
-  {
-    auto const guess_location = std::find(moves.begin(), moves.end(), best_guess);
-    if (guess_location != moves.cend())
-    {
-      //std::cout << "Move list (size: " << moves.size() << "): ";
-      //print_vector(std::cout, moves);
-      //MY_ASSERT(guess_location != moves.end(), "Move should always be present");
-      std::rotate(moves.begin(), guess_location, guess_location + 1);
-    }
-  }
 
   // If we don't find a move here that's better than alpha, just save alpha as the upper bound for this position
   auto eval_type = Transposition_table::Eval_type::alpha;
