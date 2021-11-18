@@ -70,6 +70,8 @@ public:
 
   uint64_t perft(const int depth) override;
 
+  Move search(int depth);
+
   std::string go(const senjo::GoParams& params, std::string* ponder = nullptr) override;
 
   senjo::SearchStats getSearchStats() const override;

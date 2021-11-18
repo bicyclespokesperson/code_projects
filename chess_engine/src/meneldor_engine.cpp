@@ -346,31 +346,19 @@ uint64_t Meneldor_engine::perft(const int depth)
   return Move_generator::perft(depth, m_board, m_stop_requested);
 }
 
-std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)
+Move Meneldor_engine::search(int depth)
 {
-  m_visited_nodes = 0;
-  m_visited_quiesence_nodes = 0;
-  m_stop_requested.clear();
-  m_is_searching.test_and_set();
-
-  auto const color = m_board.get_active_color();
   auto legal_moves = Move_generator::generate_legal_moves(m_board);
   MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
   m_orderer.sort_moves(legal_moves, m_board);
 
-  m_depth_for_current_search = (params.depth > 0) ? params.depth : c_default_depth;
-
-  if (m_is_debug)
-  {
-    std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board)) << "\n";
-  }
   std::pair<Move, int> best{legal_moves.front(), negative_inf};
   for (auto move : legal_moves)
   {
     auto tmp_board = m_board;
     tmp_board.move_no_verify(move);
 
-    auto const score = -negamax_(tmp_board, negative_inf, positive_inf, m_depth_for_current_search);
+    auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth);
 
     if (m_is_debug)
     {
@@ -388,8 +376,47 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     }
   }
 
+  return best.first;
+}
+
+std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)
+{
+  auto const start_time = std::chrono::system_clock::now();
+
+  m_visited_nodes = 0;
+  m_visited_quiesence_nodes = 0;
+  m_stop_requested.clear();
+  m_is_searching.test_and_set();
+
+  if (m_is_debug)
+  {
+    auto const color = m_board.get_active_color();
+    std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board)) << "\n";
+  }
+
+  auto time_per_move = std::chrono::duration<double>{1.5};
+
+  int max_depth = (params.depth > 0) ? params.depth : c_default_depth;
+  Move best_move;
+  for (int depth{2}; depth < max_depth; ++depth)
+  {
+    m_depth_for_current_search = depth;
+    best_move = search(m_depth_for_current_search);
+
+    auto const current_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> const elapsed_time = current_time - start_time;
+    if (elapsed_time > time_per_move)
+    {
+      if (m_is_debug)
+      {
+        std::cout << "Searched to depth: " << depth << "\n";
+      }
+      break;
+    }
+  }
+
   std::stringstream ss;
-  ss << best.first;
+  ss << best_move;
 
   if (m_is_debug)
   {
