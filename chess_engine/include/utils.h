@@ -10,11 +10,11 @@ std::string format_with_commas(T value)
   return ss.str();
 }
 
-template <typename T> 
-void print_vector(std::ostream& os, std::vector<T> const& v) 
-{ 
+template <typename T>
+void print_vector(std::ostream& os, std::vector<T> const& v)
+{
   std::copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
   os << "\n";
-} 
+}
 
 #endif // UTILS_H

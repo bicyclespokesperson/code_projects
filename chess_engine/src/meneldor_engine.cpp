@@ -43,7 +43,9 @@ int Meneldor_engine::evaluate(Board const& board) const
   int result{0};
   for (size_t i{0}; i < pieces.size(); ++i)
   {
-    result += (board.get_piece_set(color, pieces[i]).occupancy() - board.get_piece_set(enemy_color, pieces[i]).occupancy()) * piece_values[i];
+    result +=
+      (board.get_piece_set(color, pieces[i]).occupancy() - board.get_piece_set(enemy_color, pieces[i]).occupancy()) *
+      piece_values[i];
   }
 
   // Positions that can attack more squares are better
@@ -434,10 +436,10 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
     auto search_stats = getSearchStats();
     std::cout << "For position: " << getFEN() << "\n  Engine found " << ss.str() << " after thinking for " << std::fixed
-        << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
-        << format_with_commas(search_stats.nodes) << " nodes ("
-        << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n"
-        << "  QNodes searched: " << format_with_commas(search_stats.qnodes) << "\n";
+              << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
+              << format_with_commas(search_stats.nodes) << " nodes ("
+              << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n"
+              << "  QNodes searched: " << format_with_commas(search_stats.qnodes) << "\n";
 
     tt_hits = 0;
     tt_misses = 0;

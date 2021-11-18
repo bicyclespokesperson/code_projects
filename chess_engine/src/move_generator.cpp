@@ -425,8 +425,8 @@ void Move_generator::generate_pawn_attacks(Board const& board, Color color, std:
 {
   // Handle east captures
   auto const east_offset = get_east_capture_offset(color);
-  for (auto location : pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn),
-                                                    board.get_all(opposite_color(color))))
+  for (auto location :
+       pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
   {
     Coordinates from{location + east_offset};
     Coordinates to{location};
@@ -446,8 +446,8 @@ void Move_generator::generate_pawn_attacks(Board const& board, Color color, std:
 
   // Handle west captures
   auto const west_offset = get_west_capture_offset(color);
-  for (auto location : pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn),
-                                                    board.get_all(opposite_color(color))))
+  for (auto location :
+       pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
   {
     Coordinates from{location + west_offset};
     Coordinates to{location};
@@ -498,16 +498,14 @@ void Move_generator::generate_pawn_moves(Board const& board, Color color, std::v
 
   auto const east_offset = get_east_capture_offset(color);
   // Handle en passant
-  for (auto location :
-       pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location : pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     moves.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
                        Piece::empty, Move_type::en_passant);
   }
 
   auto const west_offset = get_west_capture_offset(color);
-  for (auto location :
-       pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location : pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
                        Piece::empty, Move_type::en_passant);
