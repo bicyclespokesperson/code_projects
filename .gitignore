@@ -190,3 +190,7 @@ SharedPrecompiledHeaders
 *.app
 
 .cache/
+
+# Chess Engine files
+chess_engine/output/performance_log.txt
+chess_engine/feature_set.txt
