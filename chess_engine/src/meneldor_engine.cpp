@@ -151,15 +151,18 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   m_orderer.sort_moves(moves, board);
 
   //TODO: Test this and make into right rotate
-  if (best_guess.type != Move_type::null)
+  if (is_feature_enabled("use_guess_move"))
   {
-    auto const guess_location = std::find(moves.begin(), moves.end(), best_guess);
-    if (guess_location != moves.cend())
+    if (best_guess.type != Move_type::null)
     {
-      //std::cout << "Move list (size: " << moves.size() << "): ";
-      //print_vector(std::cout, moves);
-      //MY_ASSERT(guess_location != moves.end(), "Move should always be present");
-      std::rotate(moves.begin(), guess_location, guess_location + 1);
+      auto const guess_location = std::find(moves.begin(), moves.end(), best_guess);
+      if (guess_location != moves.cend())
+      {
+        //std::cout << "Move list (size: " << moves.size() << "): ";
+        //print_vector(std::cout, moves);
+        //MY_ASSERT(guess_location != moves.end(), "Move should always be present");
+        std::rotate(moves.begin(), guess_location, guess_location + 1);
+      }
     }
   }
 
@@ -420,23 +423,30 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   auto time_per_move = std::chrono::duration<double>{1.5};
 
-  int max_depth = (params.depth > 0) ? params.depth : c_default_depth;
+  int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
   Move best_move;
-  for (int depth{2}; depth <= max_depth; ++depth)
+  if (is_feature_enabled("use_iterative_deepening"))
   {
-    m_depth_for_current_search = depth;
-    best_move = search(m_depth_for_current_search);
-
-    auto const current_time = std::chrono::system_clock::now();
-    std::chrono::duration<double> const elapsed_time = current_time - start_time;
-    if (elapsed_time > time_per_move)
+    for (int depth{2}; depth <= max_depth; ++depth)
     {
-      if (m_is_debug)
+      m_depth_for_current_search = depth;
+      best_move = search(m_depth_for_current_search);
+
+      auto const current_time = std::chrono::system_clock::now();
+      std::chrono::duration<double> const elapsed_time = current_time - start_time;
+      if (elapsed_time > time_per_move)
       {
-        std::cout << "Searched to depth: " << depth << "\n";
+        if (m_is_debug)
+        {
+          std::cout << "Searched to depth: " << depth << "\n";
+        }
+        break;
       }
-      break;
     }
+  }
+  else
+  {
+    best_move = search(m_depth_for_current_search);
   }
 
   auto const end_time = std::chrono::system_clock::now();
