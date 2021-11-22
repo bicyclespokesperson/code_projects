@@ -30,18 +30,15 @@ auto engine_stats_from_position(std::string_view fen, bool debug = false)
   params.depth = 5;
   params.nodes = 0; // ignored for now
 
-  auto const start = std::chrono::system_clock::now();
   auto const engine_move = engine.go(params, nullptr);
-  auto const end = std::chrono::system_clock::now();
-  std::chrono::duration<double> const elapsed_seconds = end - start;
   auto search_stats = engine.getSearchStats();
+  auto elapsed_seconds = static_cast<double>(search_stats.msecs) / 1000.0;
 
   std::stringstream out;
-
   out << "For position: " << fen << "\n  Engine found " << engine_move << " after thinking for " << std::fixed
-      << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
+      << std::setprecision(2) << format_with_commas(elapsed_seconds) << " seconds and searching "
       << format_with_commas(search_stats.nodes) << " nodes ("
-      << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n"
+      << format_with_commas(search_stats.nodes / elapsed_seconds) << " nodes/sec)\n"
       << "  QNodes searched: " << format_with_commas(search_stats.qnodes) << "\n";
 
   std::cout << out.str();

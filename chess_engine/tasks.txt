@@ -16,6 +16,9 @@ Search
       Use iterative deepening to order all moves, not just best move?
 
 
+Iterative deepening articles:
+https://fizyka.umk.pl/~duch/Wyklady/AI/Notki/Chess%20Programming%20Theory.htm
+
 Transposition table articles:
 http://mediocrechess.blogspot.com/2007/01/guide-transposition-tables.html
 https://adamberent.com/2019/03/02/transposition-table-and-zobrist-hashing/

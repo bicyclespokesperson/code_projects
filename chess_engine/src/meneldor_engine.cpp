@@ -123,10 +123,7 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
           alpha = std::max(alpha, entry->evaluation);
           break;
         case Transposition_table::Eval_type::exact:
-          --m_visited_nodes;
-          std::cerr << "Found exact score\n";
-          int* x{nullptr};
-          *x = 4;
+          --m_visited_nodes; //TODO: Is this useful?
           return entry->evaluation;
           break;
       }
@@ -155,21 +152,23 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   }
   m_orderer.sort_moves(moves, board);
 
-  //TODO: Test this and make into right rotate
-  if (is_feature_enabled("use_guess_move"))
+  //TODO: Test this
+  static const bool use_guess_move = is_feature_enabled("use_guess_move");
+  if (use_guess_move)
   {
     if (best_guess.type != Move_type::null)
     {
       auto const guess_location = std::find(moves.begin(), moves.end(), best_guess);
-      if (guess_location != moves.cbegin() && guess_location != moves.cbegin() + 1 && guess_location != moves.cend())
+      if (guess_location != moves.end())
       {
         //std::cout << "Move list (size: " << moves.size() << "): ";
         //print_vector(std::cout, moves);
         //MY_ASSERT(guess_location != moves.end(), "Move should always be present");
-        print_vector(std::cout, moves);
         std::rotate(moves.begin(), guess_location, guess_location + 1);
-        print_vector(std::cout, moves);
-        exit(6);
+      }
+      else
+      {
+        // Zobrist key collision?
       }
     }
   }
@@ -429,9 +428,10 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board)) << "\n";
   }
 
-  auto time_per_move = std::chrono::duration<double>{1.5};
+  auto time_per_move = std::chrono::duration<double>{1000.5};
 
-  int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
+  int const max_depth = 6;
+  //int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
   Move best_move;
   if (is_feature_enabled("use_iterative_deepening"))
   {
@@ -454,6 +454,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
   }
   else
   {
+    m_depth_for_current_search = max_depth;
     best_move = search(m_depth_for_current_search);
   }
 
@@ -499,7 +500,7 @@ senjo::SearchStats Meneldor_engine::getSearchStats() const
   result.qnodes = m_visited_quiesence_nodes;
 
   auto const end_time = m_is_searching.test() ? std::chrono::system_clock::now() : m_search_end_time;
-  auto const elapsed = (end_time - m_search_start_time);
+  std::chrono::duration<double> const elapsed = (end_time - m_search_start_time);
   result.msecs = static_cast<uint64_t>(elapsed.count() * 1000.0);
 
   return result;
