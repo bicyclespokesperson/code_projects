@@ -2,26 +2,23 @@
 This position leads to a strange move for white, possibly related to repetition?
 r3kb1r/6p1/4p2p/n4p1P/p2P1Pn1/P5P1/3NN3/R1B1K2R w KQkq - 2 24
 
-Implement draws
-  insufficient material? Would this actually affect anything?
+Implement insufficient material draws? Would this actually affect anything?
 
 Search
   Iterative deepening
     Measure alpha/beta success rate? ID ostensibly speeds up search by improving that
-  Transposition table
-    Zobrist hashing
   Move ordering
-    Moves may need more infomation added to them for move ordering
-      MVV/LVA and/or SEE
+    Attack piece that most recently moved first?
+    SEE?
+
   Better quiescence search
     https://chess.stackexchange.com/questions/27257/chess-engine-quiescence-search-increases-required-time-by-a-factor-of-20
+      Use iterative deepening to order all moves, not just best move?
 
 
 Transposition table articles:
 http://mediocrechess.blogspot.com/2007/01/guide-transposition-tables.html
 https://adamberent.com/2019/03/02/transposition-table-and-zobrist-hashing/
-
-Implement quiesence search
 
 This article is good, might also want to just look at the source code for the engine
 https://www.rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
@@ -44,9 +41,7 @@ Integrated UCI protocol using
 qperft runs at 170,000,000 nodes/sec on my macbook
 Stockfish is somewhere around 120,000,000 nodes/sec (very rough estimate)
 Python chess lib is 60,000 nodes/sec
-My perft implementation runs at 7,000,000 by comparison
-
-Adding a simple move ordering (sort by victim value - attacker value) Dropped my searched nodes from 3.8M to 1.5M for black's first move after 1. e4
+My perft implementation runs at 7,500,000 by comparison
 
 WORST CODE OF ALL TIME
 https://home.hccnet.nl/h.g.muller/delay.html
@@ -56,5 +51,6 @@ Findings from Instruments (profiling 1 minute of a computer vs computer game)
   86% of our time is spent in negamax
   Zero time is spent copying the board? Could probably afford to make it larger
   Move generation, checking for check, and evaluating all take up time
-  Generating all attack squares takes up a good chunk of time (15% just in evaluate, more in stalemate and checking for check)
-  Almost half the time is spent quiescence searching, up to depth 12
+  Generating all attack squares takes up a good chunk of time (15% just in evaluate, more in stalemate and checking for check in move generation)
+  Almost half the time is spent quiescence searching, sometimes qsearch gets to depth 12
+
