@@ -14,6 +14,7 @@
 #include "my_assert.h"
 #include "player.h"
 #include "transposition_table.h"
+#include "utils.h"
 #include "zobrist_hash.h"
 
 void print_bitboard_with_squares(std::vector<std::string> const& squares)
@@ -83,5 +84,6 @@ int main(int argc, char* argv[])
   Transposition_table table{2048};
 
 #endif
+
   return 0;
 }
