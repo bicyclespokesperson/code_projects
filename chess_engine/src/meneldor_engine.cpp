@@ -1,5 +1,6 @@
 #include "meneldor_engine.h"
 #include "move_generator.h"
+#include "feature_toggle.h"
 #include "utils.h"
 
 namespace
@@ -122,6 +123,10 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
           alpha = std::max(alpha, entry->evaluation);
           break;
         case Transposition_table::Eval_type::exact:
+          --m_visited_nodes;
+          std::cerr << "Found exact score\n";
+          int* x{nullptr};
+          *x=4;
           return entry->evaluation;
           break;
       }
@@ -156,12 +161,15 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     if (best_guess.type != Move_type::null)
     {
       auto const guess_location = std::find(moves.begin(), moves.end(), best_guess);
-      if (guess_location != moves.cend())
+      if (guess_location != moves.cbegin() && guess_location != moves.cbegin() + 1 && guess_location != moves.cend())
       {
         //std::cout << "Move list (size: " << moves.size() << "): ";
         //print_vector(std::cout, moves);
         //MY_ASSERT(guess_location != moves.end(), "Move should always be present");
+        print_vector(std::cout, moves);
         std::rotate(moves.begin(), guess_location, guess_location + 1);
+        print_vector(std::cout, moves);
+        exit(6);
       }
     }
   }
@@ -180,7 +188,7 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     {
       // Stop evaluating here since the opposing player won't let us get even this position on their previous move
       // Our evaluation here is a lower bound
-      auto eval_type = Transposition_table::Eval_type::beta;
+      eval_type = Transposition_table::Eval_type::beta;
       m_transpositions.insert(board.get_hash_key(), {board.get_hash_key(), depth_remaining, score, move, eval_type});
 
       return beta;
