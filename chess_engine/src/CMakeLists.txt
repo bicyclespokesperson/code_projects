@@ -31,6 +31,7 @@ target_precompile_headers(chess_engine_lib
     <sstream>
     <unistd.h>    
     <unordered_map>
+    <unordered_set>
     <vector>
 )
 
