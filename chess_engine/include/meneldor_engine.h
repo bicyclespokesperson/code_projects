@@ -104,6 +104,8 @@ private:
 
   mutable uint32_t m_visited_nodes{0};
   mutable uint32_t m_visited_quiesence_nodes{0};
+  std::chrono::time_point<std::chrono::system_clock> m_search_start_time;
+  std::chrono::time_point<std::chrono::system_clock> m_search_end_time;
 
   // How likely we think we are to win/lose to the opponent. Influences how valuable a draw is.
   // scores <0 imply we think we will win, so draws should be avoided (draws are worse than an even position).

@@ -1,6 +1,6 @@
 #include "meneldor_engine.h"
-#include "move_generator.h"
 #include "feature_toggle.h"
+#include "move_generator.h"
 #include "utils.h"
 
 namespace
@@ -126,7 +126,7 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
           --m_visited_nodes;
           std::cerr << "Found exact score\n";
           int* x{nullptr};
-          *x=4;
+          *x = 4;
           return entry->evaluation;
           break;
       }
@@ -416,7 +416,7 @@ Move Meneldor_engine::search(int depth)
 
 std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)
 {
-  auto const start_time = std::chrono::system_clock::now();
+  m_search_start_time = std::chrono::system_clock::now();
 
   m_visited_nodes = 0;
   m_visited_quiesence_nodes = 0;
@@ -441,7 +441,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
       best_move = search(m_depth_for_current_search);
 
       auto const current_time = std::chrono::system_clock::now();
-      std::chrono::duration<double> const elapsed_time = current_time - start_time;
+      std::chrono::duration<double> const elapsed_time = current_time - m_search_start_time;
       if (elapsed_time > time_per_move)
       {
         if (m_is_debug)
@@ -457,8 +457,8 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     best_move = search(m_depth_for_current_search);
   }
 
-  auto const end_time = std::chrono::system_clock::now();
-  std::chrono::duration<double> const elapsed_seconds = end_time - start_time;
+  m_search_end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> const elapsed_seconds = m_search_end_time - m_search_start_time;
   std::stringstream ss;
   ss << best_move;
 
@@ -497,7 +497,10 @@ senjo::SearchStats Meneldor_engine::getSearchStats() const
   result.seldepth = m_depth_for_current_search;
   result.nodes = m_visited_nodes;
   result.qnodes = m_visited_quiesence_nodes;
-  result.msecs = 0; // TODO: Update once engine supports time
+
+  auto const end_time = m_is_searching.test() ? std::chrono::system_clock::now() : m_search_end_time;
+  auto const elapsed = (end_time - m_search_start_time);
+  result.msecs = static_cast<uint64_t>(elapsed.count() * 1000.0);
 
   return result;
 }
