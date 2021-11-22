@@ -11,6 +11,7 @@ rm -rf ./_deps
 rm -r ./bin/*
 rm -r ./build
 rm -r ./compile_commands.json
+rm -r ./Makefile
 
 find . -name '*.xcodeproj' -delete
 find . -name '*.build' -delete
