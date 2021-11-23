@@ -392,7 +392,7 @@ Move Meneldor_engine::search(int depth)
     auto tmp_board = m_board;
     tmp_board.move_no_verify(move);
 
-    auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth);
+    auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth - 1);
 
     if (m_is_debug)
     {
