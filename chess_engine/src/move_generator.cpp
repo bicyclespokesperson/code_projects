@@ -62,10 +62,19 @@ constexpr int32_t get_west_capture_offset(Color color)
 {
   return c_west_offsets[static_cast<int32_t>(color)];
 }
+} // namespace
 
-auto initialize_ray_attacks_() -> std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared>
+Move_generator::Tables const Move_generator::m_tables{};
+
+Move_generator::Tables::Tables()
 {
-  std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> result;
+  initialize_ray_attacks_();
+  initialize_knight_attacks_();
+  initialize_king_attacks_();
+}
+
+void Move_generator::Tables::initialize_ray_attacks_()
+{
   for (int8_t x{0}; x < c_board_dimension; ++x)
   {
     for (int8_t y{0}; y < c_board_dimension; ++y)
@@ -73,7 +82,7 @@ auto initialize_ray_attacks_() -> std::array<std::array<Bitboard, Compass_dir::_
       for (Compass_dir dir = Compass_dir::north; dir < Compass_dir::_count; ++dir)
       {
         auto square_index = Coordinates{x, y}.square_index();
-        Bitboard& bb = result[square_index][dir];
+        Bitboard& bb = ray_attacks[square_index][dir];
 
         int8_t square_x{x};
         int8_t square_y{y};
@@ -126,18 +135,16 @@ auto initialize_ray_attacks_() -> std::array<std::array<Bitboard, Compass_dir::_
       } // for each dir
     } // for each y
   } // for each x
-  return result;
 } // initialize_ray_attacks
 
-auto initialize_knight_attacks_() -> std::array<Bitboard, c_board_dimension_squared>
+void Move_generator::Tables::initialize_knight_attacks_()
 {
-  std::array<Bitboard, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
   {
     for (int8_t y{0}; y < c_board_dimension; ++y)
     {
       auto square_index = Coordinates{x, y}.square_index();
-      auto& bb = result[square_index];
+      auto& bb = knight_attacks[square_index];
 
       update_if_in_bounds_(bb, x + 1, y + 2);
       update_if_in_bounds_(bb, x - 1, y + 2);
@@ -149,18 +156,16 @@ auto initialize_knight_attacks_() -> std::array<Bitboard, c_board_dimension_squa
       update_if_in_bounds_(bb, x - 2, y - 1);
     }
   }
-  return result;
 }
 
-auto initialize_king_attacks_() -> std::array<Bitboard, c_board_dimension_squared>
+void Move_generator::Tables::initialize_king_attacks_()
 {
-  std::array<Bitboard, c_board_dimension_squared> result;
   for (int8_t x{0}; x < c_board_dimension; ++x)
   {
     for (int8_t y{0}; y < c_board_dimension; ++y)
     {
       auto square_index = Coordinates{x, y}.square_index();
-      auto& bb = result[square_index];
+      auto& bb = king_attacks[square_index];
 
       for (int i = -1; i <= 1; ++i)
       {
@@ -174,36 +179,40 @@ auto initialize_king_attacks_() -> std::array<Bitboard, c_board_dimension_square
       }
     }
   }
-
-  return result;
 }
-} // namespace
 
-const auto Move_generator::m_ray_attacks = []
-{
-  return initialize_ray_attacks_();
-}();
+#if 0
 
-const auto Move_generator::m_knight_attacks = []
-{
-  return initialize_knight_attacks_();
-}();
+struct Magic {
+   Bitboard mask;  // to mask relevant squares of both lines (no outer squares)
+   Bitboard magic; // magic 64-bit factor
+};
 
-const auto Move_generator::m_king_attacks = []
-{
-  return initialize_king_attacks_();
-}();
+std::array<Magic, 64> m_bishop_table;
+std::array<Magic, 64> m_rook_table;
+
+std::array<std::array<Bitboard, 512>, 64> m_bishop_attacks;
+std::array<std::array<Bitboard, 4096>, 64> m_rook_attacks;
+
+Bitboard bishop_attacks(Bitboard occ, Coordinates coords) {
+   occ &= m_bishop_table[coords.square_index()].mask;
+   occ *= m_bishop_table[coords.square_index()].magic;
+   occ >>= (64-9);
+   return m_bishop_attacks[coords.square_index()][occ.val];
+}
+#endif
+
 
 Bitboard Move_generator::get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied)
 {
   MY_ASSERT(dir.is_positive(), "Only positive directions are supported");
 
-  Bitboard attacks = m_ray_attacks[square.square_index()][dir];
+  Bitboard attacks = m_tables.ray_attacks[square.square_index()][dir];
   Bitboard blockers = attacks & occupied;
   if (!blockers.is_empty())
   {
     auto const first_blocker = blockers.bitscan_forward();
-    attacks ^= m_ray_attacks[first_blocker][dir];
+    attacks ^= m_tables.ray_attacks[first_blocker][dir];
   }
 
   return attacks;
@@ -213,12 +222,12 @@ Bitboard Move_generator::get_negative_ray_attacks_(Coordinates square, Compass_d
 {
   MY_ASSERT(!dir.is_positive(), "Only negative directions are supported");
 
-  Bitboard attacks = m_ray_attacks[square.square_index()][dir];
+  Bitboard attacks = m_tables.ray_attacks[square.square_index()][dir];
   Bitboard blockers = attacks & occupied;
   if (!blockers.is_empty())
   {
     auto const first_blocker = blockers.bitscan_reverse();
-    attacks ^= m_ray_attacks[first_blocker][dir];
+    attacks ^= m_tables.ray_attacks[first_blocker][dir];
   }
 
   return attacks;
@@ -264,12 +273,12 @@ Bitboard Move_generator::queen_attacks(Coordinates square, Bitboard occupied)
 
 Bitboard Move_generator::knight_attacks(Coordinates square, Bitboard /* occupied */)
 {
-  return m_knight_attacks[square.square_index()];
+  return m_tables.knight_attacks[square.square_index()];
 }
 
 Bitboard Move_generator::king_attacks(Coordinates square, Bitboard /* occupied */)
 {
-  return m_king_attacks[square.square_index()];
+  return m_tables.king_attacks[square.square_index()];
 }
 
 Bitboard Move_generator::pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied)
