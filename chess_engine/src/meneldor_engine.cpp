@@ -153,8 +153,8 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   m_orderer.sort_moves(moves, board);
 
   //TODO: Test this
-  static const bool use_guess_move = is_feature_enabled("use_guess_move");
-  if (use_guess_move)
+  static const bool skip_guess_move = is_feature_enabled("skip_guess_move");
+  if (!skip_guess_move)
   {
     if (best_guess.type != Move_type::null)
     {
@@ -433,7 +433,12 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
   int const max_depth = 6;
   //int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
   Move best_move;
-  if (is_feature_enabled("use_iterative_deepening"))
+  if (is_feature_enabled("skip_iterative_deepening"))
+  {
+    m_depth_for_current_search = max_depth;
+    best_move = search(m_depth_for_current_search);
+  }
+  else
   {
     for (int depth{2}; depth <= max_depth; ++depth)
     {
@@ -451,11 +456,6 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
         break;
       }
     }
-  }
-  else
-  {
-    m_depth_for_current_search = max_depth;
-    best_move = search(m_depth_for_current_search);
   }
 
   m_search_end_time = std::chrono::system_clock::now();
