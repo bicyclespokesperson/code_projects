@@ -1,5 +1,6 @@
 #include "board.h"
 #include "move_generator.h"
+#include "utils.h"
 
 int main(int argc, char* argv[])
 {
@@ -42,7 +43,7 @@ int main(int argc, char* argv[])
 
   std::cout << "perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n";
   std::cout << "Elapsed time: " << std::to_string(elapsed_seconds) << " seconds\n";
-  std::cout << "Nodes/sec: " << std::to_string(result / elapsed_seconds) << "\n";
+  std::cout << "Nodes/sec: " << format_with_commas(result / elapsed_seconds) << "\n";
 
   return 0;
 }
