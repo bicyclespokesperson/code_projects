@@ -42,6 +42,11 @@ private:
   class Tables
   {
   public:
+    struct Magic {
+       Bitboard mask{0};  // to mask relevant squares of both lines (no outer squares)
+       uint64_t magic{0}; // magic 64-bit factor
+    };
+
     Tables();
 
     // [square][direction]
@@ -50,6 +55,12 @@ private:
     std::array<Bitboard, c_board_dimension_squared> knight_attacks;
 
     std::array<Bitboard, c_board_dimension_squared> king_attacks;
+
+    std::array<Magic, 64> bishop_magic_table;
+    std::array<Magic, 64> rook_magic_table;
+
+    std::array<std::array<Bitboard, 512>, 64> m_bishop_attacks;
+    std::array<std::array<Bitboard, 4096>, 64> m_rook_attacks;
 
   private:
     void initialize_ray_attacks_();
@@ -81,6 +92,7 @@ struct Bitboard_constants
   static constexpr Bitboard a_file{0x0101010101010101};
   static constexpr Bitboard h_file{0x8080808080808080};
   static constexpr Bitboard all_outer_squares{0xff818181818181ff};
+  static constexpr Bitboard corners{0x8100000000000081};
 
   static constexpr Bitboard short_castling_empty_squares_white{0x0000000000000060};
   static constexpr Bitboard long_castling_empty_squares_white{0x000000000000000c};

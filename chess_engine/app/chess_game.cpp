@@ -81,7 +81,6 @@ int main(int argc, char* argv[])
   }
 #else
 
-  Transposition_table table{2048};
 
 #endif
 
