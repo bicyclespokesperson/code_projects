@@ -41,7 +41,7 @@ public:
 private:
   class Tables
   {
-    public:
+  public:
     Tables();
 
     // [square][direction]
@@ -51,10 +51,10 @@ private:
 
     std::array<Bitboard, c_board_dimension_squared> king_attacks;
 
-    private:
-      void initialize_ray_attacks_();
-      void initialize_knight_attacks_();
-      void initialize_king_attacks_();
+  private:
+    void initialize_ray_attacks_();
+    void initialize_knight_attacks_();
+    void initialize_king_attacks_();
   };
 
   static Bitboard get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
@@ -80,6 +80,7 @@ struct Bitboard_constants
   static constexpr Bitboard eighth_rank{0xff00000000000000};
   static constexpr Bitboard a_file{0x0101010101010101};
   static constexpr Bitboard h_file{0x8080808080808080};
+  static constexpr Bitboard all_outer_squares{0xff818181818181ff};
 
   static constexpr Bitboard short_castling_empty_squares_white{0x0000000000000060};
   static constexpr Bitboard long_castling_empty_squares_white{0x000000000000000c};
