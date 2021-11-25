@@ -111,7 +111,7 @@ private:
   // scores <0 imply we think we will win, so draws should be avoided (draws are worse than an even position).
   // 0 means equally strong opponent.
   // TODO: Not yet supported, needs to be flipped depending on if we or our opponent is playing
-  static constexpr int c_contempt_score{-1};
+  static constexpr int c_contempt_score{-10000};
 };
 
 #endif // MENELDOR_ENGINE

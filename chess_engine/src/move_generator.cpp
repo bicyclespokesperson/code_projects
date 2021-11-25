@@ -5,6 +5,13 @@
 namespace
 {
 
+std::array<int, 64> RBits = {12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10,
+                 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10,
+                 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12};
+
+std::array<int, 64> BBits = {6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5,
+                 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6};
+
 // Generated with code from: https://www.chessprogramming.org/Looking_for_Magics
 constexpr std::array<uint64_t, 64> c_rook_magics{
   0x2080020500400f0ULL,  0x28444000400010ULL,   0x20000a1004100014ULL, 0x20010c090202006ULL,  0x8408008200810004ULL,
@@ -96,6 +103,151 @@ constexpr int32_t get_west_capture_offset(Color color)
 {
   return c_west_offsets[static_cast<int32_t>(color)];
 }
+
+
+#if 1
+int count_1s(uint64_t b)
+{
+  int r{0};
+  for (; b; r++, b &= b - 1)
+    ;
+  return r;
+}
+#endif
+
+const std::array<int, 64> BitTable {63, 30, 3,  32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34, 61, 29, 2,  51, 21, 43,
+                          45, 10, 18, 47, 1,  54, 9,  57, 0,  35, 62, 31, 40, 4,  49, 5,  52, 26, 60, 6,  23, 44,
+                          46, 27, 56, 16, 7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
+
+int pop_1st_bit(uint64_t* bb)
+{
+  uint64_t b = *bb ^ (*bb - 1);
+  auto fold = static_cast<uint32_t>((b & 0xffffffff) ^ (b >> 32));
+  *bb &= (*bb - 1);
+  return BitTable[(fold * 0x783a9b23) >> 26];
+}
+
+uint64_t index_to_uint64(int index, int bits, uint64_t m)
+{
+  uint64_t result = 0ULL;
+  for (int i = 0; i < bits; i++)
+  {
+    int j = pop_1st_bit(&m);
+    if (index & (1 << i))
+    {
+      result |= (1ULL << j);
+    }
+  }
+  return result;
+}
+
+Bitboard rook_potential_blockers(int sq)
+{
+  Bitboard result{0ULL};
+  int rk = sq / 8;
+  int fl = sq % 8;
+  for (int r = rk + 1; r <= 6; r++)
+    result |= (Bitboard{1ULL} << (fl + r * 8));
+  for (int r = rk - 1; r >= 1; r--)
+    result |= (Bitboard{1ULL} << (fl + r * 8));
+  for (int f = fl + 1; f <= 6; f++)
+    result |= (Bitboard{1ULL} << (f + rk * 8));
+  for (int f = fl - 1; f >= 1; f--)
+    result |= (Bitboard{1ULL} << (f + rk * 8));
+  return result;
+}
+
+Bitboard bishop_potential_blockers(int sq)
+{
+  Bitboard result{0ULL};
+  int rank = sq / 8;
+  int file = sq % 8;
+  for (int r = rank + 1, f = file + 1; r <= 6 && f <= 6; r++, f++)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+  }
+  for (int r = rank + 1, f = file - 1; r <= 6 && f >= 1; r++, f--)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+  }
+  for (int r = rank - 1, f = file + 1; r >= 1 && f <= 6; r--, f++)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+  }
+  for (int r = rank - 1, f = file - 1; r >= 1 && f >= 1; r--, f--)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+  }
+  return result;
+}
+
+Bitboard rook_attacked_squares(int sq, uint64_t block)
+{
+  Bitboard result{0ULL};
+  int rk = sq / 8, fl = sq % 8;
+  for (int r = rk + 1; r <= 7; r++)
+  {
+    result |= (Bitboard{1ULL} << (fl + r * 8));
+    if (block & (1ULL << (fl + r * 8)))
+      break;
+  }
+  for (int r = rk - 1; r >= 0; r--)
+  {
+    result |= (Bitboard{1ULL} << (fl + r * 8));
+    if (block & (1ULL << (fl + r * 8)))
+      break;
+  }
+  for (int f = fl + 1; f <= 7; f++)
+  {
+    result |= (Bitboard{1ULL} << (f + rk * 8));
+    if (block & (1ULL << (f + rk * 8)))
+      break;
+  }
+  for (int f = fl - 1; f >= 0; f--)
+  {
+    result |= (Bitboard{1ULL} << (f + rk * 8));
+    if (block & (1ULL << (f + rk * 8)))
+      break;
+  }
+  return result;
+}
+
+Bitboard bishop_attacked_squares(int sq, uint64_t block)
+{
+  Bitboard result{0ULL};
+  int rk = sq / 8, fl = sq % 8;
+  for (int r = rk + 1, f = fl + 1; r <= 7 && f <= 7; r++, f++)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+    if (block & (1ULL << (f + r * 8)))
+      break;
+  }
+  for (int r = rk + 1, f = fl - 1; r <= 7 && f >= 0; r++, f--)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+    if (block & (1ULL << (f + r * 8)))
+      break;
+  }
+  for (int r = rk - 1, f = fl + 1; r >= 0 && f <= 7; r--, f++)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+    if (block & (1ULL << (f + r * 8)))
+      break;
+  }
+  for (int r = rk - 1, f = fl - 1; r >= 0 && f >= 0; r--, f--)
+  {
+    result |= (Bitboard{1ULL} << (f + r * 8));
+    if (block & (1ULL << (f + r * 8)))
+      break;
+  }
+  return result;
+}
+
+int magic_hash_fn(uint64_t blockers, uint64_t magic, int bits)
+{
+  return static_cast<int>((blockers * magic) >> (64 - bits));
+}
+
 } // namespace
 
 Move_generator::Tables const Move_generator::m_tables{};
@@ -166,6 +318,7 @@ void Move_generator::Tables::initialize_ray_attacks_()
       } // while square in bounds
     } // for each dir
 
+#if 1 // I think this can be replaced by rook_attacked_squares, or vice versa
     Bitboard cannot_block{Bitboard_constants::all_outer_squares};
     Bitboard current_location;
     current_location.set_square(index);
@@ -201,8 +354,38 @@ void Move_generator::Tables::initialize_ray_attacks_()
                                 {
                                   return result_so_far | ray_attacks[index][direction];
                                 });
+#endif
+    
+    // TODO: initialize rook and bishop attack table
+    // https://stackoverflow.com/questions/67513005/how-to-generate-this-preinitialized-array-for-magic-bitboards
+    // See Attacks::detail::_initBishopMagicTable in shallow blue source code
+    auto const possible_blockers = bishop_mask & ~cannot_block;
+    bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
 
-    bishop_magic_table[index] = Tables::Magic{bishop_mask & ~cannot_block, c_bishop_magics[index]};
+
+    bool bishop = true;
+    Bitboard mask = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
+
+    int n = count_1s(mask.val);
+    //int n = mask.occupancy();
+    MY_ASSERT(n == mask.occupancy(), "Occupancy mismatch");
+
+    if (mask != possible_blockers) //, "Comparing to blocker generation methods");
+    {
+      std::cout << "Mine: \n" << possible_blockers << "\nTheirs\n" << mask;
+      MY_ASSERT(false, "Blocker generation mismatch");
+    }
+
+    // Populate blockers and attackers table
+    std::cout << "Value: " << n << "\n";
+    for (int i = 0; i < (1 << n); ++i)
+    {
+      auto blockers = index_to_uint64(i, n, mask.val);
+      auto key = magic_hash_fn(blockers, BBits[index], c_bishop_magics[index]);
+      auto attacked_squares = bishop_attacked_squares(index, blockers);
+      m_bishop_attacks[index][key] = attacked_squares; // Permutations?
+      //attacked[i] = bishop ? bishop_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
+    }
   } // for each index
 } // initialize_ray_attacks
 
@@ -710,6 +893,45 @@ bool Move_generator::has_any_legal_moves(Board const& board)
                      });
 }
 
+
+
+uint64_t find_magic(int sq, int m, int bishop)
+{
+  std::array<uint64_t, 4096> blockers{0};
+  std::array<uint64_t, 4096> attacked{0}; // Attacked squares, accounting for blockers 
+  //uint64_t magic{0};
+  //std::array<uint64_t, 4096> used{0};
+
+
+#if 0
+  for (int k = 0; k < 100000000; ++k)
+  {
+    magic = random_uint64_fewbits();
+    if (count_1s((mask * magic) & 0xFF00000000000000ULL) < 6)
+      continue;
+    for (int i = 0; i < 4096; ++i)
+    {
+      used[i] = 0ULL;
+    }
+
+    int fail{0};
+    for (int i = 0; !fail && i < (1 << n); ++i)
+    {
+      int key = magic_hash_fn(blockers[i], magic, m);
+      if (used[key] == 0ULL)
+        used[key] = attacked[i];
+      else if (used[key] != attacked[i])
+        fail = 1;
+    }
+    if (!fail)
+      return magic;
+  }
+#endif
+  //printf("***Failed***\n");
+  return 0ULL;
+}
+
+
 uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_cancelled)
 {
   uint64_t nodes{0};
@@ -739,3 +961,4 @@ uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_can
 
   return nodes;
 }
+
