@@ -372,8 +372,6 @@ TEST_CASE("bitboard", "[bitboard]")
 
 TEST_CASE("Piece moves", "[Move_generator]")
 {
-  Move_generator mg;
-
   Bitboard occupancy{0};
   for (int i{0}; i < 8; ++i)
   {
@@ -384,13 +382,16 @@ TEST_CASE("Piece moves", "[Move_generator]")
   }
 
   Bitboard expected_rook_moves{0x001010ef10100000};
-  REQUIRE(mg.rook_attacks({4, 4}, occupancy) == expected_rook_moves);
+  REQUIRE(Move_generator::rook_attacks({4, 4}, occupancy) == expected_rook_moves);
 
   Bitboard expected_knight_moves{0x0000142200221400};
-  REQUIRE(mg.knight_attacks({3, 3}, occupancy) == expected_knight_moves);
+  REQUIRE(Move_generator::knight_attacks({3, 3}, occupancy) == expected_knight_moves);
 
   Bitboard expected_king_moves{0x0000001c141c0000};
-  REQUIRE(mg.king_attacks({3, 3}, occupancy) == expected_king_moves);
+  REQUIRE(Move_generator::king_attacks({3, 3}, occupancy) == expected_king_moves);
+
+  Bitboard expected_bishop_moves{0x0020110a000a0000};
+  REQUIRE(Move_generator::bishop_attacks({2, 3}, occupancy) == expected_bishop_moves);
 }
 
 TEST_CASE("Pawn attacks", "[Move_generator}")

@@ -11,6 +11,6 @@ std::ostream& operator<<(std::ostream& os, Bitboard const& self)
     }
     os << "\n";
   }
-
+  os << self.hex_str() << "\n";
   return os;
 }
