@@ -43,20 +43,19 @@ private:
   class Tables
   {
   public:
-    struct Magic
-    {
-      Bitboard mask{0}; // to mask relevant squares of both lines (no outer squares)
-      uint64_t magic{0}; // magic 64-bit factor
-    };
-
     Tables();
 
+    // Attacked squares from each position for a knight
     std::array<Bitboard, c_board_dimension_squared> knight_attacks;
+    
+    // Attacked squares from each position for a king
     std::array<Bitboard, c_board_dimension_squared> king_attacks;
 
-    std::array<Magic, 64> bishop_magic_table;
-    std::array<Magic, 64> rook_magic_table;
+    // What squares are able to block a piece on each square
+    std::array<Bitboard, 64> bishop_possible_blockers;
+    std::array<Bitboard, 64> rook_possible_blockers;
 
+    // Table of possible attacked squares for a rook/bishop for each possible set of blockers
     std::array<std::array<Bitboard, 512>, 64> bishop_attacks{};
     std::array<std::array<Bitboard, 4096>, 64> rook_attacks{};
 

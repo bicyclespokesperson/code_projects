@@ -288,7 +288,7 @@ void Move_generator::Tables::init_bishop_magic_tables_(int index)
   // (The plain implementation)
 
   Bitboard possible_blockers = bishop_potential_blockers(index);
-  bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
+  bishop_possible_blockers[index] = possible_blockers;
 
   // Populate blockers table
   int n = possible_blockers.occupancy();
@@ -311,7 +311,7 @@ void Move_generator::Tables::init_rook_magic_tables_(int index)
   // (The plain implementation)
   
   Bitboard possible_blockers = rook_potential_blockers(index);
-  rook_magic_table[index] = Tables::Magic{possible_blockers, c_rook_magics[index]};
+  rook_possible_blockers[index] = possible_blockers;
 
   // Populate blockers table
   int n = possible_blockers.occupancy();
@@ -375,7 +375,7 @@ void Move_generator::Tables::initialize_king_attacks_()
 Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied)
 {
   int const index = square.square_index();
-  occupied &= m_tables.rook_magic_table[index].mask;
+  occupied &= m_tables.rook_possible_blockers[index];
   auto key = magic_hash_fn(occupied.val, c_rook_magics[index], 12);
   return m_tables.rook_attacks[index][key];
 }
@@ -383,7 +383,7 @@ Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied)
 Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied)
 {
   int index = square.square_index();
-  occupied &= m_tables.bishop_magic_table[index].mask;
+  occupied &= m_tables.bishop_possible_blockers[index];
   auto key = magic_hash_fn(occupied.val, c_bishop_magics[index], 9);
   return m_tables.bishop_attacks[index][key];
 }
