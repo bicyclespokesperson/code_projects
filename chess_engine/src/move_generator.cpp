@@ -29,6 +29,7 @@ constexpr std::array<uint64_t, 64> c_rook_magics{
   0x8029510200708ULL,    0x8008440100404241ULL, 0x2420001111000bdULL,  0x4000882304000041ULL,
 };
 
+//TODO: Combine with bishop table in Tables
 constexpr std::array<uint64_t, 64> c_bishop_magics{
   0x100420000431024ULL,  0x280800101073404ULL,  0x42000a00840802ULL,   0xca800c0410c2ULL,     0x81004290941c20ULL,
   0x400200450020250ULL,  0x444a019204022084ULL, 0x88610802202109aULL,  0x11210a0800086008ULL, 0x400a08c08802801ULL,
@@ -105,7 +106,7 @@ constexpr int32_t get_west_capture_offset(Color color)
 }
 
 
-#if 1
+#if 0
 int count_1s(uint64_t b)
 {
   int r{0};
@@ -318,7 +319,7 @@ void Move_generator::Tables::initialize_ray_attacks_()
       } // while square in bounds
     } // for each dir
 
-#if 1 // I think this can be replaced by rook_attacked_squares, or vice versa
+#if 0 // I think this can be replaced by rook_attacked_squares, or vice versa
     Bitboard cannot_block{Bitboard_constants::all_outer_squares};
     Bitboard current_location;
     current_location.set_square(index);
@@ -354,36 +355,61 @@ void Move_generator::Tables::initialize_ray_attacks_()
                                 {
                                   return result_so_far | ray_attacks[index][direction];
                                 });
-#endif
     
     // TODO: initialize rook and bishop attack table
     // https://stackoverflow.com/questions/67513005/how-to-generate-this-preinitialized-array-for-magic-bitboards
     // See Attacks::detail::_initBishopMagicTable in shallow blue source code
     auto const possible_blockers = bishop_mask & ~cannot_block;
-    bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
+#endif
 
 
     bool bishop = true;
-    Bitboard mask = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
+    Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
+    bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
 
-    int n = count_1s(mask.val);
-    //int n = mask.occupancy();
-    MY_ASSERT(n == mask.occupancy(), "Occupancy mismatch");
+    if (index == 26)
+    {
+      std::cout << "Possible bishop blockers\n" << possible_blockers << "\n";
+    }
 
+    //MY_ASSERT(count_1s(mask.val) == mask.occupancy(), "Occupancy mismatch");
+
+#if 0
     if (mask != possible_blockers) //, "Comparing to blocker generation methods");
     {
       std::cout << "Mine: \n" << possible_blockers << "\nTheirs\n" << mask;
       MY_ASSERT(false, "Blocker generation mismatch");
     }
+#endif
+
+    Bitboard blockers{0xffff000000ffff00}; //auto relevant_blockers
+    Bitboard relevant_blockers = blockers & possible_blockers;
 
     // Populate blockers and attackers table
+    int n = possible_blockers.occupancy();
     auto top = (1 << n);
     for (int i = 0; i < top; ++i)
     {
-      auto blockers = index_to_uint64(i, n, mask.val);
+      auto blockers = index_to_uint64(i, n, possible_blockers.val);
         
       auto key = magic_hash_fn(blockers, c_bishop_magics[index], BBits[index]);
       auto attacked_squares = bishop_attacked_squares(index, blockers);
+
+      if (index == 26 && Bitboard{blockers} == relevant_blockers)
+      {
+        std::cout << "Possible_blockers:\n" << possible_blockers;
+        std::cout << "Relevant_blockers:\n" << relevant_blockers;
+        std::cout << "Attacked squares:\n" << attacked_squares;
+        std::cout << "Index: " << index << "\n";
+        std::cout << "Key: " << key << "\n";
+      }
+
+      if (index == 26 && key == 53)
+      {
+        static int times_set{1};
+        std::cout << "Times setting bishop_attacks[26][53]: " << times_set++ << "\n";
+      }
+
       bishop_attacks[index][key] = attacked_squares; // Permutations?
       //attacked[i] = bishop ? bishop_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
     }
@@ -437,13 +463,21 @@ void Move_generator::Tables::initialize_king_attacks_()
 #if 1
 Bitboard Move_generator::gen_bishop_attacks_magic(Coordinates coords, Bitboard occupied)
 {
-   occupied &= m_tables.bishop_magic_table[coords.square_index()].mask;
-   occupied *= m_tables.bishop_magic_table[coords.square_index()].magic;
-   occupied >>= (64-BBits[coords.square_index()]);
+
    int index = coords.square_index();
+   occupied &= m_tables.bishop_magic_table[coords.square_index()].mask;
+   std::cout << "2Relevant_blockers:\n" << occupied;
+
+   auto key = magic_hash_fn(occupied.val, c_bishop_magics[index], BBits[index]);
+
+
+   //occupied *= m_tables.bishop_magic_table[coords.square_index()].magic;
+   //occupied >>= (64-BBits[coords.square_index()]);
    auto& t = m_tables.bishop_attacks[index];
-   auto val = occupied.val;
-   auto result = t[val];
+   auto result = t[key];
+   std::cout << "2Attacked squares:\n" << result;
+   std::cout << "2Index: " << index << "\n";
+   std::cout << "2Key: " << key << "\n";
    return result;
 }
 #endif
@@ -922,7 +956,7 @@ uint64_t find_magic(int /*sq*/, int /*m*/, int /*bishop*/)
     int fail{0};
     for (int i = 0; !fail && i < (1 << n); ++i)
     {
-      int key = magic_hash_fn(blockers[i], magic, m);
+      int key = m agic_hash_fn(blockers[i], magic, m);
       if (used[key] == 0ULL)
         used[key] = attacked[i];
       else if (used[key] != attacked[i])
