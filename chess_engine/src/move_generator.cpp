@@ -292,65 +292,18 @@ void Move_generator::Tables::init_bishop_magic_tables_(int index)
 
   bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
 
-  // Populate blockers and attackers table
+  // Populate blockers table
   int n = possible_blockers.occupancy();
   auto blocker_permutations = (1 << n);
-  std::set<uint64_t> blockers_set;
-  std::set<int> key_set;
-  int empty_blockers_count{0};
 
   for (int i = 0; i < blocker_permutations; ++i)
   {
-    MY_ASSERT(bishop_attacks[index][i] == Bitboard{0}, "Array should start zero initialized");
-  }
-
-  for (int i = 0; i < blocker_permutations; ++i)
-  {
-    if (is_debug)
-    {
-      std::cout << "Setting square: " << std::to_string(index) << ", permutation: " << i << "\n";
-    }
     auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
-    if (Bitboard{blockers}.is_empty())
-    {
-      empty_blockers_count++;
-    }
-    MY_ASSERT(empty_blockers_count <= 1, "One square should have zero blockers");
 
-    MY_ASSERT(!blockers_set.contains(blockers), "Permutation code is broken");
-    blockers_set.insert(blockers);
-
-    //TODO: Do we still need BBits & RBits?
     int shift = bishop ? 9 : 12;
     auto key = magic_hash_fn(blockers, c_bishop_magics[index], shift);
-
     auto attacked_squares = bishop_attacked_squares(index, blockers);
-
-    if (key_set.contains(key))
-    {
-      if (is_debug)
-      {
-        std::cout << "Duplicate key: " << key << " at index: " << std::to_string(index) << " and permutation: " << i
-                  << "\n";
-      }
-      MY_ASSERT(!key_set.contains(key), "Duplicate key");
-    }
-    if (static_cast<size_t>(key) >= bishop_attacks.front().size() && is_debug)
-    {
-      std::cout << "Key out of range: " << key << "\n";
-    }
-    MY_ASSERT(static_cast<size_t>(key) < bishop_attacks.front().size(), "Key out of range");
-
-    key_set.insert(key);
-
-    if (is_debug && bishop_attacks[index][key] != Bitboard{0})
-    {
-      std::cout << "Setting already set bitboard. Square index: " << std::to_string(index) << ", key: " << key << "\n"
-                << Bitboard{blockers} << "\n";
-    }
-    MY_ASSERT(bishop_attacks[index][key] == Bitboard{0}, "Setting already set bitboard");
-    bishop_attacks[index][key] = attacked_squares; // Permutations?
-    //attacked[i] = bishop ? bishop_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
+    bishop_attacks[index][key] = attacked_squares;
   }
 }
 
@@ -364,66 +317,18 @@ void Move_generator::Tables::init_rook_magic_tables_(int index)
 
   rook_magic_table[index] = Tables::Magic{possible_blockers, c_rook_magics[index]};
 
-
-  // Populate blockers and attackers table
+  // Populate blockers table
   int n = possible_blockers.occupancy();
   auto blocker_permutations = (1 << n);
-  std::set<uint64_t> blockers_set;
-  std::set<int> key_set;
-  int empty_blockers_count{0};
 
   for (int i = 0; i < blocker_permutations; ++i)
   {
-    MY_ASSERT(rook_attacks[index][i] == Bitboard{0}, "Array should start zero initialized");
-  }
-
-  for (int i = 0; i < blocker_permutations; ++i)
-  {
-    if (is_debug)
-    {
-      std::cout << "Setting square: " << std::to_string(index) << ", permutation: " << i << "\n";
-    }
     auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
-    if (Bitboard{blockers}.is_empty())
-    {
-      empty_blockers_count++;
-    }
-    MY_ASSERT(empty_blockers_count <= 1, "One square should have zero blockers");
 
-    MY_ASSERT(!blockers_set.contains(blockers), "Permutation code is broken");
-    blockers_set.insert(blockers);
-
-    //TODO: Do we still need BBits & RBits?
     int shift = bishop ? 9 : 12;
     auto key = magic_hash_fn(blockers, c_rook_magics[index], shift);
-
     auto attacked_squares = rook_attacked_squares(index, blockers);
-
-    if (key_set.contains(key))
-    {
-      if (is_debug)
-      {
-        std::cout << "Duplicate key: " << key << " at index: " << std::to_string(index) << " and permutation: " << i
-                  << "\n";
-      }
-      MY_ASSERT(!key_set.contains(key), "Duplicate key");
-    }
-    if (static_cast<size_t>(key) >= rook_attacks.front().size() && is_debug)
-    {
-      std::cout << "Key out of range: " << key << "\n";
-    }
-    MY_ASSERT(static_cast<size_t>(key) < rook_attacks.front().size(), "Key out of range");
-
-    key_set.insert(key);
-
-    if (is_debug && rook_attacks[index][key] != Bitboard{0})
-    {
-      std::cout << "Setting already set bitboard. Square index: " << std::to_string(index) << ", key: " << key << "\n"
-                << Bitboard{blockers} << "\n";
-    }
-    MY_ASSERT(rook_attacks[index][key] == Bitboard{0}, "Setting already set bitboard");
-    rook_attacks[index][key] = attacked_squares; // Permutations?
-    //attacked[i] = rook ? rook_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
+    rook_attacks[index][key] = attacked_squares;
   }
 }
 
@@ -469,53 +374,6 @@ void Move_generator::Tables::initialize_king_attacks_()
       }
     }
   }
-}
-
-Bitboard Move_generator::get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied)
-{
-  MY_ASSERT(dir.is_positive(), "Only positive directions are supported");
-
-  Bitboard attacks = m_tables.ray_attacks[square.square_index()][dir];
-  Bitboard blockers = attacks & occupied;
-  if (!blockers.is_empty())
-  {
-    auto const first_blocker = blockers.bitscan_forward();
-    attacks ^= m_tables.ray_attacks[first_blocker][dir];
-  }
-
-  return attacks;
-}
-
-Bitboard Move_generator::get_negative_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied)
-{
-  MY_ASSERT(!dir.is_positive(), "Only negative directions are supported");
-
-  Bitboard attacks = m_tables.ray_attacks[square.square_index()][dir];
-  Bitboard blockers = attacks & occupied;
-  if (!blockers.is_empty())
-  {
-    auto const first_blocker = blockers.bitscan_reverse();
-    attacks ^= m_tables.ray_attacks[first_blocker][dir];
-  }
-
-  return attacks;
-}
-
-Bitboard Move_generator::gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
-                                            std::span<const Compass_dir> negative_directions,
-                                            Coordinates square,
-                                            Bitboard occupied)
-{
-  auto positive_attacks = std::accumulate(positive_directions.begin(), positive_directions.end(), Bitboard{0},
-                                          [&](Bitboard result, Compass_dir dir)
-                                          {
-                                            return result | get_positive_ray_attacks_(square, dir, occupied);
-                                          });
-  return std::accumulate(negative_directions.begin(), negative_directions.end(), positive_attacks,
-                         [&](Bitboard result, Compass_dir dir)
-                         {
-                           return result | get_negative_ray_attacks_(square, dir, occupied);
-                         });
 }
 
 Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied)

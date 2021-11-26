@@ -51,11 +51,7 @@ private:
 
     Tables();
 
-    // [square][direction]
-    std::array<std::array<Bitboard, Compass_dir::_count>, c_board_dimension_squared> ray_attacks;
-
     std::array<Bitboard, c_board_dimension_squared> knight_attacks;
-
     std::array<Bitboard, c_board_dimension_squared> king_attacks;
 
     std::array<Magic, 64> bishop_magic_table;
@@ -71,14 +67,6 @@ private:
     void initialize_knight_attacks_();
     void initialize_king_attacks_();
   };
-
-  static Bitboard get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
-  static Bitboard get_negative_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied);
-
-  static Bitboard gen_sliding_moves_(std::span<const Compass_dir> positive_directions,
-                                     std::span<const Compass_dir> negative_directions,
-                                     Coordinates square,
-                                     Bitboard occupied);
 
   static const Tables m_tables;
 };
