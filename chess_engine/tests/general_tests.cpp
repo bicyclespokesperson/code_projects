@@ -393,10 +393,7 @@ TEST_CASE("Piece moves", "[Move_generator]")
   REQUIRE(Move_generator::king_attacks({3, 3}, occupancy) == expected_king_moves);
 
   Bitboard expected_bishop_moves{0x0020110a000a0000};
-  auto b_moves = Move_generator::gen_bishop_attacks_magic({2, 3}, occupancy);
-  //std::cout << b_moves << "\n";
-  //std::cout << "Square index: " << Coordinates{2, 3}.square_index() << "\n";
-  REQUIRE(b_moves == expected_bishop_moves);
+  REQUIRE(Move_generator::bishop_attacks({2, 3}, occupancy) == expected_bishop_moves);
 }
 
 TEST_CASE("Pawn attacks", "[Move_generator}")

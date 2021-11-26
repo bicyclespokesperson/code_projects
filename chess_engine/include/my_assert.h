@@ -3,6 +3,10 @@
 
 #define ASSERT_IN_RELEASE 0
 
+#if defined(NDEBUG) && ASSERT_IN_RELEASE
+#warning "Assert statements enabled in release build. This will impact performance"
+#endif
+
 // From: https://stackoverflow.com/questions/3692954/add-custom-messages-in-assert
 #if not defined(NDEBUG) || ASSERT_IN_RELEASE
 //NOLINTNEXTLINE

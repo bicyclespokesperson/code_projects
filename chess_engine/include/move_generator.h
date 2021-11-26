@@ -26,10 +26,7 @@ public:
   static Bitboard get_all_attacked_squares(Board const& board, Color attacking_color);
 
   static Bitboard rook_attacks(Coordinates square, Bitboard occupied);
-
   static Bitboard bishop_attacks(Coordinates square, Bitboard occupied);
-  static Bitboard gen_bishop_attacks_magic(Coordinates coords, Bitboard occ);
-  static Bitboard gen_rook_attacks_magic(Coordinates coords, Bitboard occ);
 
   static Bitboard queen_attacks(Coordinates square, Bitboard occupied);
   static Bitboard knight_attacks(Coordinates square, Bitboard occupied);
@@ -71,7 +68,6 @@ private:
     void init_rook_magic_tables_(int index);
 
   private:
-    void initialize_ray_attacks_();
     void initialize_knight_attacks_();
     void initialize_king_attacks_();
   };

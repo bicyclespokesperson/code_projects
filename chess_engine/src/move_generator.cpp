@@ -6,18 +6,6 @@
 namespace
 {
 
-constexpr bool is_debug(false);
-constexpr int debug_square_index{3};
-constexpr Bitboard debug_occupied_squares{0xfffe01000009f6ff};
-
-std::array<int, 64> RBits{12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10,
-                          10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10,
-                          10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12};
-
-std::array<int, 64> BBits{6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7,
-                          5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7,
-                          7, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6};
-
 // Generated with code from: https://www.chessprogramming.org/Looking_for_Magics
 const std::array<uint64_t, 64> c_rook_magics{
   0xa8002c000108020ULL,  0x6040004109200130ULL, 0x5820000814a02040ULL, 0x400800122040c4ULL,   0xa00211004010204ULL,
@@ -109,29 +97,22 @@ constexpr int32_t get_west_capture_offset(Color color)
   return c_west_offsets[static_cast<int32_t>(color)];
 }
 
-#if 0
-int count_1s(uint64_t b)
-{
-  int r{0};
-  for (; b; r++, b &= b - 1)
-    ;
-  return r;
-}
-#endif
-
-const std::array<int, 64> BitTable{63, 30, 3,  32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34,
-                                   61, 29, 2,  51, 21, 43, 45, 10, 18, 47, 1,  54, 9,  57, 0,  35,
-                                   62, 31, 40, 4,  49, 5,  52, 26, 60, 6,  23, 44, 46, 27, 56, 16,
-                                   7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
-
 int pop_1st_bit(uint64_t* bb)
 {
+  constexpr static std::array<int, 64> BitTable{63, 30, 3,  32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34,
+                                     61, 29, 2,  51, 21, 43, 45, 10, 18, 47, 1,  54, 9,  57, 0,  35,
+                                     62, 31, 40, 4,  49, 5,  52, 26, 60, 6,  23, 44, 46, 27, 56, 16,
+                                     7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
+
   uint64_t b = *bb ^ (*bb - 1);
   auto fold = static_cast<uint32_t>((b & 0xffffffff) ^ (b >> 32));
   *bb &= (*bb - 1);
   return BitTable[(fold * 0x783a9b23) >> 26];
 }
 
+// Given a bitboard with n permutations (x one bits -> 2^x permutations), returns
+// the index'th permutation for the bitboard. Must be called n times to generate
+// every permutation.
 uint64_t blocker_permutation_from_index(int index, int bits, uint64_t m)
 {
   uint64_t result = 0ULL;
@@ -146,22 +127,36 @@ uint64_t blocker_permutation_from_index(int index, int bits, uint64_t m)
   return result;
 }
 
+// Returns the possible blockers mask for a rook on the given square
+// Outer squares are not possible blockers, unless the rook is on an outer
+// square. In that case, other pieces on the same row or column are potential
+// blockers.
 Bitboard rook_potential_blockers(int sq)
 {
   Bitboard result{0ULL};
-  int rk = sq / 8;
-  int fl = sq % 8;
-  for (int r = rk + 1; r <= 6; r++)
-    result |= (Bitboard{1ULL} << (fl + r * 8));
-  for (int r = rk - 1; r >= 1; r--)
-    result |= (Bitboard{1ULL} << (fl + r * 8));
-  for (int f = fl + 1; f <= 6; f++)
-    result |= (Bitboard{1ULL} << (f + rk * 8));
-  for (int f = fl - 1; f >= 1; f--)
-    result |= (Bitboard{1ULL} << (f + rk * 8));
+  int rank = sq / 8;
+  int file = sq % 8;
+  for (int r = rank + 1; r <= 6; r++)
+  {
+    result |= (Bitboard{1ULL} << (file + r * 8));
+  }
+  for (int r = rank - 1; r >= 1; r--)
+  {
+    result |= (Bitboard{1ULL} << (file + r * 8));
+  }
+  for (int f = file + 1; f <= 6; f++)
+  {
+    result |= (Bitboard{1ULL} << (f + rank * 8));
+  }
+  for (int f = file - 1; f >= 1; f--)
+  {
+    result |= (Bitboard{1ULL} << (f + rank * 8));
+  }
   return result;
 }
 
+// Returns the possible blockers mask for a bishop on the given square
+// Outer squares are not possible blockers for a bishop
 Bitboard bishop_potential_blockers(int sq)
 {
   Bitboard result{0ULL};
@@ -194,25 +189,33 @@ Bitboard rook_attacked_squares(int sq, uint64_t block)
   {
     result |= (Bitboard{1ULL} << (fl + r * 8));
     if (block & (1ULL << (fl + r * 8)))
+    {
       break;
+    }
   }
   for (int r = rk - 1; r >= 0; r--)
   {
     result |= (Bitboard{1ULL} << (fl + r * 8));
     if (block & (1ULL << (fl + r * 8)))
+    {
       break;
+    }
   }
   for (int f = fl + 1; f <= 7; f++)
   {
     result |= (Bitboard{1ULL} << (f + rk * 8));
     if (block & (1ULL << (f + rk * 8)))
+    {
       break;
+    }
   }
   for (int f = fl - 1; f >= 0; f--)
   {
     result |= (Bitboard{1ULL} << (f + rk * 8));
     if (block & (1ULL << (f + rk * 8)))
+    {
       break;
+    }
   }
   return result;
 }
@@ -225,27 +228,34 @@ Bitboard bishop_attacked_squares(int sq, uint64_t block)
   {
     result |= (Bitboard{1ULL} << (f + r * 8));
     if (block & (1ULL << (f + r * 8)))
+    {
       break;
+    }
   }
   for (int r = rk + 1, f = fl - 1; r <= 7 && f >= 0; r++, f--)
   {
     result |= (Bitboard{1ULL} << (f + r * 8));
     if (block & (1ULL << (f + r * 8)))
+    {
       break;
+    }
   }
   for (int r = rk - 1, f = fl + 1; r >= 0 && f <= 7; r--, f++)
   {
     result |= (Bitboard{1ULL} << (f + r * 8));
     if (block & (1ULL << (f + r * 8)))
+    {
       break;
+    }
   }
   for (int r = rk - 1, f = fl - 1; r >= 0 && f >= 0; r--, f--)
   {
     result |= (Bitboard{1ULL} << (f + r * 8));
     if (block & (1ULL << (f + r * 8)))
+    {
       break;
+    }
   }
-  MY_ASSERT(result != Bitboard{0}, "Cannot have a bishop with no attacked squares");
   return result;
 }
 
@@ -261,88 +271,26 @@ Move_generator::Tables const Move_generator::m_tables{};
 
 Move_generator::Tables::Tables()
 {
-  initialize_ray_attacks_();
   initialize_knight_attacks_();
   initialize_king_attacks_();
+  for (int sq{0}; sq < c_board_dimension_squared; ++sq)
+  {
+    init_bishop_magic_tables_(sq);
+    init_rook_magic_tables_(sq);
+  } // for each index
 }
 
-void Move_generator::Tables::initialize_ray_attacks_()
-{
-  for (int8_t sq{0}; sq < c_board_dimension_squared; ++sq)
-  {
-    auto const index = sq;
-    for (Compass_dir dir = Compass_dir::north; dir < Compass_dir::_count; ++dir)
-    {
-      auto const coords = Coordinates{index};
-      Bitboard& bb = ray_attacks[index][dir];
-
-      int32_t square_x{coords.x()};
-      int32_t square_y{coords.y()};
-      bool first_iteration{true};
-
-      // Set all squares in one direction to true.
-      while (square_x >= 0 && square_x < c_board_dimension && square_y >= 0 && square_y < c_board_dimension)
-      {
-        // For a given square, we don't want the attacks based from that square to include the square itself
-        if (!first_iteration)
-        {
-          bb.set_square({square_x, square_y});
-        }
-        first_iteration = false;
-
-        switch (dir)
-        {
-          case Compass_dir::north:
-            square_y += 1;
-            break;
-          case Compass_dir::northwest:
-            square_y += 1;
-            square_x -= 1;
-            break;
-          case Compass_dir::west:
-            square_x -= 1;
-            break;
-          case Compass_dir::southwest:
-            square_y -= 1;
-            square_x -= 1;
-            break;
-          case Compass_dir::south:
-            square_y -= 1;
-            break;
-          case Compass_dir::southeast:
-            square_y -= 1;
-            square_x += 1;
-            break;
-          case Compass_dir::east:
-            square_x += 1;
-            break;
-          case Compass_dir::northeast:
-            square_y += 1;
-            square_x += 1;
-            break;
-          default:
-            break;
-        };
-      } // while square in bounds
-    } // for each dir
-
-    init_bishop_magic_tables_(index);
-    init_rook_magic_tables_(index);
-  } // for each index
-} // initialize_ray_attacks
+bool is_debug{false};
 
 void Move_generator::Tables::init_bishop_magic_tables_(int index)
 {
+  // Based on code from: https://www.chessprogramming.org/Looking_for_Magics
+  // (The plain implementation)
+
   bool bishop = true;
   Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
 
   bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
-
-  if (is_debug && index == debug_square_index)
-  {
-    std::cout << "c_bishop_magics.size: " << c_bishop_magics.size() << "\n";
-    std::cout << "Possible bishop blockers\n" << possible_blockers << "\n";
-  }
 
   // Populate blockers and attackers table
   int n = possible_blockers.occupancy();
@@ -395,23 +343,6 @@ void Move_generator::Tables::init_bishop_magic_tables_(int index)
 
     key_set.insert(key);
 
-    if (is_debug)
-    {
-      if (index == debug_square_index)
-      {
-        std::cout << "Possible_blockers:\n" << possible_blockers;
-        std::cout << "Attacked squares:\n" << attacked_squares;
-        std::cout << "Index: " << index << "\n";
-        std::cout << "Key: " << key << "\n";
-      }
-
-      if (index == debug_square_index && key == 53)
-      {
-        static int times_set{1};
-        std::cout << "Times setting bishop_attacks[" << debug_square_index << "][53]: " << times_set++ << "\n";
-      }
-    }
-
     if (is_debug && bishop_attacks[index][key] != Bitboard{0})
     {
       std::cout << "Setting already set bitboard. Square index: " << std::to_string(index) << ", key: " << key << "\n"
@@ -425,16 +356,14 @@ void Move_generator::Tables::init_bishop_magic_tables_(int index)
 
 void Move_generator::Tables::init_rook_magic_tables_(int index)
 {
+  // Based on code from: https://www.chessprogramming.org/Looking_for_Magics
+  // (The plain implementation)
+  
   bool bishop = false;
   Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
 
   rook_magic_table[index] = Tables::Magic{possible_blockers, c_rook_magics[index]};
 
-  if (is_debug && index == debug_square_index)
-  {
-    std::cout << "c_rook_magics.size: " << c_rook_magics.size() << "\n";
-    std::cout << "Possible rook blockers\n" << possible_blockers << "\n";
-  }
 
   // Populate blockers and attackers table
   int n = possible_blockers.occupancy();
@@ -486,23 +415,6 @@ void Move_generator::Tables::init_rook_magic_tables_(int index)
     MY_ASSERT(static_cast<size_t>(key) < rook_attacks.front().size(), "Key out of range");
 
     key_set.insert(key);
-
-    if (is_debug)
-    {
-      if (index == debug_square_index)
-      {
-        std::cout << "Possible_blockers:\n" << possible_blockers;
-        std::cout << "Attacked squares:\n" << attacked_squares;
-        std::cout << "Index: " << index << "\n";
-        std::cout << "Key: " << key << "\n";
-      }
-
-      if (index == debug_square_index && key == 53)
-      {
-        static int times_set{1};
-        std::cout << "Times setting rook_attacks[" << debug_square_index << "][53]: " << times_set++ << "\n";
-      }
-    }
 
     if (is_debug && rook_attacks[index][key] != Bitboard{0})
     {
@@ -558,16 +470,6 @@ void Move_generator::Tables::initialize_king_attacks_()
     }
   }
 }
-
-#if 1
-Bitboard Move_generator::gen_rook_attacks_magic(Coordinates coords, Bitboard occupied)
-{
-}
-
-Bitboard Move_generator::gen_bishop_attacks_magic(Coordinates coords, Bitboard occupied)
-{
-}
-#endif
 
 Bitboard Move_generator::get_positive_ray_attacks_(Coordinates square, Compass_dir dir, Bitboard occupied)
 {
