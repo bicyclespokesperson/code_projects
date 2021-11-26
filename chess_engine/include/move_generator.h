@@ -47,7 +47,7 @@ private:
 
     // Attacked squares from each position for a knight
     std::array<Bitboard, c_board_dimension_squared> knight_attacks;
-    
+
     // Attacked squares from each position for a king
     std::array<Bitboard, c_board_dimension_squared> king_attacks;
 

@@ -26,8 +26,8 @@ int Meneldor_engine::evaluate(Board const& board) const
   auto const state = board.calc_game_state();
   if (state == Game_state::white_victory || state == Game_state::black_victory)
   {
-    return negative_inf +
-           m_depth_for_current_search; // Add depth so the search function can return a slightly higher value if it finds an earlier mate
+    // Add depth so the search function can return a slightly higher value if it finds an earlier mate
+    return negative_inf + m_depth_for_current_search;
   }
   if (state == Game_state::draw)
   {

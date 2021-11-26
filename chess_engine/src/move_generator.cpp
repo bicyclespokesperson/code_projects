@@ -100,9 +100,9 @@ constexpr int32_t get_west_capture_offset(Color color)
 int pop_1st_bit(uint64_t* bb)
 {
   constexpr static std::array<int, 64> BitTable{63, 30, 3,  32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34,
-                                     61, 29, 2,  51, 21, 43, 45, 10, 18, 47, 1,  54, 9,  57, 0,  35,
-                                     62, 31, 40, 4,  49, 5,  52, 26, 60, 6,  23, 44, 46, 27, 56, 16,
-                                     7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
+                                                61, 29, 2,  51, 21, 43, 45, 10, 18, 47, 1,  54, 9,  57, 0,  35,
+                                                62, 31, 40, 4,  49, 5,  52, 26, 60, 6,  23, 44, 46, 27, 56, 16,
+                                                7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
 
   uint64_t b = *bb ^ (*bb - 1);
   auto fold = static_cast<uint32_t>((b & 0xffffffff) ^ (b >> 32));
@@ -261,7 +261,7 @@ Bitboard bishop_attacked_squares(int sq, uint64_t block)
 
 int magic_hash_fn(uint64_t blockers, uint64_t magic, int bits)
 {
-  MY_ASSERT(bits == 9         || bits==12, "Fixed shift");
+  MY_ASSERT(bits == 9 || bits == 12, "Fixed shift");
   return (int)((blockers * magic) >> (64 - bits));
 }
 
@@ -309,7 +309,7 @@ void Move_generator::Tables::init_rook_magic_tables_(int index)
 {
   // Based on code from: https://www.chessprogramming.org/Looking_for_Magics
   // (The plain implementation)
-  
+
   Bitboard possible_blockers = rook_potential_blockers(index);
   rook_possible_blockers[index] = possible_blockers;
 
