@@ -562,42 +562,10 @@ void Move_generator::Tables::initialize_king_attacks_()
 #if 1
 Bitboard Move_generator::gen_rook_attacks_magic(Coordinates coords, Bitboard occupied)
 {
-  int index = coords.square_index();
-  occupied &= m_tables.rook_magic_table[coords.square_index()].mask;
-
-  auto key = magic_hash_fn(occupied.val, c_rook_magics[index], 12);
-
-  auto& t = m_tables.rook_attacks[index];
-  auto result = t[key];
-  if (is_debug)
-  {
-    std::cout << "2Relevant_blockers:\n" << occupied;
-    std::cout << "2Attacked squares:\n" << result;
-    std::cout << "2Index: " << index << "\n";
-    std::cout << "2Key: " << key << "\n";
-  }
-  return result;
 }
 
 Bitboard Move_generator::gen_bishop_attacks_magic(Coordinates coords, Bitboard occupied)
 {
-  int index = coords.square_index();
-  occupied &= m_tables.bishop_magic_table[coords.square_index()].mask;
-
-  auto key = magic_hash_fn(occupied.val, c_bishop_magics[index], 9);
-
-  //occupied *= m_tables.bishop_magic_table[coords.square_index()].magic;
-  //occupied >>= (64-BBits[coords.square_index()]);
-  auto& t = m_tables.bishop_attacks[index];
-  auto result = t[key];
-  if (is_debug)
-  {
-    std::cout << "2Relevant_blockers:\n" << occupied;
-    std::cout << "2Attacked squares:\n" << result;
-    std::cout << "2Index: " << index << "\n";
-    std::cout << "2Key: " << key << "\n";
-  }
-  return result;
 }
 #endif
 
@@ -650,37 +618,18 @@ Bitboard Move_generator::gen_sliding_moves_(std::span<const Compass_dir> positiv
 
 Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied)
 {
-  constexpr static std::array<Compass_dir, 2> positive_directions{Compass_dir::north, Compass_dir::east};
-  constexpr static std::array<Compass_dir, 2> negative_directions{Compass_dir::south, Compass_dir::west};
-
-  auto standard_result = gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
-  auto magic_result = gen_rook_attacks_magic(square, occupied);
-  if (standard_result != magic_result)
-  {
-    std::cout << "Mismatched attack sets for bishop on " << square << " (index: " << square.square_index() << ")\n";
-    std::cout << "Occupied squares:\n" << occupied << "\n";
-    std::cout << "Standard attack set:\n" << standard_result << "\nMagic attack set:\n" << magic_result << "\n";
-    exit(-2);
-  }
-  return magic_result;
+  int const index = square.square_index();
+  occupied &= m_tables.rook_magic_table[index].mask;
+  auto key = magic_hash_fn(occupied.val, c_rook_magics[index], 12);
+  return m_tables.rook_attacks[index][key];
 }
 
 Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied)
 {
-  constexpr static std::array<Compass_dir, 2> positive_directions{Compass_dir::northeast, Compass_dir::northwest};
-  constexpr static std::array<Compass_dir, 2> negative_directions{Compass_dir::southeast, Compass_dir::southwest};
-
-  auto standard_result = gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
-
-  auto magic_result = gen_bishop_attacks_magic(square, occupied);
-  if (standard_result != magic_result)
-  {
-    std::cout << "Mismatched attack sets for bishop on " << square << " (index: " << square.square_index() << ")\n";
-    std::cout << "Occupied squares:\n" << occupied << "\n";
-    std::cout << "Standard attack set:\n" << standard_result << "\nMagic attack set:\n" << magic_result << "\n";
-    exit(-2);
-  }
-  return magic_result;
+  int index = square.square_index();
+  occupied &= m_tables.bishop_magic_table[index].mask;
+  auto key = magic_hash_fn(occupied.val, c_bishop_magics[index], 9);
+  return m_tables.bishop_attacks[index][key];
 }
 
 Bitboard Move_generator::queen_attacks(Coordinates square, Bitboard occupied)
