@@ -370,8 +370,13 @@ bool Meneldor_engine::stopRequested() const
 
 void Meneldor_engine::waitForSearchFinish()
 {
-  constexpr bool old_value{true};
-  m_is_searching.wait(old_value);
+  //constexpr bool old_value{true};
+  //m_is_searching.wait(old_value);
+    
+  while (m_is_searching.test())
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+  }
 }
 
 uint64_t Meneldor_engine::perft(const int depth)
@@ -430,8 +435,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   auto time_per_move = std::chrono::duration<double>{1000.5};
 
-  int const max_depth = 6;
-  //int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
+  int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
   Move best_move;
   if (is_feature_enabled("skip_iterative_deepening"))
   {

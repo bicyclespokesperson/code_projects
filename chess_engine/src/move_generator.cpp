@@ -5,11 +5,11 @@
 namespace
 {
 
-std::array<int, 64> RBits = {12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10,
+std::array<int, 64> RBits{12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10,
                  10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10,
                  10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12};
 
-std::array<int, 64> BBits = {6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5,
+std::array<int, 64> BBits{6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5,
                  5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6};
 
 // Generated with code from: https://www.chessprogramming.org/Looking_for_Magics
@@ -377,13 +377,14 @@ void Move_generator::Tables::initialize_ray_attacks_()
     }
 
     // Populate blockers and attackers table
-    std::cout << "Value: " << n << "\n";
-    for (int i = 0; i < (1 << n); ++i)
+    auto top = (1 << n);
+    for (int i = 0; i < top; ++i)
     {
       auto blockers = index_to_uint64(i, n, mask.val);
-      auto key = magic_hash_fn(blockers, BBits[index], c_bishop_magics[index]);
+        
+      auto key = magic_hash_fn(blockers, c_bishop_magics[index], BBits[index]);
       auto attacked_squares = bishop_attacked_squares(index, blockers);
-      m_bishop_attacks[index][key] = attacked_squares; // Permutations?
+      bishop_attacks[index][key] = attacked_squares; // Permutations?
       //attacked[i] = bishop ? bishop_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
     }
   } // for each index
@@ -433,12 +434,17 @@ void Move_generator::Tables::initialize_king_attacks_()
   }
 }
 
-#if 0
-Bitboard bishop_attacks(Bitboard occ, Coordinates coords) {
-   occ &= c_bishop_table[coords.square_index()].mask;
-   occ *= c_bishop_table[coords.square_index()].magic;
-   occ >>= (64-9);
-   return m_bishop_attacks[coords.square_index()][occ.val];
+#if 1
+Bitboard Move_generator::gen_bishop_attacks_magic(Coordinates coords, Bitboard occupied)
+{
+   occupied &= m_tables.bishop_magic_table[coords.square_index()].mask;
+   occupied *= m_tables.bishop_magic_table[coords.square_index()].magic;
+   occupied >>= (64-BBits[coords.square_index()]);
+   int index = coords.square_index();
+   auto& t = m_tables.bishop_attacks[index];
+   auto val = occupied.val;
+   auto result = t[val];
+   return result;
 }
 #endif
 
@@ -623,7 +629,7 @@ void Move_generator::generate_piece_moves(Board const& board, Color color, std::
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
   constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
   constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
-                                                   &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
+                                                   &Move_generator::gen_bishop_attacks_magic, &Move_generator::queen_attacks,
                                                    &Move_generator::king_attacks};
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
@@ -894,11 +900,10 @@ bool Move_generator::has_any_legal_moves(Board const& board)
 }
 
 
-
-uint64_t find_magic(int sq, int m, int bishop)
+uint64_t find_magic(int /*sq*/, int /*m*/, int /*bishop*/)
 {
-  std::array<uint64_t, 4096> blockers{0};
-  std::array<uint64_t, 4096> attacked{0}; // Attacked squares, accounting for blockers 
+  //std::array<uint64_t, 4096> blockers{0};
+  //std::array<uint64_t, 4096> attacked{0}; // Attacked squares, accounting for blockers
   //uint64_t magic{0};
   //std::array<uint64_t, 4096> used{0};
 

@@ -107,9 +107,9 @@ struct Bitboard
     return *this;
   }
 
-  constexpr Bitboard& operator*=(Bitboard other)
+  constexpr Bitboard& operator*=(uint64_t value)
   {
-    this->val *= other.val;
+    this->val *= value;
     return *this;
   }
 

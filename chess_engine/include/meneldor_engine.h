@@ -96,7 +96,7 @@ private:
   Move_orderer m_orderer{};
   std::vector<zhash_t> m_previous_positions;
 
-  constexpr static int c_default_depth{5};
+  constexpr static int c_default_depth{6};
   int m_depth_for_current_search{c_default_depth};
 
   constexpr static size_t c_transposition_table_size_bytes{1024UL * 1024UL * 1024UL}; // TODO: Greatly increase
