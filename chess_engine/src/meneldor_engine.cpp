@@ -372,7 +372,7 @@ void Meneldor_engine::waitForSearchFinish()
 {
   //constexpr bool old_value{true};
   //m_is_searching.wait(old_value);
-    
+
   while (m_is_searching.test())
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(250));

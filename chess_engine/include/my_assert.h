@@ -1,8 +1,10 @@
 #ifndef MY_ASSERT_H_2323
 #define MY_ASSERT_H_2323
 
+#define ASSERT_IN_RELEASE 1
+
 // From: https://stackoverflow.com/questions/3692954/add-custom-messages-in-assert
-#ifndef NDEBUG
+#if not defined(NDEBUG) || ASSERT_IN_RELEASE
 //NOLINTNEXTLINE
 #define MY_ASSERT(Expr, Msg) my_assert_utl_macro_(#Expr, Expr, __FILE__, __LINE__, Msg)
 #else

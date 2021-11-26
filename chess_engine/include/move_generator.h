@@ -45,9 +45,10 @@ private:
   class Tables
   {
   public:
-    struct Magic {
-       Bitboard mask{0};  // to mask relevant squares of both lines (no outer squares)
-       uint64_t magic{0}; // magic 64-bit factor
+    struct Magic
+    {
+      Bitboard mask{0}; // to mask relevant squares of both lines (no outer squares)
+      uint64_t magic{0}; // magic 64-bit factor
     };
 
     Tables();
@@ -62,8 +63,8 @@ private:
     std::array<Magic, 64> bishop_magic_table;
     std::array<Magic, 64> rook_magic_table;
 
-    std::array<std::array<Bitboard, 512>, 64> bishop_attacks;
-    std::array<std::array<Bitboard, 4096>, 64> rook_attacks;
+    std::array<std::array<Bitboard, 512>, 64> bishop_attacks{};
+    std::array<std::array<Bitboard, 4096>, 64> rook_attacks{};
 
   private:
     void initialize_ray_attacks_();

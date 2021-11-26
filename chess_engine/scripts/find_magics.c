@@ -152,11 +152,11 @@ uint64 bishop_attacked_squares(int sq, uint64 block)
 
 int transform(uint64 blockers, uint64 magic, int bits)
 {
-#if defined(USE_32_BIT_MULTIPLICATIONS)
-  return (unsigned)((int)blockers * (int)magic ^ (int)(blockers >> 32) * (int)(magic >> 32)) >> (32 - bits);
-#else
+//#if defined(USE_32_BIT_MULTIPLICATIONS)
+  //return (unsigned)((int)blockers * (int)magic ^ (int)(blockers >> 32) * (int)(magic >> 32)) >> (32 - bits);
+//#else
   return (int)((blockers * magic) >> (64 - bits));
-#endif
+//#endif
 }
 
 uint64 find_magic(int sq, int m, int bishop)
@@ -186,7 +186,7 @@ uint64 find_magic(int sq, int m, int bishop)
       j = transform(blockers[i], magic, m);
       if (used[j] == 0ULL)
         used[j] = attacked[i];
-      else if (used[j] != attacked[i])
+      else // if (used[j] != attacked[i])
         fail = 1;
     }
     if (!fail)
@@ -209,12 +209,12 @@ int main()
 
   printf("const uint64 RMagic[64] = {\n");
   for (square = 0; square < 64; square++)
-    printf("  0x%llxULL,\n", find_magic(square, RBits[square], 0));
+    printf("  0x%llxULL,\n", find_magic(square, 12, 0));
   printf("};\n\n");
 
   printf("const uint64 BMagic[64] = {\n");
   for (square = 0; square < 64; square++)
-    printf("  0x%llxULL,\n", find_magic(square, BBits[square], 1));
+    printf("  0x%llxULL,\n", find_magic(square, 9, 1));
   printf("};\n\n");
 
   return 0;

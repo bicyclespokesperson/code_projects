@@ -42,4 +42,4 @@ target_link_libraries(tests PRIVATE chess_engine_lib senjo Catch2::Catch2)
 # CMAKE_SOURCE_DIR == the top level of the tree
 # Name = arg to make test
 # Command = executable make test will run
-add_test(NAME tests COMMAND general_tests  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+add_test(NAME general_tests COMMAND tests  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )

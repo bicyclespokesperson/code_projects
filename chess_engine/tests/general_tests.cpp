@@ -381,7 +381,7 @@ TEST_CASE("Piece moves", "[Move_generator]")
     occupancy.set_square({i, 7});
   }
 
-  std::cout << "Occupancy: " << occupancy << "\n";
+  //std::cout << "Occupancy: " << occupancy << "\n";
 
   Bitboard expected_rook_moves{0x001010ef10100000};
   REQUIRE(Move_generator::rook_attacks({4, 4}, occupancy) == expected_rook_moves);
@@ -394,8 +394,8 @@ TEST_CASE("Piece moves", "[Move_generator]")
 
   Bitboard expected_bishop_moves{0x0020110a000a0000};
   auto b_moves = Move_generator::gen_bishop_attacks_magic({2, 3}, occupancy);
-  std::cout << b_moves << "\n";
-  std::cout << "Square index: " << Coordinates{2, 3}.square_index() << "\n";
+  //std::cout << b_moves << "\n";
+  //std::cout << "Square index: " << Coordinates{2, 3}.square_index() << "\n";
   REQUIRE(b_moves == expected_bishop_moves);
 }
 

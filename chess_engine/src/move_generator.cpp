@@ -1,51 +1,157 @@
 #include "move_generator.h"
 #include "board.h"
+#include "feature_toggle.h"
 #include "my_assert.h"
 
 namespace
 {
 
-std::array<int, 64> RBits{12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10,
-                 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10,
-                 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12};
+constexpr bool is_debug(false);
+constexpr int debug_square_index{3};
+constexpr Bitboard debug_occupied_squares{0xfffe01000009f6ff};
 
-std::array<int, 64> BBits{6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5,
-                 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6};
+std::array<int, 64> RBits{12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10,
+                          10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10,
+                          10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12, 11, 11, 11, 11, 11, 11, 12};
+
+std::array<int, 64> BBits{6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7,
+                          5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7,
+                          7, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6};
 
 // Generated with code from: https://www.chessprogramming.org/Looking_for_Magics
-constexpr std::array<uint64_t, 64> c_rook_magics{
-  0x2080020500400f0ULL,  0x28444000400010ULL,   0x20000a1004100014ULL, 0x20010c090202006ULL,  0x8408008200810004ULL,
-  0x1746000808002ULL,    0x2200098000808201ULL, 0x12c0002080200041ULL, 0x104000208e480804ULL, 0x8084014008281008ULL,
-  0x4200810910500410ULL, 0x100014481c20400cULL, 0x4014a4040020808ULL,  0x401002001010a4ULL,   0x202000500010001ULL,
-  0x8112808005810081ULL, 0x40902108802020ULL,   0x42002101008101ULL,   0x459442200810c202ULL, 0x81001103309808ULL,
-  0x8110000080102ULL,    0x8812806008080404ULL, 0x104020000800101ULL,  0x40a1048000028201ULL, 0x4100ba0000004081ULL,
-  0x44803a4003400109ULL, 0xa010a00000030443ULL, 0x91021a000100409ULL,  0x4201e8040880a012ULL, 0x22a000440201802ULL,
-  0x30890a72000204ULL,   0x10411402a0c482ULL,   0x40004841102088ULL,   0x40230000100040ULL,   0x40100010000a0488ULL,
-  0x1410100200050844ULL, 0x100090808508411ULL,  0x1410040024001142ULL, 0x8840018001214002ULL, 0x410201000098001ULL,
-  0x8400802120088848ULL, 0x2060080000021004ULL, 0x82101002000d0022ULL, 0x1001101001008241ULL, 0x9040411808040102ULL,
-  0x600800480009042ULL,  0x1a020000040205ULL,   0x4200404040505199ULL, 0x2020081040080080ULL, 0x40a3002000544108ULL,
-  0x4501100800148402ULL, 0x81440280100224ULL,   0x88008000000804ULL,   0x8084060000002812ULL, 0x1840201000108312ULL,
-  0x5080202000000141ULL, 0x1042a180880281ULL,   0x900802900c01040ULL,  0x8205104104120ULL,    0x9004220000440aULL,
-  0x8029510200708ULL,    0x8008440100404241ULL, 0x2420001111000bdULL,  0x4000882304000041ULL,
+const std::array<uint64_t, 64> c_rook_magics{
+  0xa8002c000108020ULL,
+  0x6040004109200130ULL,
+  0x5820000814a02040ULL,
+  0x400800122040c4ULL,
+  0xa00211004010204ULL,
+  0x24010204000080ULL,
+  0x120004000822600ULL,
+  0x100024284a20700ULL,
+  0x4818080004040ULL,
+  0x4008e4804100ULL,
+  0x20200018000400ULL,
+  0x22001020081a040ULL,
+  0x30400200102205ULL,
+  0x201280018c020201ULL,
+  0x10401000486040e0ULL,
+  0x80290000804001ULL,
+  0x2000241002a08410ULL,
+  0x8018012008a84000ULL,
+  0x2015081004600090ULL,
+  0x8006803002208200ULL,
+  0xc220101090c800ULL,
+  0x20800404018aa200ULL,
+  0x4800900102200ULL,
+  0x600400980002015ULL,
+  0x198688480024008ULL,
+  0x10201040002000ULL,
+  0x403420002004c021ULL,
+  0x411081801804004ULL,
+  0x61004108016600ULL,
+  0x12400088240004ULL,
+  0x4004280806000100ULL,
+  0x840a0220005484ULL,
+  0x140311c080c00022ULL,
+  0x1004082010400040ULL,
+  0x110002400200400ULL,
+  0x40a02240200800ULL,
+  0x70480080d09040ULL,
+  0x1083000100800204ULL,
+  0x40042a510020006ULL,
+  0x8261014280380100ULL,
+  0x24402210042000ULL,
+  0x808000841001810ULL,
+  0x2000800811420004ULL,
+  0x8050006140100100ULL,
+  0x8002040100200dULL,
+  0x40080008100ULL,
+  0xa004108004204002ULL,
+  0xaa100429009ULL,
+  0x104000802080ULL,
+  0x400922050090118ULL,
+  0x810820104c25200ULL,
+  0x290005902801001ULL,
+  0x208080100810010aULL,
+  0x5004400011240ULL,
+  0x8104032040ULL,
+  0x1002000a0426420ULL,
+  0x82042081041042ULL,
+  0x8040c2900804001ULL,
+  0x884401004200882ULL,
+  0x88040220a000402ULL,
+  0x2303800644201ULL,
+  0x86e000980c122ULL,
+  0x82220a0461048204ULL,
+  0x1104010024104082ULL,
 };
 
-//TODO: Combine with bishop table in Tables
-constexpr std::array<uint64_t, 64> c_bishop_magics{
-  0x100420000431024ULL,  0x280800101073404ULL,  0x42000a00840802ULL,   0xca800c0410c2ULL,     0x81004290941c20ULL,
-  0x400200450020250ULL,  0x444a019204022084ULL, 0x88610802202109aULL,  0x11210a0800086008ULL, 0x400a08c08802801ULL,
-  0x1301a0500111c808ULL, 0x1280100480180404ULL, 0x720009020028445ULL,  0x91880a9000010a01ULL, 0x31200940150802b2ULL,
-  0x5119080c20000602ULL, 0x242400a002448023ULL, 0x4819006001200008ULL, 0x222c10400020090ULL,  0x302008420409004ULL,
-  0x504200070009045ULL,  0x210071240c02046ULL,  0x1182219000022611ULL, 0x400c50000005801ULL,  0x4004010000113100ULL,
-  0x2008121604819400ULL, 0xc4a4010000290101ULL, 0x404a000888004802ULL, 0x8820c004105010ULL,   0x28280100908300ULL,
-  0x4c013189c0320a80ULL, 0x42008080042080ULL,   0x90803000c080840ULL,  0x2180001028220ULL,    0x1084002a040036ULL,
-  0x212009200401ULL,     0x128110040c84a84ULL,  0x81488020022802ULL,   0x8c0014100181ULL,     0x2222013020082ULL,
-  0xa00100002382c03ULL,  0x1000280001005c02ULL, 0x84801010000114cULL,  0x480410048000084ULL,  0x21204420080020aULL,
-  0x2020010000424a10ULL, 0x240041021d500141ULL, 0x420844000280214ULL,  0x29084a280042108ULL,  0x84102a8080a20a49ULL,
-  0x104204908010212ULL,  0x40a20280081860c1ULL, 0x3044000200121004ULL, 0x1001008807081122ULL, 0x50066c000210811ULL,
-  0xe3001240f8a106ULL,   0x940c0204030020d4ULL, 0x619204000210826aULL, 0x2010438002b00a2ULL,  0x884042004005802ULL,
-  0xa90240000006404ULL,  0x500d082244010008ULL, 0x28190d00040014e0ULL, 0x825201600c082444ULL,
+const std::array<uint64_t, 64> c_bishop_magics{
+  0x4010002202254010ULL,
+  0x4000506049214012ULL,
+  0xc41200304280c044ULL,
+  0x8a2444c808010008ULL,
+  0x4020484080440000ULL,
+  0x86088240010401ULL,
+  0x204024041988805ULL,
+  0x121235021204012ULL,
+  0x8004024c10108a00ULL,
+  0x4c0060220023ULL,
+  0x20105844b4000ULL,
+  0xa0346880041000ULL,
+  0x225028000009ULL,
+  0x44010144025ULL,
+  0x10048044002224ULL,
+  0xc080a01403010021ULL,
+  0x4005000068002041ULL,
+  0x810000062002511ULL,
+  0x4440210104804484ULL,
+  0x2094000820401000ULL,
+  0x4024000080214001ULL,
+  0x488080800820020cULL,
+  0x210100118410a820ULL,
+  0x1d02104483a600b0ULL,
+  0x368201006002200ULL,
+  0x120262000800430cULL,
+  0x1914008001000900ULL,
+  0x86c080014006088ULL,
+  0x812002202008040ULL,
+  0x13410020040c2ULL,
+  0x80008008010008c0ULL,
+  0x20a004040050090ULL,
+  0x40100400120480ULL,
+  0x8011001064029428ULL,
+  0x404d0c02a140100ULL,
+  0x40020080080080ULL,
+  0x40040120c0100ULL,
+  0x44620040a032ULL,
+  0x8204610810002c32ULL,
+  0x12204034a400ULL,
+  0xa24a40a000600ULL,
+  0x1080401a0420810ULL,
+  0x103041010500200ULL,
+  0x8000029088002070ULL,
+  0x80048100420400ULL,
+  0x521041000080382ULL,
+  0x802886021808c040ULL,
+  0x1002842408080084ULL,
+  0x80c41040414ULL,
+  0x516118080102000ULL,
+  0x20008040130020ULL,
+  0x684044040ULL,
+  0x29002000c5100920ULL,
+  0x806004944406ULL,
+  0x8410002140d40088ULL,
+  0x1060032c0408eULL,
+  0x8000023202014000ULL,
+  0x102001008821081ULL,
+  0x706418104102c08ULL,
+  0x1064008000034400ULL,
+  0x110018809820080ULL,
+  0x462824088020422ULL,
+  0x88600e210a00a020ULL,
+  0x6011008100188200ULL,
 };
-
 
 constexpr void update_if_in_bounds_(Bitboard& bb, int x, int y)
 {
@@ -105,7 +211,6 @@ constexpr int32_t get_west_capture_offset(Color color)
   return c_west_offsets[static_cast<int32_t>(color)];
 }
 
-
 #if 0
 int count_1s(uint64_t b)
 {
@@ -116,9 +221,10 @@ int count_1s(uint64_t b)
 }
 #endif
 
-const std::array<int, 64> BitTable {63, 30, 3,  32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34, 61, 29, 2,  51, 21, 43,
-                          45, 10, 18, 47, 1,  54, 9,  57, 0,  35, 62, 31, 40, 4,  49, 5,  52, 26, 60, 6,  23, 44,
-                          46, 27, 56, 16, 7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
+const std::array<int, 64> BitTable{63, 30, 3,  32, 25, 41, 22, 33, 15, 50, 42, 13, 11, 53, 19, 34,
+                                   61, 29, 2,  51, 21, 43, 45, 10, 18, 47, 1,  54, 9,  57, 0,  35,
+                                   62, 31, 40, 4,  49, 5,  52, 26, 60, 6,  23, 44, 46, 27, 56, 16,
+                                   7,  39, 48, 24, 59, 14, 12, 55, 38, 28, 58, 20, 37, 17, 36, 8};
 
 int pop_1st_bit(uint64_t* bb)
 {
@@ -128,7 +234,7 @@ int pop_1st_bit(uint64_t* bb)
   return BitTable[(fold * 0x783a9b23) >> 26];
 }
 
-uint64_t index_to_uint64(int index, int bits, uint64_t m)
+uint64_t blocker_permutation_from_index(int index, int bits, uint64_t m)
 {
   uint64_t result = 0ULL;
   for (int i = 0; i < bits; i++)
@@ -241,12 +347,14 @@ Bitboard bishop_attacked_squares(int sq, uint64_t block)
     if (block & (1ULL << (f + r * 8)))
       break;
   }
+  MY_ASSERT(result != Bitboard{0}, "Cannot have a bishop with no attacked squares");
   return result;
 }
 
 int magic_hash_fn(uint64_t blockers, uint64_t magic, int bits)
 {
-  return static_cast<int>((blockers * magic) >> (64 - bits));
+  MY_ASSERT(bits == 9, "Fixed shift");
+  return (int)((blockers * magic) >> (64 - bits));
 }
 
 } // namespace
@@ -262,8 +370,9 @@ Move_generator::Tables::Tables()
 
 void Move_generator::Tables::initialize_ray_attacks_()
 {
-  for (int8_t index{0}; index < c_board_dimension_squared; ++index)
+  for (int8_t sq{0}; sq < c_board_dimension_squared; ++sq)
   {
+    auto const index = sq;
     for (Compass_dir dir = Compass_dir::north; dir < Compass_dir::_count; ++dir)
     {
       auto const coords = Coordinates{index};
@@ -362,13 +471,14 @@ void Move_generator::Tables::initialize_ray_attacks_()
     auto const possible_blockers = bishop_mask & ~cannot_block;
 #endif
 
-
     bool bishop = true;
     Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
+
     bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
 
-    if (index == 26)
+    if (is_debug && index == debug_square_index)
     {
+      std::cout << "c_bishop_magics.size: " << c_bishop_magics.size() << "\n";
       std::cout << "Possible bishop blockers\n" << possible_blockers << "\n";
     }
 
@@ -382,34 +492,79 @@ void Move_generator::Tables::initialize_ray_attacks_()
     }
 #endif
 
-    Bitboard blockers{0xffff000000ffff00}; //auto relevant_blockers
-    Bitboard relevant_blockers = blockers & possible_blockers;
+    Bitboard relevant_blockers = debug_occupied_squares & possible_blockers;
 
     // Populate blockers and attackers table
     int n = possible_blockers.occupancy();
-    auto top = (1 << n);
-    for (int i = 0; i < top; ++i)
+    auto blocker_permutations = (1 << n);
+    std::set<uint64_t> blockers_set;
+    std::set<int> key_set;
+    int empty_blockers_count{0};
+
+    for (int i = 0; i < blocker_permutations; ++i)
     {
-      auto blockers = index_to_uint64(i, n, possible_blockers.val);
-        
-      auto key = magic_hash_fn(blockers, c_bishop_magics[index], BBits[index]);
+      MY_ASSERT(bishop_attacks[index][i] == Bitboard{0}, "Array should start zero initialized");
+    }
+    
+    for (int i = 0; i < blocker_permutations; ++i)
+    {
+      if (is_debug)
+      {
+        std::cout << "Setting square: " << std::to_string(index) << ", permutation: " << i << "\n";
+      }
+      auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
+      if (Bitboard{blockers}.is_empty())
+      {
+        empty_blockers_count++;
+      }
+      MY_ASSERT(empty_blockers_count <= 1, "One square should have zero blockers");
+
+      MY_ASSERT(!blockers_set.contains(blockers), "Permutation code is broken");
+      blockers_set.insert(blockers);
+
+      //TODO: Do we still need BBits & RBits?
+      auto key = magic_hash_fn(blockers, c_bishop_magics[index], 9);
+
       auto attacked_squares = bishop_attacked_squares(index, blockers);
 
-      if (index == 26 && Bitboard{blockers} == relevant_blockers)
+      if (key_set.contains(key))
       {
-        std::cout << "Possible_blockers:\n" << possible_blockers;
-        std::cout << "Relevant_blockers:\n" << relevant_blockers;
-        std::cout << "Attacked squares:\n" << attacked_squares;
-        std::cout << "Index: " << index << "\n";
-        std::cout << "Key: " << key << "\n";
+        if (is_debug)
+        {
+          std::cout << "Duplicate key: " << key << " at index: " << std::to_string(index) << " and permutation: " << i << "\n";
+        }
+        MY_ASSERT(!key_set.contains(key), "Duplicate key");
       }
-
-      if (index == 26 && key == 53)
+      if (static_cast<size_t>(key) >= bishop_attacks.front().size() && is_debug)
       {
-        static int times_set{1};
-        std::cout << "Times setting bishop_attacks[26][53]: " << times_set++ << "\n";
+        std::cout << "Key out of range: " << key << "\n";
       }
+      MY_ASSERT(static_cast<size_t>(key) < bishop_attacks.front().size(), "Key out of range");
 
+      key_set.insert(key);
+
+      if (is_debug)
+      {
+        if (index == debug_square_index && Bitboard{blockers} == relevant_blockers)
+        {
+          std::cout << "Possible_blockers:\n" << possible_blockers;
+          std::cout << "Relevant_blockers:\n" << relevant_blockers;
+          std::cout << "Attacked squares:\n" << attacked_squares;
+          std::cout << "Index: " << index << "\n";
+          std::cout << "Key: " << key << "\n";
+        }
+
+        if (index == debug_square_index && key == 53)
+        {
+          static int times_set{1};
+          std::cout << "Times setting bishop_attacks[" << debug_square_index << "][53]: " << times_set++ << "\n";
+        }
+      }
+      if (is_debug && bishop_attacks[index][key] != Bitboard{0})
+      {
+        std::cout << "Setting already set bitboard. Square index: " << std::to_string(index) << ", key: " << key << "\n" << Bitboard{blockers} << "\n";
+      }
+      MY_ASSERT(bishop_attacks[index][key] == Bitboard{0}, "Setting already set bitboard");
       bishop_attacks[index][key] = attacked_squares; // Permutations?
       //attacked[i] = bishop ? bishop_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
     }
@@ -463,22 +618,23 @@ void Move_generator::Tables::initialize_king_attacks_()
 #if 1
 Bitboard Move_generator::gen_bishop_attacks_magic(Coordinates coords, Bitboard occupied)
 {
+  int index = coords.square_index();
+  occupied &= m_tables.bishop_magic_table[coords.square_index()].mask;
 
-   int index = coords.square_index();
-   occupied &= m_tables.bishop_magic_table[coords.square_index()].mask;
-   std::cout << "2Relevant_blockers:\n" << occupied;
+  auto key = magic_hash_fn(occupied.val, c_bishop_magics[index], 9);
 
-   auto key = magic_hash_fn(occupied.val, c_bishop_magics[index], BBits[index]);
-
-
-   //occupied *= m_tables.bishop_magic_table[coords.square_index()].magic;
-   //occupied >>= (64-BBits[coords.square_index()]);
-   auto& t = m_tables.bishop_attacks[index];
-   auto result = t[key];
-   std::cout << "2Attacked squares:\n" << result;
-   std::cout << "2Index: " << index << "\n";
-   std::cout << "2Key: " << key << "\n";
-   return result;
+  //occupied *= m_tables.bishop_magic_table[coords.square_index()].magic;
+  //occupied >>= (64-BBits[coords.square_index()]);
+  auto& t = m_tables.bishop_attacks[index];
+  auto result = t[key];
+  if (is_debug)
+  {
+    std::cout << "2Relevant_blockers:\n" << occupied;
+    std::cout << "2Attacked squares:\n" << result;
+    std::cout << "2Index: " << index << "\n";
+    std::cout << "2Key: " << key << "\n";
+  }
+  return result;
 }
 #endif
 
@@ -542,7 +698,17 @@ Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied)
   constexpr static std::array<Compass_dir, 2> positive_directions{Compass_dir::northeast, Compass_dir::northwest};
   constexpr static std::array<Compass_dir, 2> negative_directions{Compass_dir::southeast, Compass_dir::southwest};
 
-  return gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
+  auto standard_result = gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
+
+  auto magic_result = gen_bishop_attacks_magic(square, occupied);
+  if (standard_result != magic_result)
+  {
+    std::cout << "Mismatched attack sets for bishop on " << square << " (index: " << square.square_index() << ")\n";
+    std::cout << "Occupied squares:\n" << occupied << "\n";
+    std::cout << "Standard attack set:\n" << standard_result << "\nMagic attack set:\n" << magic_result << "\n";
+    exit(-2);
+  }
+  return magic_result;
 }
 
 Bitboard Move_generator::queen_attacks(Coordinates square, Bitboard occupied)
@@ -663,7 +829,7 @@ void Move_generator::generate_piece_moves(Board const& board, Color color, std::
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
   constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
   constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
-                                                   &Move_generator::gen_bishop_attacks_magic, &Move_generator::queen_attacks,
+                                                   &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
                                                    &Move_generator::king_attacks};
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
@@ -933,14 +1099,12 @@ bool Move_generator::has_any_legal_moves(Board const& board)
                      });
 }
 
-
 uint64_t find_magic(int /*sq*/, int /*m*/, int /*bishop*/)
 {
   //std::array<uint64_t, 4096> blockers{0};
   //std::array<uint64_t, 4096> attacked{0}; // Attacked squares, accounting for blockers
   //uint64_t magic{0};
   //std::array<uint64_t, 4096> used{0};
-
 
 #if 0
   for (int k = 0; k < 100000000; ++k)
@@ -969,7 +1133,6 @@ uint64_t find_magic(int /*sq*/, int /*m*/, int /*bishop*/)
   //printf("***Failed***\n");
   return 0ULL;
 }
-
 
 uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_cancelled)
 {
@@ -1000,4 +1163,3 @@ uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_can
 
   return nodes;
 }
-

@@ -81,7 +81,6 @@ int main(int argc, char* argv[])
   }
 #else
 
-
 #endif
 
   return 0;
