@@ -29,6 +29,7 @@ public:
 
   static Bitboard bishop_attacks(Coordinates square, Bitboard occupied);
   static Bitboard gen_bishop_attacks_magic(Coordinates coords, Bitboard occ);
+  static Bitboard gen_rook_attacks_magic(Coordinates coords, Bitboard occ);
 
   static Bitboard queen_attacks(Coordinates square, Bitboard occupied);
   static Bitboard knight_attacks(Coordinates square, Bitboard occupied);
@@ -65,6 +66,9 @@ private:
 
     std::array<std::array<Bitboard, 512>, 64> bishop_attacks{};
     std::array<std::array<Bitboard, 4096>, 64> rook_attacks{};
+
+    void init_bishop_magic_tables_(int index);
+    void init_rook_magic_tables_(int index);
 
   private:
     void initialize_ray_attacks_();

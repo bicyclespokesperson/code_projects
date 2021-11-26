@@ -20,137 +20,35 @@ std::array<int, 64> BBits{6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
 
 // Generated with code from: https://www.chessprogramming.org/Looking_for_Magics
 const std::array<uint64_t, 64> c_rook_magics{
-  0xa8002c000108020ULL,
-  0x6040004109200130ULL,
-  0x5820000814a02040ULL,
-  0x400800122040c4ULL,
-  0xa00211004010204ULL,
-  0x24010204000080ULL,
-  0x120004000822600ULL,
-  0x100024284a20700ULL,
-  0x4818080004040ULL,
-  0x4008e4804100ULL,
-  0x20200018000400ULL,
-  0x22001020081a040ULL,
-  0x30400200102205ULL,
-  0x201280018c020201ULL,
-  0x10401000486040e0ULL,
-  0x80290000804001ULL,
-  0x2000241002a08410ULL,
-  0x8018012008a84000ULL,
-  0x2015081004600090ULL,
-  0x8006803002208200ULL,
-  0xc220101090c800ULL,
-  0x20800404018aa200ULL,
-  0x4800900102200ULL,
-  0x600400980002015ULL,
-  0x198688480024008ULL,
-  0x10201040002000ULL,
-  0x403420002004c021ULL,
-  0x411081801804004ULL,
-  0x61004108016600ULL,
-  0x12400088240004ULL,
-  0x4004280806000100ULL,
-  0x840a0220005484ULL,
-  0x140311c080c00022ULL,
-  0x1004082010400040ULL,
-  0x110002400200400ULL,
-  0x40a02240200800ULL,
-  0x70480080d09040ULL,
-  0x1083000100800204ULL,
-  0x40042a510020006ULL,
-  0x8261014280380100ULL,
-  0x24402210042000ULL,
-  0x808000841001810ULL,
-  0x2000800811420004ULL,
-  0x8050006140100100ULL,
-  0x8002040100200dULL,
-  0x40080008100ULL,
-  0xa004108004204002ULL,
-  0xaa100429009ULL,
-  0x104000802080ULL,
-  0x400922050090118ULL,
-  0x810820104c25200ULL,
-  0x290005902801001ULL,
-  0x208080100810010aULL,
-  0x5004400011240ULL,
-  0x8104032040ULL,
-  0x1002000a0426420ULL,
-  0x82042081041042ULL,
-  0x8040c2900804001ULL,
-  0x884401004200882ULL,
-  0x88040220a000402ULL,
-  0x2303800644201ULL,
-  0x86e000980c122ULL,
-  0x82220a0461048204ULL,
-  0x1104010024104082ULL,
+  0xa8002c000108020ULL,  0x6040004109200130ULL, 0x5820000814a02040ULL, 0x400800122040c4ULL,   0xa00211004010204ULL,
+  0x24010204000080ULL,   0x120004000822600ULL,  0x100024284a20700ULL,  0x4818080004040ULL,    0x4008e4804100ULL,
+  0x20200018000400ULL,   0x22001020081a040ULL,  0x30400200102205ULL,   0x201280018c020201ULL, 0x10401000486040e0ULL,
+  0x80290000804001ULL,   0x2000241002a08410ULL, 0x8018012008a84000ULL, 0x2015081004600090ULL, 0x8006803002208200ULL,
+  0xc220101090c800ULL,   0x20800404018aa200ULL, 0x4800900102200ULL,    0x600400980002015ULL,  0x198688480024008ULL,
+  0x10201040002000ULL,   0x403420002004c021ULL, 0x411081801804004ULL,  0x61004108016600ULL,   0x12400088240004ULL,
+  0x4004280806000100ULL, 0x840a0220005484ULL,   0x140311c080c00022ULL, 0x1004082010400040ULL, 0x110002400200400ULL,
+  0x40a02240200800ULL,   0x70480080d09040ULL,   0x1083000100800204ULL, 0x40042a510020006ULL,  0x8261014280380100ULL,
+  0x24402210042000ULL,   0x808000841001810ULL,  0x2000800811420004ULL, 0x8050006140100100ULL, 0x8002040100200dULL,
+  0x40080008100ULL,      0xa004108004204002ULL, 0xaa100429009ULL,      0x104000802080ULL,     0x400922050090118ULL,
+  0x810820104c25200ULL,  0x290005902801001ULL,  0x208080100810010aULL, 0x5004400011240ULL,    0x8104032040ULL,
+  0x1002000a0426420ULL,  0x82042081041042ULL,   0x8040c2900804001ULL,  0x884401004200882ULL,  0x88040220a000402ULL,
+  0x2303800644201ULL,    0x86e000980c122ULL,    0x82220a0461048204ULL, 0x1104010024104082ULL,
 };
 
 const std::array<uint64_t, 64> c_bishop_magics{
-  0x4010002202254010ULL,
-  0x4000506049214012ULL,
-  0xc41200304280c044ULL,
-  0x8a2444c808010008ULL,
-  0x4020484080440000ULL,
-  0x86088240010401ULL,
-  0x204024041988805ULL,
-  0x121235021204012ULL,
-  0x8004024c10108a00ULL,
-  0x4c0060220023ULL,
-  0x20105844b4000ULL,
-  0xa0346880041000ULL,
-  0x225028000009ULL,
-  0x44010144025ULL,
-  0x10048044002224ULL,
-  0xc080a01403010021ULL,
-  0x4005000068002041ULL,
-  0x810000062002511ULL,
-  0x4440210104804484ULL,
-  0x2094000820401000ULL,
-  0x4024000080214001ULL,
-  0x488080800820020cULL,
-  0x210100118410a820ULL,
-  0x1d02104483a600b0ULL,
-  0x368201006002200ULL,
-  0x120262000800430cULL,
-  0x1914008001000900ULL,
-  0x86c080014006088ULL,
-  0x812002202008040ULL,
-  0x13410020040c2ULL,
-  0x80008008010008c0ULL,
-  0x20a004040050090ULL,
-  0x40100400120480ULL,
-  0x8011001064029428ULL,
-  0x404d0c02a140100ULL,
-  0x40020080080080ULL,
-  0x40040120c0100ULL,
-  0x44620040a032ULL,
-  0x8204610810002c32ULL,
-  0x12204034a400ULL,
-  0xa24a40a000600ULL,
-  0x1080401a0420810ULL,
-  0x103041010500200ULL,
-  0x8000029088002070ULL,
-  0x80048100420400ULL,
-  0x521041000080382ULL,
-  0x802886021808c040ULL,
-  0x1002842408080084ULL,
-  0x80c41040414ULL,
-  0x516118080102000ULL,
-  0x20008040130020ULL,
-  0x684044040ULL,
-  0x29002000c5100920ULL,
-  0x806004944406ULL,
-  0x8410002140d40088ULL,
-  0x1060032c0408eULL,
-  0x8000023202014000ULL,
-  0x102001008821081ULL,
-  0x706418104102c08ULL,
-  0x1064008000034400ULL,
-  0x110018809820080ULL,
-  0x462824088020422ULL,
-  0x88600e210a00a020ULL,
-  0x6011008100188200ULL,
+  0x4010002202254010ULL, 0x4000506049214012ULL, 0xc41200304280c044ULL, 0x8a2444c808010008ULL, 0x4020484080440000ULL,
+  0x86088240010401ULL,   0x204024041988805ULL,  0x121235021204012ULL,  0x8004024c10108a00ULL, 0x4c0060220023ULL,
+  0x20105844b4000ULL,    0xa0346880041000ULL,   0x225028000009ULL,     0x44010144025ULL,      0x10048044002224ULL,
+  0xc080a01403010021ULL, 0x4005000068002041ULL, 0x810000062002511ULL,  0x4440210104804484ULL, 0x2094000820401000ULL,
+  0x4024000080214001ULL, 0x488080800820020cULL, 0x210100118410a820ULL, 0x1d02104483a600b0ULL, 0x368201006002200ULL,
+  0x120262000800430cULL, 0x1914008001000900ULL, 0x86c080014006088ULL,  0x812002202008040ULL,  0x13410020040c2ULL,
+  0x80008008010008c0ULL, 0x20a004040050090ULL,  0x40100400120480ULL,   0x8011001064029428ULL, 0x404d0c02a140100ULL,
+  0x40020080080080ULL,   0x40040120c0100ULL,    0x44620040a032ULL,     0x8204610810002c32ULL, 0x12204034a400ULL,
+  0xa24a40a000600ULL,    0x1080401a0420810ULL,  0x103041010500200ULL,  0x8000029088002070ULL, 0x80048100420400ULL,
+  0x521041000080382ULL,  0x802886021808c040ULL, 0x1002842408080084ULL, 0x80c41040414ULL,      0x516118080102000ULL,
+  0x20008040130020ULL,   0x684044040ULL,        0x29002000c5100920ULL, 0x806004944406ULL,     0x8410002140d40088ULL,
+  0x1060032c0408eULL,    0x8000023202014000ULL, 0x102001008821081ULL,  0x706418104102c08ULL,  0x1064008000034400ULL,
+  0x110018809820080ULL,  0x462824088020422ULL,  0x88600e210a00a020ULL, 0x6011008100188200ULL,
 };
 
 constexpr void update_if_in_bounds_(Bitboard& bb, int x, int y)
@@ -353,7 +251,7 @@ Bitboard bishop_attacked_squares(int sq, uint64_t block)
 
 int magic_hash_fn(uint64_t blockers, uint64_t magic, int bits)
 {
-  MY_ASSERT(bits == 9, "Fixed shift");
+  MY_ASSERT(bits == 9         || bits==12, "Fixed shift");
   return (int)((blockers * magic) >> (64 - bits));
 }
 
@@ -428,148 +326,194 @@ void Move_generator::Tables::initialize_ray_attacks_()
       } // while square in bounds
     } // for each dir
 
-#if 0 // I think this can be replaced by rook_attacked_squares, or vice versa
-    Bitboard cannot_block{Bitboard_constants::all_outer_squares};
-    Bitboard current_location;
-    current_location.set_square(index);
-    if (!(current_location & Bitboard_constants::a_file).is_empty())
-    {
-      cannot_block &= (~Bitboard_constants::a_file);
-    }
-    if (!(current_location & Bitboard_constants::h_file).is_empty())
-    {
-      cannot_block &= (~Bitboard_constants::h_file);
-    }
-    if (!(current_location & Bitboard_constants::first_rank).is_empty())
-    {
-      cannot_block &= (~Bitboard_constants::first_rank);
-    }
-    if (!(current_location & Bitboard_constants::eighth_rank).is_empty())
-    {
-      cannot_block &= (~Bitboard_constants::eighth_rank);
-    }
-    cannot_block |= Bitboard_constants::corners;
-
-    // Add rook directions to rook table
-    constexpr static std::array rook_directions{Compass_dir::north, Compass_dir::south, Compass_dir::west, Compass_dir::east};
-    auto rook_mask = std::accumulate(rook_directions.cbegin(), rook_directions.cend(), Bitboard{0}, [&](Bitboard result_so_far, auto direction)
-                                {
-                                  return result_so_far | ray_attacks[index][direction];
-                                });
-    rook_magic_table[index] = Tables::Magic{rook_mask & ~cannot_block, c_rook_magics[index]};
-
-    // Add bishop directions to bishop table
-    constexpr static std::array bishop_directions{Compass_dir::northwest, Compass_dir::northeast, Compass_dir::southwest, Compass_dir::southeast};
-    auto bishop_mask = std::accumulate(bishop_directions.cbegin(), bishop_directions.cend(), Bitboard{0}, [&](Bitboard result_so_far, auto direction)
-                                {
-                                  return result_so_far | ray_attacks[index][direction];
-                                });
-    
-    // TODO: initialize rook and bishop attack table
-    // https://stackoverflow.com/questions/67513005/how-to-generate-this-preinitialized-array-for-magic-bitboards
-    // See Attacks::detail::_initBishopMagicTable in shallow blue source code
-    auto const possible_blockers = bishop_mask & ~cannot_block;
-#endif
-
-    bool bishop = true;
-    Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
-
-    bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
-
-    if (is_debug && index == debug_square_index)
-    {
-      std::cout << "c_bishop_magics.size: " << c_bishop_magics.size() << "\n";
-      std::cout << "Possible bishop blockers\n" << possible_blockers << "\n";
-    }
-
-    //MY_ASSERT(count_1s(mask.val) == mask.occupancy(), "Occupancy mismatch");
-
-#if 0
-    if (mask != possible_blockers) //, "Comparing to blocker generation methods");
-    {
-      std::cout << "Mine: \n" << possible_blockers << "\nTheirs\n" << mask;
-      MY_ASSERT(false, "Blocker generation mismatch");
-    }
-#endif
-
-    Bitboard relevant_blockers = debug_occupied_squares & possible_blockers;
-
-    // Populate blockers and attackers table
-    int n = possible_blockers.occupancy();
-    auto blocker_permutations = (1 << n);
-    std::set<uint64_t> blockers_set;
-    std::set<int> key_set;
-    int empty_blockers_count{0};
-
-    for (int i = 0; i < blocker_permutations; ++i)
-    {
-      MY_ASSERT(bishop_attacks[index][i] == Bitboard{0}, "Array should start zero initialized");
-    }
-    
-    for (int i = 0; i < blocker_permutations; ++i)
-    {
-      if (is_debug)
-      {
-        std::cout << "Setting square: " << std::to_string(index) << ", permutation: " << i << "\n";
-      }
-      auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
-      if (Bitboard{blockers}.is_empty())
-      {
-        empty_blockers_count++;
-      }
-      MY_ASSERT(empty_blockers_count <= 1, "One square should have zero blockers");
-
-      MY_ASSERT(!blockers_set.contains(blockers), "Permutation code is broken");
-      blockers_set.insert(blockers);
-
-      //TODO: Do we still need BBits & RBits?
-      auto key = magic_hash_fn(blockers, c_bishop_magics[index], 9);
-
-      auto attacked_squares = bishop_attacked_squares(index, blockers);
-
-      if (key_set.contains(key))
-      {
-        if (is_debug)
-        {
-          std::cout << "Duplicate key: " << key << " at index: " << std::to_string(index) << " and permutation: " << i << "\n";
-        }
-        MY_ASSERT(!key_set.contains(key), "Duplicate key");
-      }
-      if (static_cast<size_t>(key) >= bishop_attacks.front().size() && is_debug)
-      {
-        std::cout << "Key out of range: " << key << "\n";
-      }
-      MY_ASSERT(static_cast<size_t>(key) < bishop_attacks.front().size(), "Key out of range");
-
-      key_set.insert(key);
-
-      if (is_debug)
-      {
-        if (index == debug_square_index && Bitboard{blockers} == relevant_blockers)
-        {
-          std::cout << "Possible_blockers:\n" << possible_blockers;
-          std::cout << "Relevant_blockers:\n" << relevant_blockers;
-          std::cout << "Attacked squares:\n" << attacked_squares;
-          std::cout << "Index: " << index << "\n";
-          std::cout << "Key: " << key << "\n";
-        }
-
-        if (index == debug_square_index && key == 53)
-        {
-          static int times_set{1};
-          std::cout << "Times setting bishop_attacks[" << debug_square_index << "][53]: " << times_set++ << "\n";
-        }
-      }
-      if (is_debug && bishop_attacks[index][key] != Bitboard{0})
-      {
-        std::cout << "Setting already set bitboard. Square index: " << std::to_string(index) << ", key: " << key << "\n" << Bitboard{blockers} << "\n";
-      }
-      MY_ASSERT(bishop_attacks[index][key] == Bitboard{0}, "Setting already set bitboard");
-      bishop_attacks[index][key] = attacked_squares; // Permutations?
-      //attacked[i] = bishop ? bishop_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
-    }
+    init_bishop_magic_tables_(index);
+    init_rook_magic_tables_(index);
   } // for each index
 } // initialize_ray_attacks
+
+void Move_generator::Tables::init_bishop_magic_tables_(int index)
+{
+  bool bishop = true;
+  Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
+
+  bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
+
+  if (is_debug && index == debug_square_index)
+  {
+    std::cout << "c_bishop_magics.size: " << c_bishop_magics.size() << "\n";
+    std::cout << "Possible bishop blockers\n" << possible_blockers << "\n";
+  }
+
+  // Populate blockers and attackers table
+  int n = possible_blockers.occupancy();
+  auto blocker_permutations = (1 << n);
+  std::set<uint64_t> blockers_set;
+  std::set<int> key_set;
+  int empty_blockers_count{0};
+
+  for (int i = 0; i < blocker_permutations; ++i)
+  {
+    MY_ASSERT(bishop_attacks[index][i] == Bitboard{0}, "Array should start zero initialized");
+  }
+
+  for (int i = 0; i < blocker_permutations; ++i)
+  {
+    if (is_debug)
+    {
+      std::cout << "Setting square: " << std::to_string(index) << ", permutation: " << i << "\n";
+    }
+    auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
+    if (Bitboard{blockers}.is_empty())
+    {
+      empty_blockers_count++;
+    }
+    MY_ASSERT(empty_blockers_count <= 1, "One square should have zero blockers");
+
+    MY_ASSERT(!blockers_set.contains(blockers), "Permutation code is broken");
+    blockers_set.insert(blockers);
+
+    //TODO: Do we still need BBits & RBits?
+    int shift = bishop ? 9 : 12;
+    auto key = magic_hash_fn(blockers, c_bishop_magics[index], shift);
+
+    auto attacked_squares = bishop_attacked_squares(index, blockers);
+
+    if (key_set.contains(key))
+    {
+      if (is_debug)
+      {
+        std::cout << "Duplicate key: " << key << " at index: " << std::to_string(index) << " and permutation: " << i
+                  << "\n";
+      }
+      MY_ASSERT(!key_set.contains(key), "Duplicate key");
+    }
+    if (static_cast<size_t>(key) >= bishop_attacks.front().size() && is_debug)
+    {
+      std::cout << "Key out of range: " << key << "\n";
+    }
+    MY_ASSERT(static_cast<size_t>(key) < bishop_attacks.front().size(), "Key out of range");
+
+    key_set.insert(key);
+
+    if (is_debug)
+    {
+      if (index == debug_square_index)
+      {
+        std::cout << "Possible_blockers:\n" << possible_blockers;
+        std::cout << "Attacked squares:\n" << attacked_squares;
+        std::cout << "Index: " << index << "\n";
+        std::cout << "Key: " << key << "\n";
+      }
+
+      if (index == debug_square_index && key == 53)
+      {
+        static int times_set{1};
+        std::cout << "Times setting bishop_attacks[" << debug_square_index << "][53]: " << times_set++ << "\n";
+      }
+    }
+
+    if (is_debug && bishop_attacks[index][key] != Bitboard{0})
+    {
+      std::cout << "Setting already set bitboard. Square index: " << std::to_string(index) << ", key: " << key << "\n"
+                << Bitboard{blockers} << "\n";
+    }
+    MY_ASSERT(bishop_attacks[index][key] == Bitboard{0}, "Setting already set bitboard");
+    bishop_attacks[index][key] = attacked_squares; // Permutations?
+    //attacked[i] = bishop ? bishop_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
+  }
+}
+
+void Move_generator::Tables::init_rook_magic_tables_(int index)
+{
+  bool bishop = false;
+  Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
+
+  rook_magic_table[index] = Tables::Magic{possible_blockers, c_rook_magics[index]};
+
+  if (is_debug && index == debug_square_index)
+  {
+    std::cout << "c_rook_magics.size: " << c_rook_magics.size() << "\n";
+    std::cout << "Possible rook blockers\n" << possible_blockers << "\n";
+  }
+
+  // Populate blockers and attackers table
+  int n = possible_blockers.occupancy();
+  auto blocker_permutations = (1 << n);
+  std::set<uint64_t> blockers_set;
+  std::set<int> key_set;
+  int empty_blockers_count{0};
+
+  for (int i = 0; i < blocker_permutations; ++i)
+  {
+    MY_ASSERT(rook_attacks[index][i] == Bitboard{0}, "Array should start zero initialized");
+  }
+
+  for (int i = 0; i < blocker_permutations; ++i)
+  {
+    if (is_debug)
+    {
+      std::cout << "Setting square: " << std::to_string(index) << ", permutation: " << i << "\n";
+    }
+    auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
+    if (Bitboard{blockers}.is_empty())
+    {
+      empty_blockers_count++;
+    }
+    MY_ASSERT(empty_blockers_count <= 1, "One square should have zero blockers");
+
+    MY_ASSERT(!blockers_set.contains(blockers), "Permutation code is broken");
+    blockers_set.insert(blockers);
+
+    //TODO: Do we still need BBits & RBits?
+    int shift = bishop ? 9 : 12;
+    auto key = magic_hash_fn(blockers, c_rook_magics[index], shift);
+
+    auto attacked_squares = rook_attacked_squares(index, blockers);
+
+    if (key_set.contains(key))
+    {
+      if (is_debug)
+      {
+        std::cout << "Duplicate key: " << key << " at index: " << std::to_string(index) << " and permutation: " << i
+                  << "\n";
+      }
+      MY_ASSERT(!key_set.contains(key), "Duplicate key");
+    }
+    if (static_cast<size_t>(key) >= rook_attacks.front().size() && is_debug)
+    {
+      std::cout << "Key out of range: " << key << "\n";
+    }
+    MY_ASSERT(static_cast<size_t>(key) < rook_attacks.front().size(), "Key out of range");
+
+    key_set.insert(key);
+
+    if (is_debug)
+    {
+      if (index == debug_square_index)
+      {
+        std::cout << "Possible_blockers:\n" << possible_blockers;
+        std::cout << "Attacked squares:\n" << attacked_squares;
+        std::cout << "Index: " << index << "\n";
+        std::cout << "Key: " << key << "\n";
+      }
+
+      if (index == debug_square_index && key == 53)
+      {
+        static int times_set{1};
+        std::cout << "Times setting rook_attacks[" << debug_square_index << "][53]: " << times_set++ << "\n";
+      }
+    }
+
+    if (is_debug && rook_attacks[index][key] != Bitboard{0})
+    {
+      std::cout << "Setting already set bitboard. Square index: " << std::to_string(index) << ", key: " << key << "\n"
+                << Bitboard{blockers} << "\n";
+    }
+    MY_ASSERT(rook_attacks[index][key] == Bitboard{0}, "Setting already set bitboard");
+    rook_attacks[index][key] = attacked_squares; // Permutations?
+    //attacked[i] = rook ? rook_attacked_squares(index, blockers[i]) : rook_attacked_squares(index, blockers[i]);
+  }
+}
 
 void Move_generator::Tables::initialize_knight_attacks_()
 {
@@ -616,6 +560,25 @@ void Move_generator::Tables::initialize_king_attacks_()
 }
 
 #if 1
+Bitboard Move_generator::gen_rook_attacks_magic(Coordinates coords, Bitboard occupied)
+{
+  int index = coords.square_index();
+  occupied &= m_tables.rook_magic_table[coords.square_index()].mask;
+
+  auto key = magic_hash_fn(occupied.val, c_rook_magics[index], 12);
+
+  auto& t = m_tables.rook_attacks[index];
+  auto result = t[key];
+  if (is_debug)
+  {
+    std::cout << "2Relevant_blockers:\n" << occupied;
+    std::cout << "2Attacked squares:\n" << result;
+    std::cout << "2Index: " << index << "\n";
+    std::cout << "2Key: " << key << "\n";
+  }
+  return result;
+}
+
 Bitboard Move_generator::gen_bishop_attacks_magic(Coordinates coords, Bitboard occupied)
 {
   int index = coords.square_index();
@@ -690,7 +653,16 @@ Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied)
   constexpr static std::array<Compass_dir, 2> positive_directions{Compass_dir::north, Compass_dir::east};
   constexpr static std::array<Compass_dir, 2> negative_directions{Compass_dir::south, Compass_dir::west};
 
-  return gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
+  auto standard_result = gen_sliding_moves_(positive_directions, negative_directions, square, occupied);
+  auto magic_result = gen_rook_attacks_magic(square, occupied);
+  if (standard_result != magic_result)
+  {
+    std::cout << "Mismatched attack sets for bishop on " << square << " (index: " << square.square_index() << ")\n";
+    std::cout << "Occupied squares:\n" << occupied << "\n";
+    std::cout << "Standard attack set:\n" << standard_result << "\nMagic attack set:\n" << magic_result << "\n";
+    exit(-2);
+  }
+  return magic_result;
 }
 
 Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied)
