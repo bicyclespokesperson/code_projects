@@ -287,9 +287,7 @@ void Move_generator::Tables::init_bishop_magic_tables_(int index)
   // Based on code from: https://www.chessprogramming.org/Looking_for_Magics
   // (The plain implementation)
 
-  bool bishop = true;
-  Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
-
+  Bitboard possible_blockers = bishop_potential_blockers(index);
   bishop_magic_table[index] = Tables::Magic{possible_blockers, c_bishop_magics[index]};
 
   // Populate blockers table
@@ -300,7 +298,7 @@ void Move_generator::Tables::init_bishop_magic_tables_(int index)
   {
     auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
 
-    int shift = bishop ? 9 : 12;
+    int shift = 9;
     auto key = magic_hash_fn(blockers, c_bishop_magics[index], shift);
     auto attacked_squares = bishop_attacked_squares(index, blockers);
     bishop_attacks[index][key] = attacked_squares;
@@ -312,9 +310,7 @@ void Move_generator::Tables::init_rook_magic_tables_(int index)
   // Based on code from: https://www.chessprogramming.org/Looking_for_Magics
   // (The plain implementation)
   
-  bool bishop = false;
-  Bitboard possible_blockers = bishop ? bishop_potential_blockers(index) : rook_potential_blockers(index);
-
+  Bitboard possible_blockers = rook_potential_blockers(index);
   rook_magic_table[index] = Tables::Magic{possible_blockers, c_rook_magics[index]};
 
   // Populate blockers table
@@ -325,7 +321,7 @@ void Move_generator::Tables::init_rook_magic_tables_(int index)
   {
     auto blockers = blocker_permutation_from_index(i, n, possible_blockers.val);
 
-    int shift = bishop ? 9 : 12;
+    int shift = 12;
     auto key = magic_hash_fn(blockers, c_rook_magics[index], shift);
     auto attacked_squares = rook_attacked_squares(index, blockers);
     rook_attacks[index][key] = attacked_squares;
