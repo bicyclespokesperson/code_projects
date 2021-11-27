@@ -39,42 +39,4 @@ private:
   std::string m_name;
 };
 
-class Engine_player : public Player
-{
-public:
-  Engine_player(std::string name);
-
-  ~Engine_player() override = default;
-
-  std::optional<std::string> get_next_move(std::istream& in, std::ostream& out) override;
-
-  void notify(std::string const& move) override;
-
-  bool set_position(std::string_view fen) override;
-
-  void reset() override;
-
-private:
-  Meneldor_engine m_engine{};
-};
-
-class User_player : public Player
-{
-public:
-  User_player(std::string name);
-
-  ~User_player() override = default;
-
-  std::optional<std::string> get_next_move(std::istream& in, std::ostream& out) override;
-
-  void notify(std::string const& move) override;
-
-  bool set_position(std::string_view fen) override;
-
-  void reset() override;
-
-private:
-  Board m_board{};
-};
-
 #endif

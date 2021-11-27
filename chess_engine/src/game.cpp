@@ -1,7 +1,8 @@
 #include "game.h"
 #include "board.h"
+#include "engine_player.h"
 #include "meneldor_engine.h"
-#include "player.h"
+#include "user_player.h"
 
 namespace
 {
