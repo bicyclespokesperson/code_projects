@@ -1,21 +1,4 @@
-#include "board.h"
 #include "move_orderer.h"
-
-int Move_orderer::score_move_(Move m, Board const& board)
-{
-  auto const previous_move_destination = board.get_previous_move().to;
-
-  auto const m_victim_index{static_cast<uint8_t>(m.victim) - static_cast<uint8_t>(Piece::pawn)};
-  auto const m_attacker_index{static_cast<uint8_t>(m.piece) - static_cast<uint8_t>(Piece::pawn)};
-  auto score = mvv_lva_table[m_victim_index][m_attacker_index];
-
-  if (m.to == previous_move_destination)
-  {
-    score += 50;
-  }
-
-  return score;
-}
 
 const auto Move_orderer::mvv_lva_table = []
 {
@@ -47,11 +30,17 @@ const auto Move_orderer::mvv_lva_table = []
   return result;
 }();
 
-void Move_orderer::sort_moves(std::span<Move> moves, Board const& board) const
+void Move_orderer::sort_moves(std::span<Move> moves, Board const& /* board */) const
 {
   std::sort(moves.begin(), moves.end(),
-            [&](Move m1, Move m2)
+            [](Move m1, Move m2)
             {
-              return score_move_(m1, board) > score_move_(m2, board);
+              auto const m1_victim_index{static_cast<uint8_t>(m1.victim) - static_cast<uint8_t>(Piece::pawn)};
+              auto const m1_attacker_index{static_cast<uint8_t>(m1.piece) - static_cast<uint8_t>(Piece::pawn)};
+              auto const m2_victim_index{static_cast<uint8_t>(m2.victim) - static_cast<uint8_t>(Piece::pawn)};
+              auto const m2_attacker_index{static_cast<uint8_t>(m2.piece) - static_cast<uint8_t>(Piece::pawn)};
+
+              return mvv_lva_table[m1_victim_index][m1_attacker_index] >
+                     mvv_lva_table[m2_victim_index][m2_attacker_index];
             });
 }

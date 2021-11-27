@@ -479,7 +479,6 @@ bool Board::move_no_verify(Move m, bool skip_check_detection)
 
   m_active_color = opposite_color(m_active_color);
   m_zhash.update_player_to_move();
-  m_previous_move = m;
 
   MY_ASSERT(validate_(), "Board is in an incorrect state after move");
   return true;
@@ -537,11 +536,6 @@ bool Board::has_sufficient_material(Color color) const
 Zobrist_hash Board::get_hash_key() const
 {
   return m_zhash;
-}
-
-Move Board::get_previous_move() const
-{
-  return m_previous_move;
 }
 
 Move Board::find_castling_rook_move_(Coordinates king_destination) const
