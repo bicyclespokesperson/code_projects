@@ -421,60 +421,63 @@ bool Board::try_move(Move m)
 
 bool Board::move_no_verify(Move m, bool skip_check_detection)
 {
-  auto const color = get_active_color();
+  if (m.type != Move_type::null)
+  {
+    auto const color = get_active_color();
 
-  auto capture_location = m.to;
-  if (is_en_passant(m.piece, m.from, m.to, *this))
-  {
-    capture_location = en_passant_capture_location(color, m.to);
-  }
+    auto capture_location = m.to;
+    if (is_en_passant(m.piece, m.from, m.to, *this))
+    {
+      capture_location = en_passant_capture_location(color, m.to);
+    }
 
-  auto const captured_piece = perform_move_(m, capture_location);
-  if (!skip_check_detection && is_in_check(color))
-  {
-    unperform_move_(color, m, captured_piece);
-    return false;
-  }
+    auto const captured_piece = perform_move_(m, capture_location);
+    if (!skip_check_detection && is_in_check(color))
+    {
+      unperform_move_(color, m, captured_piece);
+      return false;
+    }
 
-  m_zhash.update_castling_rights(m_rights);
-  update_castling_rights_(color, m.piece, m);
-  m_zhash.update_castling_rights(m_rights);
+    m_zhash.update_castling_rights(m_rights);
+    update_castling_rights_(color, m.piece, m);
+    m_zhash.update_castling_rights(m_rights);
 
-  // Move rook if the move was a castle
-  if (m.piece == Piece::king && distance_between(m.from, m.to) == 2)
-  {
-    auto const rook_move = find_castling_rook_move_(m.to);
-    perform_move_(rook_move, rook_move.to);
-  }
+    // Move rook if the move was a castle
+    if (m.piece == Piece::king && distance_between(m.from, m.to) == 2)
+    {
+      auto const rook_move = find_castling_rook_move_(m.to);
+      perform_move_(rook_move, rook_move.to);
+    }
 
-  // Promote pawn if it reached the last rank
-  if (m.promotion != Piece::empty)
-  {
-    remove_piece_(color, Piece::pawn, m.to);
-    add_piece_(color, m.promotion, m.to);
-  }
+    // Promote pawn if it reached the last rank
+    if (m.promotion != Piece::empty)
+    {
+      remove_piece_(color, Piece::pawn, m.to);
+      add_piece_(color, m.promotion, m.to);
+    }
 
-  // Set en passant square if applicable
-  m_zhash.update_en_passant_square(m_en_passant_square);
-  m_en_passant_square.unset_all();
-  if (m.piece == Piece::pawn && distance_between(m.from, m.to) == 2)
-  {
-    int const offset = (color == Color::white) ? -1 : 1;
-    m_en_passant_square.set_square(Coordinates{m.to.x(), m.to.y() + offset});
-  }
-  m_zhash.update_en_passant_square(m_en_passant_square);
+    // Set en passant square if applicable
+    m_zhash.update_en_passant_square(m_en_passant_square);
+    m_en_passant_square.unset_all();
+    if (m.piece == Piece::pawn && distance_between(m.from, m.to) == 2)
+    {
+      int const offset = (color == Color::white) ? -1 : 1;
+      m_en_passant_square.set_square(Coordinates{m.to.x(), m.to.y() + offset});
+    }
+    m_zhash.update_en_passant_square(m_en_passant_square);
 
-  if (color == Color::black)
-  {
-    ++m_fullmove_count;
-  }
-  if (m.piece == Piece::pawn || captured_piece)
-  {
-    m_halfmove_clock = 0;
-  }
-  else
-  {
-    ++m_halfmove_clock;
+    if (color == Color::black)
+    {
+      ++m_fullmove_count;
+    }
+    if (m.piece == Piece::pawn || captured_piece)
+    {
+      m_halfmove_clock = 0;
+    }
+    else
+    {
+      ++m_halfmove_clock;
+    }
   }
 
   m_active_color = opposite_color(m_active_color);
