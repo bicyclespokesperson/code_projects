@@ -90,6 +90,7 @@ std::optional<std::string> Engine_player::get_next_move(std::istream& /* in */, 
 {
   out << get_name() << " thinking\n";
   senjo::GoParams params;
+  params.depth = 7;
   auto const start = std::chrono::system_clock::now();
   auto const engine_move = m_engine.go(params, nullptr);
   auto const end = std::chrono::system_clock::now();

@@ -68,7 +68,7 @@ bool is_drawn(Board const& board, Threefold_repetition_detector const& detector)
 {
   auto color = board.get_active_color();
 
-  if (!(board.has_sufficient_material(color) && board.has_sufficient_material(opposite_color(color))))
+  if (!(board.has_sufficient_material(color) || board.has_sufficient_material(opposite_color(color))))
   {
     return true;
   }
