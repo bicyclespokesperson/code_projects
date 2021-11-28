@@ -705,19 +705,27 @@ std::vector<Move> Move_generator::generate_legal_attack_moves(Board const& board
 
 Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color attacking_color)
 {
-  constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
-  constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
-                                                   &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
-                                                   &Move_generator::king_attacks};
+  auto const occupied = board.get_occupied_squares();
   Bitboard attacked_squares;
-  for (size_t i{0}; i < piece_types.size(); ++i)
+  for (auto piece_location : board.get_piece_set(attacking_color, Piece::rook))
   {
-    for (auto piece_location : board.get_piece_set(attacking_color, piece_types[i]))
-    {
-      auto attacks = piece_move_functions[i](Coordinates{piece_location}, board.get_occupied_squares());
-      attacked_squares |= attacks;
-    }
+    attacked_squares |= rook_attacks(Coordinates{piece_location}, occupied);
   }
+  for (auto piece_location : board.get_piece_set(attacking_color, Piece::knight))
+  {
+    attacked_squares |= knight_attacks(Coordinates{piece_location}, occupied);
+  }
+  for (auto piece_location : board.get_piece_set(attacking_color, Piece::bishop))
+  {
+    attacked_squares |= bishop_attacks(Coordinates{piece_location}, occupied);
+  }
+  for (auto piece_location : board.get_piece_set(attacking_color, Piece::queen))
+  {
+    attacked_squares |= queen_attacks(Coordinates{piece_location}, occupied);
+  }
+
+  MY_ASSERT(board.get_piece_set(attacking_color, Piece::king).occupancy() == 1, "Board should never have two kings of the same color");
+  attacked_squares |= king_attacks(Coordinates{board.get_piece_set(attacking_color, Piece::king).bitscan_forward()}, occupied);
 
   return attacked_squares | pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn));
 }
