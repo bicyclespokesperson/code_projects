@@ -501,6 +501,7 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
   }
 }
 
+//TODO: Refactor this to be more like get_all_attacked_squares
 void Move_generator::generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
@@ -508,13 +509,17 @@ void Move_generator::generate_piece_moves(Board const& board, Color color, std::
   constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
                                                    &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
                                                    &Move_generator::king_attacks};
+
+  auto const friends = ~board.get_all(color);
+  auto const enemies = board.get_all(opposite_color(color));
+  auto const occupied = board.get_occupied_squares();
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
     for (auto piece_location : board.get_piece_set(color, piece_types[i]))
     {
-      auto possible_moves = piece_move_functions[i](Coordinates{piece_location}, board.get_occupied_squares());
-      possible_moves &= ~board.get_all(color); // Throw out any moves to a square that is already occupied by our color
-      auto const possible_attacks = possible_moves & board.get_all(opposite_color(color));
+      auto possible_moves = piece_move_functions[i](Coordinates{piece_location}, occupied);
+      possible_moves &= friends; // Throw out any moves to a square that is already occupied by our color
+      auto const possible_attacks = possible_moves & enemies;
       possible_moves &= ~possible_attacks; // Handle attacks separately
       for (auto end_location : possible_moves)
       {
@@ -536,13 +541,17 @@ void Move_generator::generate_piece_attacks(Board const& board, Color color, std
   constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
                                                    &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
                                                    &Move_generator::king_attacks};
+
+  auto const friends = ~board.get_all(color);
+  auto const enemies = board.get_all(opposite_color(color));
+  auto const occupied = board.get_occupied_squares();
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
     for (auto piece_location : board.get_piece_set(color, piece_types[i]))
     {
-      auto attacks = piece_move_functions[i](Coordinates{piece_location}, board.get_occupied_squares());
-      attacks &= ~board.get_all(color); // Throw out any moves to a square that is already occupied by our color
-      attacks &= board.get_all(opposite_color(color)); // Throw out any moves that are not captures
+      auto attacks = piece_move_functions[i](Coordinates{piece_location}, occupied);
+      attacks &= friends; // Throw out any moves to a square that is already occupied by our color
+      attacks &= enemies; // Throw out any moves that are not captures
       for (auto end_location : attacks)
       {
         moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i],
