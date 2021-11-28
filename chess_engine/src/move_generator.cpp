@@ -277,7 +277,7 @@ Move_generator::Tables::Tables()
   {
     init_bishop_magic_tables_(sq);
     init_rook_magic_tables_(sq);
-  } // for each index
+  }
 }
 
 bool is_debug{false};
@@ -423,8 +423,8 @@ Bitboard Move_generator::pawn_long_advances(Color color, Bitboard pawns, Bitboar
 Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance_east = get_east_shift_distance(color); // new
-  auto const shift_distance_west = get_west_shift_distance(color); // new
+  auto const shift_distance_east = get_east_shift_distance(color);
+  auto const shift_distance_west = get_west_shift_distance(color);
   auto const west_attacks = (pawns.*bitshift_fn)(shift_distance_west) & ~Bitboard_constants::h_file;
 
   auto const east_attacks = (pawns.*bitshift_fn)(shift_distance_east) & ~Bitboard_constants::a_file;
@@ -434,7 +434,7 @@ Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns)
 Bitboard Move_generator::pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance = get_east_shift_distance(color); // new
+  auto const shift_distance = get_east_shift_distance(color);
   auto const east_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::a_file & enemies;
   return east_attacks;
 }
@@ -442,7 +442,7 @@ Bitboard Move_generator::pawn_east_attacks(Color color, Bitboard pawns, Bitboard
 Bitboard Move_generator::pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance = get_west_shift_distance(color); // new
+  auto const shift_distance = get_west_shift_distance(color);
   auto const west_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::h_file & enemies;
   return west_attacks;
 }
@@ -454,49 +454,49 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
   static constexpr Move short_castle_black{{4, 7}, {6, 7}, Piece::king, Piece::empty};
   static constexpr Move long_castle_black{{4, 7}, {2, 7}, Piece::king, Piece::empty};
 
+  static constexpr Coordinates white_king_start_location{4, 0};
+  static constexpr Coordinates black_king_start_location{4, 7};
+
   auto const attacks = Move_generator::get_all_attacked_squares(board, opposite_color(color));
   auto const castling_rights = board.get_castling_rights();
-
-  int count{0};
+  auto const occupied = board.get_occupied_squares();
 
   if (color == Color::white)
   {
-    if ((attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() &&
-        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
-        (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_white).is_empty() &&
-        castling_rights.white_can_short_castle)
+    if (castling_rights.white_can_short_castle &&
+        !attacks.is_set(white_king_start_location) &&
+        (attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() &&
+        (occupied & Bitboard_constants::short_castling_empty_squares_white).is_empty())
     {
       moves.emplace_back(short_castle_white);
-      ++count;
     }
 
-    if ((attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
-        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
-        (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
-        !board.get_occupied_squares().is_set(Coordinates{1, 0}) && castling_rights.white_can_long_castle)
+    if (castling_rights.white_can_long_castle &&
+        !attacks.is_set(white_king_start_location) &&
+        (attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
+        (occupied & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
+        !occupied.is_set(Coordinates{1, 0}))
     {
       moves.emplace_back(long_castle_white);
-      ++count;
     }
   }
   else
   {
-    if ((attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() &&
-        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
-        (board.get_occupied_squares() & Bitboard_constants::short_castling_empty_squares_black).is_empty() &&
-        castling_rights.black_can_short_castle)
+    if (castling_rights.black_can_short_castle &&
+        !attacks.is_set(black_king_start_location) &&
+        (attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() &&
+        (occupied & Bitboard_constants::short_castling_empty_squares_black).is_empty())
     {
       moves.emplace_back(short_castle_black);
-      ++count;
     }
 
-    if ((attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
-        (attacks & board.get_piece_set(color, Piece::king)).is_empty() &&
-        (board.get_occupied_squares() & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
-        !board.get_occupied_squares().is_set(Coordinates{1, 7}) && castling_rights.black_can_long_castle)
+    if (castling_rights.black_can_long_castle &&
+        !attacks.is_set(black_king_start_location) &&
+        (attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
+        (occupied & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
+        !occupied.is_set(Coordinates{1, 7}))
     {
       moves.emplace_back(long_castle_black);
-      ++count;
     }
   }
 }
@@ -782,41 +782,6 @@ bool Move_generator::has_any_legal_moves(Board const& board)
                        tmp_board = board;
                        return !tmp_board.move_results_in_check_destructive(m);
                      });
-}
-
-uint64_t find_magic(int /*sq*/, int /*m*/, int /*bishop*/)
-{
-  //std::array<uint64_t, 4096> blockers{0};
-  //std::array<uint64_t, 4096> attacked{0}; // Attacked squares, accounting for blockers
-  //uint64_t magic{0};
-  //std::array<uint64_t, 4096> used{0};
-
-#if 0
-  for (int k = 0; k < 100000000; ++k)
-  {
-    magic = random_uint64_fewbits();
-    if (count_1s((mask * magic) & 0xFF00000000000000ULL) < 6)
-      continue;
-    for (int i = 0; i < 4096; ++i)
-    {
-      used[i] = 0ULL;
-    }
-
-    int fail{0};
-    for (int i = 0; !fail && i < (1 << n); ++i)
-    {
-      int key = m agic_hash_fn(blockers[i], magic, m);
-      if (used[key] == 0ULL)
-        used[key] = attacked[i];
-      else if (used[key] != attacked[i])
-        fail = 1;
-    }
-    if (!fail)
-      return magic;
-  }
-#endif
-  //printf("***Failed***\n");
-  return 0ULL;
 }
 
 uint64_t Move_generator::perft(int depth, Board& board, std::atomic_flag& is_cancelled)
