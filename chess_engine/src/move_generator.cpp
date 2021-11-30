@@ -461,16 +461,14 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
 
   if (color == Color::white)
   {
-    if (castling_rights.white_can_short_castle &&
-        !attacks.is_set(white_king_start_location) &&
+    if (castling_rights.white_can_short_castle && !attacks.is_set(white_king_start_location) &&
         (attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() &&
         (occupied & Bitboard_constants::short_castling_empty_squares_white).is_empty())
     {
       moves.emplace_back(short_castle_white);
     }
 
-    if (castling_rights.white_can_long_castle &&
-        !attacks.is_set(white_king_start_location) &&
+    if (castling_rights.white_can_long_castle && !attacks.is_set(white_king_start_location) &&
         (attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
         (occupied & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
         !occupied.is_set(Coordinates{1, 0}))
@@ -480,16 +478,14 @@ void Move_generator::generate_castling_moves(Board const& board, Color color, st
   }
   else
   {
-    if (castling_rights.black_can_short_castle &&
-        !attacks.is_set(black_king_start_location) &&
+    if (castling_rights.black_can_short_castle && !attacks.is_set(black_king_start_location) &&
         (attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() &&
         (occupied & Bitboard_constants::short_castling_empty_squares_black).is_empty())
     {
       moves.emplace_back(short_castle_black);
     }
 
-    if (castling_rights.black_can_long_castle &&
-        !attacks.is_set(black_king_start_location) &&
+    if (castling_rights.black_can_long_castle && !attacks.is_set(black_king_start_location) &&
         (attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
         (occupied & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
         !occupied.is_set(Coordinates{1, 7}))
@@ -731,8 +727,10 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
     attacked_squares |= queen_attacks(Coordinates{piece_location}, occupied);
   }
 
-  MY_ASSERT(board.get_piece_set(attacking_color, Piece::king).occupancy() == 1, "Board should never have two kings of the same color");
-  attacked_squares |= king_attacks(Coordinates{board.get_piece_set(attacking_color, Piece::king).bitscan_forward()}, occupied);
+  MY_ASSERT(board.get_piece_set(attacking_color, Piece::king).occupancy() == 1,
+            "Board should never have two kings of the same color");
+  attacked_squares |=
+    king_attacks(Coordinates{board.get_piece_set(attacking_color, Piece::king).bitscan_forward()}, occupied);
 
   return attacked_squares | pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn));
 }
