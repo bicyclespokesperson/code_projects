@@ -205,7 +205,7 @@ Board::Board()
   reset();
 }
 
-Board::Board(int) : m_rights{false, false, false, false}
+Board::Board(int) : m_rights{c_castling_rights_none}
 {
 }
 
@@ -570,22 +570,22 @@ bool Board::can_castle_to(Coordinates dest) const
 {
   if (dest == Coordinates{2, 0})
   {
-    return m_rights.white_can_long_castle;
+    return white_can_long_castle(m_rights);
   }
 
   if (dest == Coordinates{6, 0})
   {
-    return m_rights.white_can_short_castle;
+    return white_can_short_castle(m_rights);
   }
 
   if (dest == Coordinates{2, 7})
   {
-    return m_rights.black_can_long_castle;
+    return black_can_long_castle(m_rights);
   }
 
   if (dest == Coordinates{6, 7})
   {
-    return m_rights.black_can_short_castle;
+    return black_can_short_castle(m_rights);
   }
 
   return false;
@@ -597,32 +597,32 @@ void Board::update_castling_rights_(Color color, Piece piece, Move m)
   {
     if (color == Color::black)
     {
-      m_rights.black_can_short_castle = false;
-      m_rights.black_can_long_castle = false;
+      set_black_short_castle_false(m_rights);
+      set_black_long_castle_false(m_rights);
     }
     else
     {
-      m_rights.white_can_short_castle = false;
-      m_rights.white_can_long_castle = false;
+      set_white_short_castle_false(m_rights);
+      set_white_long_castle_false(m_rights);
     }
   }
   else
   {
     if (Coordinates target{0, 0}; m.to == target || m.from == target)
     {
-      m_rights.white_can_long_castle = false;
+      set_white_long_castle_false(m_rights);
     }
     else if (Coordinates target{7, 0}; m.to == target || m.from == target)
     {
-      m_rights.white_can_short_castle = false;
+      set_white_short_castle_false(m_rights);
     }
     else if (Coordinates target{0, 7}; m.to == target || m.from == target)
     {
-      m_rights.black_can_long_castle = false;
+      set_black_long_castle_false(m_rights);
     }
     else if (Coordinates target{7, 7}; m.to == target || m.from == target)
     {
-      m_rights.black_can_short_castle = false;
+      set_black_short_castle_false(m_rights);
     }
   }
 }
@@ -666,7 +666,7 @@ void Board::reset()
   m_active_color = Color::white;
   m_halfmove_clock = 0;
   m_fullmove_count = 1;
-  m_rights = {true, true, true, true};
+  m_rights = c_castling_rights_all;
 
   // White pieces
   add_piece_(Color::white, Piece::rook, {0, 0});
@@ -696,7 +696,6 @@ void Board::reset()
     add_piece_(Color::black, Piece::pawn, {i, 6});
   }
 
-  m_rights = {true, true, true, true};
   m_zhash = {*this};
 
   MY_ASSERT(validate_(), "Board is in an incorrect state");
@@ -1165,16 +1164,16 @@ bool Board::update_castling_rights_fen_(char c)
   switch (c)
   {
     case 'k':
-      m_rights.black_can_short_castle = true;
+      set_black_short_castle_true(m_rights);
       break;
     case 'q':
-      m_rights.black_can_long_castle = true;
+      set_black_long_castle_true(m_rights);
       break;
     case 'K':
-      m_rights.white_can_short_castle = true;
+      set_white_short_castle_true(m_rights);
       break;
     case 'Q':
-      m_rights.white_can_long_castle = true;
+      set_white_long_castle_true(m_rights);
       break;
     default:
       return false;
@@ -1185,19 +1184,19 @@ bool Board::update_castling_rights_fen_(char c)
 std::string Board::castling_rights_to_fen_() const
 {
   std::stringstream ss;
-  if (m_rights.white_can_short_castle)
+  if (white_can_short_castle(m_rights))
   {
     ss << 'K';
   }
-  if (m_rights.white_can_long_castle)
+  if (white_can_long_castle(m_rights))
   {
     ss << 'Q';
   }
-  if (m_rights.black_can_short_castle)
+  if (black_can_short_castle(m_rights))
   {
     ss << 'k';
   }
-  if (m_rights.black_can_long_castle)
+  if (black_can_long_castle(m_rights))
   {
     ss << 'q';
   }

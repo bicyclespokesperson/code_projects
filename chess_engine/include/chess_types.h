@@ -41,14 +41,6 @@ enum class Game_state
   black_victory,
 };
 
-struct Castling_rights
-{
-  bool white_can_short_castle : 1 {true};
-  bool white_can_long_castle : 1 {true};
-  bool black_can_short_castle : 1 {true};
-  bool black_can_long_castle : 1 {true};
-};
-
 class Threefold_repetition_detector
 {
 public:
