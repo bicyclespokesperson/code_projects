@@ -78,11 +78,6 @@ void run_chess_game(int argc, char* argv[])
 void benchmark()
 {
   uint64_t val = 0x8100000000000081;
-  if (rand() < 1)
-  {
-    val += 1;
-  }
-
 
   volatile size_t total{0};
   size_t const iterations = 1'000'000'000;
@@ -91,13 +86,11 @@ void benchmark()
     for (size_t i{0}; i < iterations; ++i)
     {
       Bitboard b{val};
-      b.unset_square(0);
-      b.unset_square(62);
-      total += b.val;
+      total += b.occupancy();
     }
     auto const end = std::chrono::system_clock::now();
     std::chrono::duration<double> const elapsed_time = end - start;
-    std::cout << "unset_square time: " << elapsed_time.count() << "\n";
+    std::cout << "occupancy time: " << elapsed_time.count() << "\n";
   }
 
   {
@@ -105,13 +98,11 @@ void benchmark()
     for (size_t i{0}; i < iterations; ++i)
     {
       Bitboard b{val};
-      b.unset_square(0);
-      b.unset_square(62);
-      total += b.val;
+      total += b.occupancy();
     }
     auto const end = std::chrono::system_clock::now();
     std::chrono::duration<double> const elapsed_time = end - start;
-    std::cout << "unset_square fast time: " << elapsed_time.count() << "\n";
+    std::cout << "Occupancy builtin time: " << elapsed_time.count() << "\n";
     std::cout << total << std::endl;
   }
 }
@@ -124,8 +115,11 @@ void benchmark()
  */
 int main(int argc, char* argv[])
 {
-  run_chess_game(argc, argv);
-  //benchmark();
+#if 0
+  //run_chess_game(argc, argv);
+#else
+  benchmark();
+#endif
 
   return 0;
 }

@@ -205,15 +205,9 @@ struct Bitboard_iterator
   // Prefix increment
   constexpr Bitboard_iterator& operator++()
   {
-    if (!m_bitboard.is_empty())
-    {
-      m_val = m_bitboard.bitscan_forward();
-      m_bitboard.val &= m_bitboard.val - 1;
-    }
-    else
-    {
-      m_val = -1;
-    }
+    m_val = m_bitboard.bitscan_forward();
+    m_bitboard.val &= m_bitboard.val - 1;
+
     return *this;
   }
 
