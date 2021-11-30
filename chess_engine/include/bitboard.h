@@ -27,14 +27,14 @@ struct Bitboard
     val |= (uint64_t{0x01} << index);
   }
 
-  constexpr void unset_square(Coordinates coords)
-  {
-    val &= ~(uint64_t{0x01} << coords.square_index());
-  }
-
   constexpr void unset_square(size_t index)
   {
     val &= ~(uint64_t{0x01} << index);
+  }
+
+  constexpr void unset_square(Coordinates coords)
+  {
+    unset_square(coords.square_index());
   }
 
   constexpr void unset_all()
@@ -166,7 +166,7 @@ struct Bitboard
   std::string hex_str() const
   {
     std::stringstream ss;
-    int chars_per_byte{2};
+    constexpr int chars_per_byte{2};
     ss << "0x" << std::hex << std::setfill('0') << std::setw(sizeof(uint64_t) * chars_per_byte) << val;
     return ss.str();
   }
@@ -207,7 +207,7 @@ struct Bitboard_iterator
   {
     if (!m_bitboard.is_empty())
     {
-      m_val = __builtin_ffsll(m_bitboard.val) - 1;
+      m_val = m_bitboard.bitscan_forward();
       m_bitboard.val &= m_bitboard.val - 1;
     }
     else

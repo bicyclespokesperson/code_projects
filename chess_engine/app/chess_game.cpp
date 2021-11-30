@@ -34,15 +34,9 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
   std::cout << bb << "\nhex: " << bb.hex_str() << "\n";
 }
 
-/**
- * Play the chess game.
- * @param argc
- * @param argv
- * @return
- */
-int main(int argc, char* argv[])
+//NOLINTNEXTLINE // Match signature of main function
+void run_chess_game(int argc, char* argv[])
 {
-#if 1
   if (argc > 2)
   {
     // h -> human, c -> computer
@@ -79,9 +73,59 @@ int main(int argc, char* argv[])
     std::cerr << "Usage: chess [hh/hc/ch/cc]\n";
     exit(-1);
   }
-#else
+}
 
-#endif
+void benchmark()
+{
+  uint64_t val = 0x8100000000000081;
+  if (rand() < 1)
+  {
+    val += 1;
+  }
+
+
+  volatile size_t total{0};
+  size_t const iterations = 1'000'000'000;
+  {
+    auto const start = std::chrono::system_clock::now();
+    for (size_t i{0}; i < iterations; ++i)
+    {
+      Bitboard b{val};
+      b.unset_square(0);
+      b.unset_square(62);
+      total += b.val;
+    }
+    auto const end = std::chrono::system_clock::now();
+    std::chrono::duration<double> const elapsed_time = end - start;
+    std::cout << "unset_square time: " << elapsed_time.count() << "\n";
+  }
+
+  {
+    auto const start = std::chrono::system_clock::now();
+    for (size_t i{0}; i < iterations; ++i)
+    {
+      Bitboard b{val};
+      b.unset_square(0);
+      b.unset_square(62);
+      total += b.val;
+    }
+    auto const end = std::chrono::system_clock::now();
+    std::chrono::duration<double> const elapsed_time = end - start;
+    std::cout << "unset_square fast time: " << elapsed_time.count() << "\n";
+    std::cout << total << std::endl;
+  }
+}
+
+/**
+ * Play the chess game.
+ * @param argc
+ * @param argv
+ * @return
+ */
+int main(int argc, char* argv[])
+{
+  run_chess_game(argc, argv);
+  //benchmark();
 
   return 0;
 }
