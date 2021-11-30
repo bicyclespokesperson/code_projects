@@ -427,8 +427,7 @@ bool Board::move_no_verify(Move m, bool skip_check_detection)
 
     auto capture_location = m.to;
 
-    // TODO: Store this in move type, and skip calling this?
-    if (is_en_passant(m.piece, m.from, m.to, *this))
+    if (m_en_passant_square.is_set(m.to))
     {
       capture_location = en_passant_capture_location(color, m.to);
     }
