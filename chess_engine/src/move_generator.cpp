@@ -280,8 +280,6 @@ Move_generator::Tables::Tables()
   }
 }
 
-bool is_debug{false};
-
 void Move_generator::Tables::init_bishop_magic_tables_(int index)
 {
   // Based on code from: https://www.chessprogramming.org/Looking_for_Magics

@@ -3,15 +3,13 @@
 
 #include "coordinates.h"
 
-template <typename Fn>
 struct Bitboard_iterator;
 
 struct Bitboard;
 
 struct Bitboard
 {
-  using iterator_update_fn_t = std::add_pointer_t<int32_t(Bitboard&)>;
-  using Iterator = Bitboard_iterator<iterator_update_fn_t>;
+  using Iterator = Bitboard_iterator;
 
   constexpr Bitboard() = default;
 
@@ -177,10 +175,6 @@ struct Bitboard
 
   constexpr Iterator end() const;
 
-  constexpr Iterator rbegin() const;
-
-  constexpr Iterator rend() const;
-
   /*
    * A bitboard is stored with LSB = a1, up to MSB = h8
    * Order: a1, b1, c1, ..., h1, a2, b2, ... h8
@@ -188,7 +182,6 @@ struct Bitboard
   uint64_t val{0};
 };
 
-template <typename Fn>
 struct Bitboard_iterator
 {
   using iterator_category = std::input_iterator_tag;
@@ -197,12 +190,12 @@ struct Bitboard_iterator
   using pointer = int32_t*;
   using reference = int32_t const&;
 
-  using update_fn_t = std::decay_t<Fn>;
-
-  constexpr Bitboard_iterator(Bitboard bb, Fn fn) : m_bitboard(bb), m_update_fn(std::move(fn))
+  constexpr Bitboard_iterator(Bitboard bb) : m_bitboard(bb)
   {
     operator++();
   }
+
+  constexpr Bitboard_iterator() = default;
 
   constexpr reference operator*() const
   {
@@ -214,8 +207,8 @@ struct Bitboard_iterator
   {
     if (!m_bitboard.is_empty())
     {
-      m_val = m_update_fn(m_bitboard);
-      m_bitboard.unset_square(m_val);
+      m_val = __builtin_ffsll(m_bitboard.val) - 1;
+      m_bitboard.val &= m_bitboard.val - 1;
     }
     else
     {
@@ -245,39 +238,16 @@ struct Bitboard_iterator
 private:
   Bitboard m_bitboard{};
   int32_t m_val{-1};
-  update_fn_t m_update_fn;
 };
 
 constexpr Bitboard::Iterator Bitboard::begin() const
 {
-  return {*this, [](Bitboard& b)
-          {
-            return b.bitscan_forward();
-          }};
+  return {*this};
 }
 
 constexpr Bitboard::Iterator Bitboard::end() const
 {
-  return {Bitboard{0}, [](Bitboard& b)
-          {
-            return b.bitscan_forward();
-          }};
-}
-
-constexpr Bitboard::Iterator Bitboard::rbegin() const
-{
-  return {*this, [](Bitboard& b)
-          {
-            return b.bitscan_reverse();
-          }};
-}
-
-constexpr Bitboard::Iterator Bitboard::rend() const
-{
-  return {Bitboard{0}, [](Bitboard& b)
-          {
-            return b.bitscan_reverse();
-          }};
+  return {Bitboard{}};
 }
 
 std::ostream& operator<<(std::ostream& os, Bitboard const& self);

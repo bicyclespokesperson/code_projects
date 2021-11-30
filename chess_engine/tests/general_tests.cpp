@@ -433,9 +433,7 @@ TEST_CASE("Bitboard iterator", "[bitboard]")
   b.set_square(63);
   auto total = std::accumulate(b.begin(), b.end(), 0);
 
-  auto total_reverse = std::accumulate(b.rbegin(), b.rend(), 0);
   REQUIRE(total == 79);
-  REQUIRE(total_reverse == 79);
 }
 
 TEST_CASE("Undo move", "[board]")
