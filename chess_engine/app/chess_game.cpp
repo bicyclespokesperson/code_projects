@@ -86,7 +86,7 @@ void benchmark()
     for (size_t i{0}; i < iterations; ++i)
     {
       Bitboard b{val};
-      total += b.occupancy();
+      total = total + b.occupancy();
     }
     auto const end = std::chrono::system_clock::now();
     std::chrono::duration<double> const elapsed_time = end - start;
@@ -98,7 +98,7 @@ void benchmark()
     for (size_t i{0}; i < iterations; ++i)
     {
       Bitboard b{val};
-      total += b.occupancy();
+      total = total + b.occupancy();
     }
     auto const end = std::chrono::system_clock::now();
     std::chrono::duration<double> const elapsed_time = end - start;
@@ -115,7 +115,7 @@ void benchmark()
  */
 int main(int argc, char* argv[])
 {
-#if 0
+#if 1
   //run_chess_game(argc, argv);
 #else
   benchmark();
