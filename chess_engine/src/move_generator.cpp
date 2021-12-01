@@ -753,44 +753,40 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
 bool Move_generator::is_square_attacked(Board const& board, Color attacking_color, Bitboard attacked_square)
 {
   MY_ASSERT(attacked_square.occupancy() == 1, "Attacked square can only have one set square");
-  MY_ASSERT(board.get_piece_set(attacking_color, Piece::king).occupancy() == 1, "Board should never have two kings of the same color");
 
   auto const occupied = board.get_occupied_squares();
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::rook))
-  {
-    if (!(rook_attacks(Coordinates{piece_location}, occupied) & attacked_square).is_empty())
-    {
-      return true;
-    }
-  }
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::knight))
-  {
-    if (!(knight_attacks(Coordinates{piece_location}, occupied) & attacked_square).is_empty())
-    {
-      return true;
-    }
-  }
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::bishop))
-  {
-    if (!(bishop_attacks(Coordinates{piece_location}, occupied) & attacked_square).is_empty())
-    {
-      return true;
-    }
-  }
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::queen))
-  {
-    if (!(queen_attacks(Coordinates{piece_location}, occupied) & attacked_square).is_empty())
-    {
-      return true;
-    }
-  }
+  Coordinates attacked_location(attacked_square.bitscan_forward());
 
-  if (!(king_attacks(Coordinates{board.get_piece_set(attacking_color, Piece::king).bitscan_forward()}, occupied) & attacked_square).is_empty())
+  if (auto attacks = rook_attacks(attacked_location, occupied);
+      !(attacks &
+        (board.get_piece_set(attacking_color, Piece::rook) | board.get_piece_set(attacking_color, Piece::queen)))
+         .is_empty())
   {
     return true;
   }
 
-  return !(pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn)) & attacked_square).is_empty();
+  if (auto attacks = bishop_attacks(attacked_location, occupied);
+      !(attacks &
+        (board.get_piece_set(attacking_color, Piece::bishop) | board.get_piece_set(attacking_color, Piece::queen)))
+         .is_empty())
+  {
+    return true;
+  }
+
+  if (auto attacks = knight_attacks(attacked_location, occupied);
+      !(attacks & board.get_piece_set(attacking_color, Piece::knight)).is_empty())
+  {
+    return true;
+  }
+
+  if (auto attacks = king_attacks(attacked_location, occupied);
+      !(attacks & board.get_piece_set(attacking_color, Piece::king)).is_empty())
+  {
+    return true;
+  }
+
+  return !(pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn)) & attacked_square)
+            .is_empty();
 }
 
 // Faster than generating all moves and checking if the list is empty
