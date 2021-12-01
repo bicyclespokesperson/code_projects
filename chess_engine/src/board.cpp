@@ -801,9 +801,8 @@ bool Board::is_clear_diagonal(Coordinates from, Coordinates to) const
 
 bool Board::is_in_check(Color color) const
 {
-  Bitboard attacked_squares = Move_generator::get_all_attacked_squares(*this, opposite_color(color));
   Bitboard king_location = get_piece_set(color, Piece::king);
-  return !(king_location & attacked_squares).is_empty();
+  return Move_generator::is_square_attacked(*this, opposite_color(color), king_location);
 }
 
 Game_state Board::calc_game_state() const
