@@ -33,6 +33,9 @@ Another good look at move generation
   Contains pesudocode for bitboard -> move function
 https://www.josherv.in/2021/03/19/chess-1/
 
+Improving move generation speed:
+https://chess.stackexchange.com/questions/16890/efficient-ways-to-go-from-pseduo-legal-to-fully-legal-move-generation
+
 https://www.chessprogramming.org/Classical_Approach
 https://www.chessprogramming.org/Bitboard_Board-Definition
 https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#Bitboard_Board-Definition
