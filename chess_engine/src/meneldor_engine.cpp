@@ -141,15 +141,7 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
     ++tt_misses;
   }
 
-  auto moves = Move_generator::generate_legal_moves(board);
-  if (moves.empty())
-  {
-    if (board.is_in_check(board.get_active_color()))
-    {
-      return negative_inf + (m_depth_for_current_search - depth_remaining);
-    }
-    return 0;
-  }
+  auto moves = Move_generator::generate_pseudo_legal_moves(board);
   m_orderer.sort_moves(moves, board);
 
   //TODO: Test this
@@ -174,6 +166,7 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   }
 
   // If we don't find a move here that's better than alpha, just save alpha as the upper bound for this position
+  bool has_any_moves{false};
   auto eval_type = Transposition_table::Eval_type::alpha;
   Move best{moves.front()};
   Board tmp_board{board};
@@ -181,6 +174,12 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   {
     tmp_board = board;
     tmp_board.move_no_verify(move);
+    if (tmp_board.is_in_check(opposite_color(tmp_board.get_active_color())))
+    {
+      continue;
+    }
+    has_any_moves = true;
+
     auto const score = -negamax_(tmp_board, -beta, -alpha, depth_remaining - 1);
 
     if (score >= beta)
@@ -201,6 +200,16 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
       // If this is never hit, we know that the best alpha can be is the alpha that was passed into the function
       eval_type = Transposition_table::Eval_type::exact;
     }
+  }
+
+  // We didn't find any moves that were legal if eval_type is still alpha
+  if (!has_any_moves)
+  {
+    if (board.is_in_check(board.get_active_color()))
+    {
+      return negative_inf + (m_depth_for_current_search - depth_remaining);
+    }
+    return 0;
   }
 
   m_transpositions.insert(board.get_hash_key(), {board.get_hash_key(), depth_remaining, alpha, best, eval_type});
@@ -387,15 +396,19 @@ uint64_t Meneldor_engine::perft(const int depth)
 
 Move Meneldor_engine::search(int depth)
 {
-  auto legal_moves = Move_generator::generate_legal_moves(m_board);
+  auto pseudo_legal_moves = Move_generator::generate_pseudo_legal_moves(m_board);
   MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
-  m_orderer.sort_moves(legal_moves, m_board);
+  m_orderer.sort_moves(pseudo_legal_moves, m_board);
 
-  std::pair<Move, int> best{legal_moves.front(), negative_inf};
-  for (auto move : legal_moves)
+  std::pair<Move, int> best{pseudo_legal_moves.front(), negative_inf};
+  for (auto move : pseudo_legal_moves)
   {
     auto tmp_board = m_board;
-    tmp_board.move_no_verify(move);
+    tmp_board.move_no_verify(move); //TODO: Use skip check detection=false here?
+    if (tmp_board.is_in_check(opposite_color(tmp_board.get_active_color())))
+    {
+      continue;
+    }
 
     auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth - 1);
 
