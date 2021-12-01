@@ -427,7 +427,7 @@ bool Board::move_no_verify(Move m, bool skip_check_detection)
 
     auto capture_location = m.to;
 
-    if (m_en_passant_square.is_set(m.to))
+    if (m_en_passant_square.is_set(m.to) && m.piece == Piece::pawn)
     {
       capture_location = en_passant_capture_location(color, m.to);
     }
