@@ -116,7 +116,7 @@ void benchmark()
 int main(int argc, char* argv[])
 {
 #if 1
-  //run_chess_game(argc, argv);
+  run_chess_game(argc, argv);
 #else
   benchmark();
 #endif
