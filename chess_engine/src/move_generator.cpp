@@ -370,45 +370,45 @@ void Move_generator::Tables::initialize_king_attacks_()
   }
 }
 
-Bitboard Move_generator::rook_attacks(Coordinates square, Bitboard occupied)
+constexpr Bitboard rook_attacks(Coordinates square, Bitboard occupied)
 {
   int const index = square.square_index();
-  occupied &= m_tables.rook_possible_blockers[index];
+  occupied &= Move_generator::m_tables.rook_possible_blockers[index];
   auto key = magic_hash_fn(occupied.val, c_rook_magics[index], 12);
-  return m_tables.rook_attacks[index][key];
+  return Move_generator::m_tables.rook_attacks[index][key];
 }
 
-Bitboard Move_generator::bishop_attacks(Coordinates square, Bitboard occupied)
+constexpr Bitboard bishop_attacks(Coordinates square, Bitboard occupied)
 {
   int index = square.square_index();
-  occupied &= m_tables.bishop_possible_blockers[index];
+  occupied &= Move_generator::m_tables.bishop_possible_blockers[index];
   auto key = magic_hash_fn(occupied.val, c_bishop_magics[index], 9);
-  return m_tables.bishop_attacks[index][key];
+  return Move_generator::m_tables.bishop_attacks[index][key];
 }
 
-Bitboard Move_generator::queen_attacks(Coordinates square, Bitboard occupied)
+constexpr Bitboard queen_attacks(Coordinates square, Bitboard occupied)
 {
   return bishop_attacks(square, occupied) | rook_attacks(square, occupied);
 }
 
-Bitboard Move_generator::knight_attacks(Coordinates square, Bitboard /* occupied */)
+constexpr Bitboard knight_attacks(Coordinates square, Bitboard /* occupied */)
 {
-  return m_tables.knight_attacks[square.square_index()];
+  return Move_generator::m_tables.knight_attacks[square.square_index()];
 }
 
-Bitboard Move_generator::king_attacks(Coordinates square, Bitboard /* occupied */)
+constexpr Bitboard king_attacks(Coordinates square, Bitboard /* occupied */)
 {
-  return m_tables.king_attacks[square.square_index()];
+  return Move_generator::m_tables.king_attacks[square.square_index()];
 }
 
-Bitboard Move_generator::pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied)
+constexpr Bitboard pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
   return one_space_moves;
 }
 
-Bitboard Move_generator::pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied)
+constexpr Bitboard pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const start_rank = get_pawn_start_rank(color);
@@ -418,7 +418,7 @@ Bitboard Move_generator::pawn_long_advances(Color color, Bitboard pawns, Bitboar
   return two_space_moves;
 }
 
-Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns)
+constexpr Bitboard pawn_potential_attacks(Color color, Bitboard pawns)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const shift_distance_east = get_east_shift_distance(color);
@@ -429,7 +429,7 @@ Bitboard Move_generator::pawn_potential_attacks(Color color, Bitboard pawns)
   return west_attacks | east_attacks;
 }
 
-Bitboard Move_generator::pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies)
+constexpr Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const shift_distance = get_east_shift_distance(color);
@@ -437,7 +437,7 @@ Bitboard Move_generator::pawn_east_attacks(Color color, Bitboard pawns, Bitboard
   return east_attacks;
 }
 
-Bitboard Move_generator::pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies)
+constexpr Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies)
 {
   auto const bitshift_fn = get_pawn_shift_fn(color);
   auto const shift_distance = get_west_shift_distance(color);
@@ -445,64 +445,76 @@ Bitboard Move_generator::pawn_west_attacks(Color color, Bitboard pawns, Bitboard
   return west_attacks;
 }
 
-void Move_generator::generate_castling_moves(Board const& board, Color color, std::vector<Move>& moves)
+constexpr void generate_castling_moves(Board const& board, Color color, std::vector<Move>& moves)
 {
-  static constexpr Move short_castle_white{{4, 0}, {6, 0}, Piece::king, Piece::empty};
-  static constexpr Move long_castle_white{{4, 0}, {2, 0}, Piece::king, Piece::empty};
-  static constexpr Move short_castle_black{{4, 7}, {6, 7}, Piece::king, Piece::empty};
-  static constexpr Move long_castle_black{{4, 7}, {2, 7}, Piece::king, Piece::empty};
+  constexpr Move short_castle_white{{4, 0}, {6, 0}, Piece::king, Piece::empty};
+  constexpr Move long_castle_white{{4, 0}, {2, 0}, Piece::king, Piece::empty};
+  constexpr Move short_castle_black{{4, 7}, {6, 7}, Piece::king, Piece::empty};
+  constexpr Move long_castle_black{{4, 7}, {2, 7}, Piece::king, Piece::empty};
 
-  static constexpr Coordinates white_king_start_location{4, 0};
-  static constexpr Coordinates black_king_start_location{4, 7};
+  constexpr Coordinates white_king_start_location{4, 0};
+  constexpr Coordinates black_king_start_location{4, 7};
 
-  auto const attacks = Move_generator::get_all_attacked_squares(board, opposite_color(color));
   auto const castling_rights = board.get_castling_rights();
   auto const occupied = board.get_occupied_squares();
 
   if (color == Color::white)
   {
-    if (white_can_short_castle(castling_rights) && !attacks.is_set(white_king_start_location) &&
-        (attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() &&
+    if (white_can_short_castle(castling_rights) && 
         (occupied & Bitboard_constants::short_castling_empty_squares_white).is_empty())
     {
-      moves.emplace_back(short_castle_white);
+      auto const attacks = Move_generator::get_all_attacked_squares(board, Color::black); 
+      if ((attacks & Bitboard_constants::short_castling_empty_squares_white).is_empty() && !attacks.is_set(white_king_start_location))
+      {
+        moves.emplace_back(short_castle_white);
+      }
     }
 
-    if (white_can_long_castle(castling_rights) && !attacks.is_set(white_king_start_location) &&
-        (attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
+    if (white_can_long_castle(castling_rights) &&
         (occupied & Bitboard_constants::long_castling_empty_squares_white).is_empty() &&
         !occupied.is_set(Coordinates{1, 0}))
     {
-      moves.emplace_back(long_castle_white);
+       auto const attacks = Move_generator::get_all_attacked_squares(board, opposite_color(color)); 
+       if ((attacks & Bitboard_constants::long_castling_empty_squares_white).is_empty() && !attacks.is_set(white_king_start_location))
+       {
+          moves.emplace_back(long_castle_white);
+       }
     }
   }
   else
   {
-    if (black_can_short_castle(castling_rights) && !attacks.is_set(black_king_start_location) &&
-        (attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() &&
+    if (black_can_short_castle(castling_rights) && 
         (occupied & Bitboard_constants::short_castling_empty_squares_black).is_empty())
     {
-      moves.emplace_back(short_castle_black);
+      auto const attacks = Move_generator::get_all_attacked_squares(board, Color::black); 
+      if ((attacks & Bitboard_constants::short_castling_empty_squares_black).is_empty() && !attacks.is_set(black_king_start_location))
+      {
+        moves.emplace_back(short_castle_black);
+      }
     }
 
-    if (black_can_long_castle(castling_rights) && !attacks.is_set(black_king_start_location) &&
-        (attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
+    if (black_can_long_castle(castling_rights) &&
         (occupied & Bitboard_constants::long_castling_empty_squares_black).is_empty() &&
-        !occupied.is_set(Coordinates{1, 7}))
+        !occupied.is_set(Coordinates{1, 0}))
     {
-      moves.emplace_back(long_castle_black);
+       auto const attacks = Move_generator::get_all_attacked_squares(board, opposite_color(color)); 
+       if ((attacks & Bitboard_constants::long_castling_empty_squares_black).is_empty() && !attacks.is_set(black_king_start_location))
+       {
+          moves.emplace_back(long_castle_black);
+       }
     }
   }
 }
 
+
 //TODO: Refactor this to be more like get_all_attacked_squares
-void Move_generator::generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves)
+constexpr void generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
-  constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
-  constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
-                                                   &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
-                                                   &Move_generator::king_attacks};
+  constexpr std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
+  constexpr std::array piece_move_functions{&rook_attacks, &knight_attacks,
+                                                   &bishop_attacks, &queen_attacks,
+                                                   &king_attacks};
 
   auto const friends = ~board.get_all(color);
   auto const enemies = board.get_all(opposite_color(color));
@@ -528,14 +540,13 @@ void Move_generator::generate_piece_moves(Board const& board, Color color, std::
   }
 }
 
-void Move_generator::generate_piece_attacks(Board const& board, Color color, std::vector<Move>& moves)
+constexpr void generate_piece_attacks(Board const& board, Color color, std::vector<Move>& moves)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
-  constexpr static std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
-  constexpr static std::array piece_move_functions{&Move_generator::rook_attacks, &Move_generator::knight_attacks,
-                                                   &Move_generator::bishop_attacks, &Move_generator::queen_attacks,
-                                                   &Move_generator::king_attacks};
-
+  constexpr std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
+  constexpr std::array piece_move_functions{&rook_attacks, &knight_attacks,
+                                                   &bishop_attacks, &queen_attacks,
+                                                   &king_attacks};
   auto const friends = ~board.get_all(color);
   auto const enemies = board.get_all(opposite_color(color));
   auto const occupied = board.get_occupied_squares();
@@ -555,7 +566,7 @@ void Move_generator::generate_piece_attacks(Board const& board, Color color, std
   }
 }
 
-void Move_generator::generate_pawn_attacks(Board const& board, Color color, std::vector<Move>& moves)
+constexpr void generate_pawn_attacks(Board const& board, Color color, std::vector<Move>& moves)
 {
   // Handle east captures
   auto const east_offset = get_east_capture_offset(color);
@@ -600,7 +611,7 @@ void Move_generator::generate_pawn_attacks(Board const& board, Color color, std:
   }
 }
 
-void Move_generator::generate_pawn_moves(Board const& board, Color color, std::vector<Move>& moves)
+constexpr void generate_pawn_moves(Board const& board, Color color, std::vector<Move>& moves)
 {
   // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
   auto offset_from_end_square = get_start_square_offset(color);
@@ -674,6 +685,8 @@ std::vector<Move> Move_generator::generate_legal_moves(Board const& board)
   std::vector<Move> legal_moves;
   legal_moves.reserve(pseudo_legal_moves.size());
   Board tmp_board(board);
+
+  //TODO: Erase/remove to skip second call to new?
   std::copy_if(pseudo_legal_moves.cbegin(), pseudo_legal_moves.cend(), std::back_inserter(legal_moves),
                [&](auto m)
                {
@@ -693,6 +706,7 @@ std::vector<Move> Move_generator::generate_legal_attack_moves(Board const& board
   generate_piece_attacks(board, color, pseudo_legal_attacks);
   generate_pawn_attacks(board, color, pseudo_legal_attacks);
 
+  //TODO: Erase/remove to skip second call to new?
   std::vector<Move> legal_attacks;
   legal_attacks.reserve(64);
   Board tmp_board(board);
@@ -740,9 +754,9 @@ bool Move_generator::has_any_legal_moves(Board const& board)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
   constexpr static std::array piece_types{Piece::king, Piece::queen, Piece::knight, Piece::bishop, Piece::rook};
-  constexpr static std::array piece_move_functions{&Move_generator::king_attacks, &Move_generator::queen_attacks,
-                                                   &Move_generator::knight_attacks, &Move_generator::bishop_attacks,
-                                                   &Move_generator::rook_attacks};
+  constexpr static std::array piece_move_functions{&king_attacks, &queen_attacks,
+                                                   &knight_attacks, &bishop_attacks,
+                                                   &rook_attacks};
 
   Board tmp_board{board};
   auto const color = board.get_active_color();

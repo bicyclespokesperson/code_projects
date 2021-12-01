@@ -17,29 +17,9 @@ public:
   static std::vector<Move> generate_legal_attack_moves(Board const& board);
   static std::vector<Move> generate_pseudo_legal_moves(Board const& board);
   static bool has_any_legal_moves(Board const& board);
-
-  static void generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves);
-  static void generate_piece_attacks(Board const& board, Color color, std::vector<Move>& moves);
-  static void generate_pawn_moves(Board const& board, Color color, std::vector<Move>& moves);
-  static void generate_pawn_attacks(Board const& board, Color color, std::vector<Move>& moves);
-  static void generate_castling_moves(Board const& board, Color color, std::vector<Move>& moves);
   static Bitboard get_all_attacked_squares(Board const& board, Color attacking_color);
 
-  static Bitboard rook_attacks(Coordinates square, Bitboard occupied);
-  static Bitboard bishop_attacks(Coordinates square, Bitboard occupied);
-
-  static Bitboard queen_attacks(Coordinates square, Bitboard occupied);
-  static Bitboard knight_attacks(Coordinates square, Bitboard occupied);
-  static Bitboard king_attacks(Coordinates square, Bitboard occupied);
-
-  static Bitboard pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied);
-  static Bitboard pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied);
-  static Bitboard pawn_potential_attacks(Color color, Bitboard pawns);
-
-  static Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies);
-  static Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies);
-
-private:
+public:
   class Tables
   {
   public:
