@@ -21,6 +21,8 @@ public:
   Game& operator=(Game const&) = delete;
   Game& operator=(Game&&) = delete;
 
+  bool set_starting_position(std::string fen);
+
   void player_vs_player();
 
   void player_vs_computer(Color player_color);
@@ -33,5 +35,7 @@ public:
 
 private:
   void init_handler_();
+
+  std::string m_starting_position_fen{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"};
 };
 #endif

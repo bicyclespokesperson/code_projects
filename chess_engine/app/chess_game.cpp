@@ -37,16 +37,22 @@ void print_bitboard_with_squares(std::vector<std::string> const& squares)
 //NOLINTNEXTLINE // Match signature of main function
 void run_chess_game(int argc, char* argv[])
 {
-  if (argc > 2)
+  if (argc > 3)
   {
     // h -> human, c -> computer
-    std::cerr << "Usage: chess_game [hh/hc/ch/cc]\n";
+    std::cerr << "Usage: chess_game [hh/hc/ch/cc] [optional: fen]\n";
     exit(-1);
   }
 
   Game game;
+  if (argc == 3)
+  {
+    game.set_starting_position(argv[2]);
+  }
+
+  // First player is white, second is black
   std::string param{"hc"};
-  if (argc == 2)
+  if (argc >= 2)
   {
     param = argv[1];
   }

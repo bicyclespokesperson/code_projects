@@ -35,6 +35,17 @@ void Game::init_handler_()
   sigaction(SIGINT, &sigIntHandler, nullptr);
 }
 
+bool Game::set_starting_position(std::string fen)
+{
+  if (!Board::from_fen(fen))
+  {
+    return false;
+  }
+
+  m_starting_position_fen = std::move(fen);
+  return true;
+}
+
 void Game::player_vs_player()
 {
   User_player white_player("White player");
@@ -86,8 +97,12 @@ void Game::play_game(Player& white_player, Player& black_player)
 {
   auto const start_time = std::chrono::system_clock::now();
 
-  Board board;
+  auto board = *Board::from_fen(m_starting_position_fen);
   Board::set_use_unicode_output(true);
+
+  white_player.set_position(m_starting_position_fen);
+  black_player.set_position(m_starting_position_fen);
+
   Threefold_repetition_detector detector;
   std::vector<std::string> move_list;
   bool white_to_move{true};
@@ -156,6 +171,7 @@ void Game::play_game(Player& white_player, Player& black_player)
 
   std::cout << "Game took " << elapsed.count() << " seconds\n";
 
+  std::cout << "Starting position: " << m_starting_position_fen << "\n";
   std::cout << "Moves: ";
   for (auto const& move : move_list)
   {
