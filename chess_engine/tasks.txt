@@ -35,6 +35,7 @@ https://www.josherv.in/2021/03/19/chess-1/
 
 Improving move generation speed:
 https://chess.stackexchange.com/questions/16890/efficient-ways-to-go-from-pseduo-legal-to-fully-legal-move-generation
+https://chess.stackexchange.com/questions/25137/chess-engine-generate-a-bitboard-of-pinned-pieces?rq=1
 
 https://www.chessprogramming.org/Classical_Approach
 https://www.chessprogramming.org/Bitboard_Board-Definition
