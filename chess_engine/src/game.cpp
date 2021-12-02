@@ -89,9 +89,9 @@ void Game::computer_vs_computer()
   auto white_player = create_engine_player("Defenchess");
   //auto white_player = create_engine_player("stockfish");
   //auto white_player = create_engine_player("shallowblue");
-  
+
   auto black_player = create_engine_player("stockfish");
-  
+
   play_game(*white_player, *black_player);
 }
 
@@ -184,7 +184,8 @@ void Game::play_game(Player& white_player, Player& black_player)
   }
   else
   {
-    std::string winning_player = ((state == Game_state::black_victory) ? (black_player.get_name() + " (as black)") : (white_player.get_name() + " (as white)"));
+    std::string winning_player = ((state == Game_state::black_victory) ? (black_player.get_name() + " (as black)") :
+                                                                         (white_player.get_name() + " (as white)"));
     std::cout << winning_player << " is victorious!\n";
   }
 
