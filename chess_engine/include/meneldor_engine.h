@@ -99,7 +99,7 @@ private:
   constexpr static int c_default_depth{6};
   int m_depth_for_current_search{c_default_depth};
 
-  constexpr static size_t c_transposition_table_size_bytes{1024UL * 1024UL * 1024UL}; // TODO: Greatly increase
+  constexpr static size_t c_transposition_table_size_bytes{128UL * 1024UL * 1024UL};
   Transposition_table m_transpositions{c_transposition_table_size_bytes};
 
   mutable uint32_t m_visited_nodes{0};

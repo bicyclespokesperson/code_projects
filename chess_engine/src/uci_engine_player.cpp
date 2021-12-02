@@ -75,7 +75,7 @@ bool Uci_engine_player::init_engine_()
 
   // Options could be read and/or set here
 
-  int tries{2};
+  int tries{3};
   send_message_("isready");
   auto msg = receive_message_();
   while (msg.find("readyok") == std::string::npos && tries > 0)

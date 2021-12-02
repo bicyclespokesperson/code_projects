@@ -59,9 +59,7 @@ void Game::player_vs_computer(Color player_color)
   if (player_color == Color::white)
   {
     User_player white_player("White player");
-    //Engine_player black_player("Black engine");
-    //Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
-    Uci_engine_player black_player("Stockfish", "/Users/jeremysigrist/Desktop/Stockfish/src/stockfish");
+    Engine_player black_player("Black engine");
     play_game(white_player, black_player);
   }
   else
@@ -74,10 +72,11 @@ void Game::player_vs_computer(Color player_color)
 
 void Game::computer_vs_computer()
 {
-  Engine_player white_player("White engine");
-  //Engine_player black_player("Black engine");
-  //Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
+  //Engine_player white_player("White engine");
+  Uci_engine_player white_player("Laser", "/Users/jeremysigrist/Desktop/laser-chess-engine/src/laser");
   Uci_engine_player black_player("Stockfish", "/Users/jeremysigrist/Desktop/Stockfish/src/stockfish");
+  //Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
+  //Engine_player black_player("Black engine");
   play_game(white_player, black_player);
 }
 
