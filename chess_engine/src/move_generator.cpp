@@ -401,51 +401,57 @@ constexpr Bitboard king_attacks(Coordinates square, Bitboard /* occupied */)
   return Move_generator::m_tables.king_attacks[square.square_index()];
 }
 
-constexpr Bitboard pawn_short_advances(Color color, Bitboard pawns, Bitboard occupied)
+template <Color color>
+constexpr Bitboard pawn_short_advances(Bitboard pawns, Bitboard occupied)
 {
-  auto const bitshift_fn = get_pawn_shift_fn(color);
+  constexpr auto bitshift_fn = get_pawn_shift_fn(color);
   auto const one_space_moves = (pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
   return one_space_moves;
 }
 
-constexpr Bitboard pawn_long_advances(Color color, Bitboard pawns, Bitboard occupied)
+template <Color color>
+constexpr Bitboard pawn_long_advances(Bitboard pawns, Bitboard occupied)
 {
-  auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const start_rank = get_pawn_start_rank(color);
+  constexpr auto bitshift_fn = get_pawn_shift_fn(color);
+  constexpr auto start_rank = get_pawn_start_rank(color);
   auto const eligible_pawns = pawns & start_rank;
   auto const one_space_moves = (eligible_pawns.*bitshift_fn)(c_board_dimension) & ~occupied;
   auto const two_space_moves = (one_space_moves.*bitshift_fn)(c_board_dimension) & ~occupied;
   return two_space_moves;
 }
 
-constexpr Bitboard pawn_potential_attacks(Color color, Bitboard pawns)
+template <Color color>
+constexpr Bitboard pawn_potential_attacks(Bitboard pawns)
 {
-  auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance_east = get_east_shift_distance(color);
-  auto const shift_distance_west = get_west_shift_distance(color);
+  constexpr auto bitshift_fn = get_pawn_shift_fn(color);
+  constexpr auto shift_distance_east = get_east_shift_distance(color);
+  constexpr auto shift_distance_west = get_west_shift_distance(color);
   auto const west_attacks = (pawns.*bitshift_fn)(shift_distance_west) & ~Bitboard_constants::h_file;
 
   auto const east_attacks = (pawns.*bitshift_fn)(shift_distance_east) & ~Bitboard_constants::a_file;
   return west_attacks | east_attacks;
 }
 
-constexpr Bitboard pawn_east_attacks(Color color, Bitboard pawns, Bitboard enemies)
+template <Color color>
+constexpr Bitboard pawn_east_attacks(Bitboard pawns, Bitboard enemies)
 {
-  auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance = get_east_shift_distance(color);
+  constexpr auto bitshift_fn = get_pawn_shift_fn(color);
+  constexpr auto shift_distance = get_east_shift_distance(color);
   auto const east_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::a_file & enemies;
   return east_attacks;
 }
 
-constexpr Bitboard pawn_west_attacks(Color color, Bitboard pawns, Bitboard enemies)
+template <Color color>
+constexpr Bitboard pawn_west_attacks(Bitboard pawns, Bitboard enemies)
 {
-  auto const bitshift_fn = get_pawn_shift_fn(color);
-  auto const shift_distance = get_west_shift_distance(color);
+  constexpr auto bitshift_fn = get_pawn_shift_fn(color);
+  constexpr auto shift_distance = get_west_shift_distance(color);
   auto const west_attacks = (pawns.*bitshift_fn)(shift_distance) & ~Bitboard_constants::h_file & enemies;
   return west_attacks;
 }
 
-constexpr void generate_castling_moves(Board const& board, Color color, std::vector<Move>& moves)
+template <Color color>
+constexpr void generate_castling_moves(Board const& board, std::vector<Move>& moves)
 {
   constexpr Move short_castle_white{{4, 0}, {6, 0}, Piece::king, Piece::empty};
   constexpr Move long_castle_white{{4, 0}, {2, 0}, Piece::king, Piece::empty};
@@ -511,7 +517,8 @@ constexpr void generate_castling_moves(Board const& board, Color color, std::vec
 }
 
 //TODO: Refactor this to be more like get_all_attacked_squares
-constexpr void generate_piece_moves(Board const& board, Color color, std::vector<Move>& moves)
+template<Color color>
+constexpr void generate_piece_moves(Board const& board, std::vector<Move>& moves)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
   constexpr std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
@@ -542,7 +549,8 @@ constexpr void generate_piece_moves(Board const& board, Color color, std::vector
   }
 }
 
-constexpr void generate_piece_attacks(Board const& board, Color color, std::vector<Move>& moves)
+template<Color color>
+constexpr void generate_piece_attacks(Board const& board, std::vector<Move>& moves)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
   constexpr std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
@@ -567,12 +575,13 @@ constexpr void generate_piece_attacks(Board const& board, Color color, std::vect
   }
 }
 
-constexpr void generate_pawn_attacks(Board const& board, Color color, std::vector<Move>& moves)
+template <Color color>
+constexpr void generate_pawn_attacks(Board const& board, std::vector<Move>& moves)
 {
   // Handle east captures
   auto const east_offset = get_east_capture_offset(color);
   for (auto location :
-       pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+       pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
   {
     Coordinates from{location + east_offset};
     Coordinates to{location};
@@ -593,7 +602,7 @@ constexpr void generate_pawn_attacks(Board const& board, Color color, std::vecto
   // Handle west captures
   auto const west_offset = get_west_capture_offset(color);
   for (auto location :
-       pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+       pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
   {
     Coordinates from{location + west_offset};
     Coordinates to{location};
@@ -612,13 +621,14 @@ constexpr void generate_pawn_attacks(Board const& board, Color color, std::vecto
   }
 }
 
-constexpr void generate_pawn_moves(Board const& board, Color color, std::vector<Move>& moves)
+template<Color color>
+constexpr void generate_pawn_moves(Board const& board, std::vector<Move>& moves)
 {
   // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
   auto offset_from_end_square = get_start_square_offset(color);
 
   for (auto location :
-       pawn_short_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
+       pawn_short_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
     Coordinates from{location + offset_from_end_square};
     Coordinates to{location};
@@ -636,7 +646,7 @@ constexpr void generate_pawn_moves(Board const& board, Color color, std::vector<
   }
 
   // Handle long advances
-  for (auto location : pawn_long_advances(color, board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
+  for (auto location : pawn_long_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
   {
     moves.emplace_back(Coordinates{location + 2 * offset_from_end_square}, Coordinates{location}, Piece::pawn,
                        Piece::empty);
@@ -644,20 +654,20 @@ constexpr void generate_pawn_moves(Board const& board, Color color, std::vector<
 
   auto const east_offset = get_east_capture_offset(color);
   // Handle en passant
-  for (auto location : pawn_east_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location : pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     moves.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
                        Piece::empty, Move_type::en_passant);
   }
 
   auto const west_offset = get_west_capture_offset(color);
-  for (auto location : pawn_west_attacks(color, board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  for (auto location : pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
   {
     moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
                        Piece::empty, Move_type::en_passant);
   }
 
-  generate_pawn_attacks(board, color, moves);
+  generate_pawn_attacks<color>(board, moves);
 }
 
 std::vector<Move> Move_generator::generate_pseudo_legal_moves(Board const& board)
@@ -666,9 +676,18 @@ std::vector<Move> Move_generator::generate_pseudo_legal_moves(Board const& board
   std::vector<Move> pseudo_legal_moves;
   pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
 
-  generate_pawn_moves(board, color, pseudo_legal_moves);
-  generate_piece_moves(board, color, pseudo_legal_moves);
-  generate_castling_moves(board, color, pseudo_legal_moves);
+  if (color == Color::black)
+  {
+    generate_pawn_moves<Color::black>(board, pseudo_legal_moves);
+    generate_castling_moves<Color::black>(board, pseudo_legal_moves);
+    generate_piece_moves<Color::black>(board, pseudo_legal_moves);
+  }
+  else
+  {
+    generate_pawn_moves<Color::white>(board, pseudo_legal_moves);
+    generate_castling_moves<Color::white>(board, pseudo_legal_moves);
+    generate_piece_moves<Color::white>(board, pseudo_legal_moves);
+  }
 
   return pseudo_legal_moves;
 }
@@ -679,9 +698,19 @@ std::vector<Move> Move_generator::generate_legal_moves(Board const& board)
   std::vector<Move> pseudo_legal_moves;
   pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
 
-  generate_pawn_moves(board, color, pseudo_legal_moves);
-  generate_piece_moves(board, color, pseudo_legal_moves);
-  generate_castling_moves(board, color, pseudo_legal_moves);
+
+  if (color == Color::black)
+  {
+    generate_pawn_moves<Color::black>(board, pseudo_legal_moves);
+    generate_castling_moves<Color::black>(board, pseudo_legal_moves);
+    generate_piece_moves<Color::black>(board, pseudo_legal_moves);
+  }
+  else
+  {
+    generate_pawn_moves<Color::white>(board, pseudo_legal_moves);
+    generate_castling_moves<Color::white>(board, pseudo_legal_moves);
+    generate_piece_moves<Color::white>(board, pseudo_legal_moves);
+  }
 
   std::vector<Move> legal_moves;
   legal_moves.reserve(pseudo_legal_moves.size());
@@ -704,8 +733,17 @@ std::vector<Move> Move_generator::generate_pseudo_legal_attack_moves(Board const
   std::vector<Move> pseudo_legal_attacks;
   pseudo_legal_attacks.reserve(64);
 
-  generate_piece_attacks(board, color, pseudo_legal_attacks);
-  generate_pawn_attacks(board, color, pseudo_legal_attacks);
+
+  if (color == Color::black)
+  {
+    generate_piece_attacks<Color::black>(board, pseudo_legal_attacks);
+    generate_pawn_attacks<Color::black>(board, pseudo_legal_attacks);
+  }
+  else
+  {
+    generate_piece_attacks<Color::white>(board, pseudo_legal_attacks);
+    generate_pawn_attacks<Color::white>(board, pseudo_legal_attacks);
+  }
 
   return pseudo_legal_attacks;
 }
@@ -716,10 +754,17 @@ std::vector<Move> Move_generator::generate_legal_attack_moves(Board const& board
   std::vector<Move> pseudo_legal_attacks;
   pseudo_legal_attacks.reserve(64);
 
-  generate_piece_attacks(board, color, pseudo_legal_attacks);
-  generate_pawn_attacks(board, color, pseudo_legal_attacks);
+  if (color == Color::black)
+  {
+    generate_piece_attacks<Color::black>(board, pseudo_legal_attacks);
+    generate_pawn_attacks<Color::black>(board, pseudo_legal_attacks);
+  }
+  else
+  {
+    generate_piece_attacks<Color::white>(board, pseudo_legal_attacks);
+    generate_pawn_attacks<Color::white>(board, pseudo_legal_attacks);
+  }
 
-  //TODO: Erase/remove to skip second call to new?
   std::vector<Move> legal_attacks;
   legal_attacks.reserve(64);
   Board tmp_board(board);
@@ -759,7 +804,9 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
   attacked_squares |=
     king_attacks(Coordinates{board.get_piece_set(attacking_color, Piece::king).bitscan_forward()}, occupied);
 
-  return attacked_squares | pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn));
+  auto const pawn_attacks = (attacking_color == Color::black) ? pawn_potential_attacks<Color::black>(board.get_piece_set(attacking_color, Piece::pawn)) : pawn_potential_attacks<Color::white>(board.get_piece_set(attacking_color, Piece::pawn));
+
+  return attacked_squares | pawn_attacks;
 }
 
 bool Move_generator::is_square_attacked(Board const& board, Color attacking_color, Bitboard attacked_square)
@@ -797,7 +844,12 @@ bool Move_generator::is_square_attacked(Board const& board, Color attacking_colo
     return true;
   }
 
-  return !(pawn_potential_attacks(attacking_color, board.get_piece_set(attacking_color, Piece::pawn)) & attacked_square)
+  if (attacking_color == Color::black)
+  {
+    return !(pawn_potential_attacks<Color::black>(board.get_piece_set(attacking_color, Piece::pawn)) & attacked_square)
+              .is_empty();
+  }
+  return !(pawn_potential_attacks<Color::white>(board.get_piece_set(attacking_color, Piece::pawn)) & attacked_square)
             .is_empty();
 }
 
@@ -843,9 +895,16 @@ bool Move_generator::has_any_legal_moves(Board const& board)
   }
 
   std::vector<Move> pseudo_legal_moves;
-  pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
+  pseudo_legal_moves.reserve(32);
 
-  generate_pawn_moves(board, color, pseudo_legal_moves);
+  if (color == Color::black)
+  {
+    generate_pawn_moves<Color::black>(board, pseudo_legal_moves);
+  }
+  else
+  {
+    generate_pawn_moves<Color::white>(board, pseudo_legal_moves);
+  }
   return std::any_of(pseudo_legal_moves.cbegin(), pseudo_legal_moves.cend(),
                      [&](auto m)
                      {
