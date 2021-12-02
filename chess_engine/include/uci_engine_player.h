@@ -25,7 +25,7 @@ private:
   bool init_engine_();
 
   std::string m_engine_path{};
-  std::string m_starting_position_fen{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"};
+  Board m_board;
 
   std::array<int, 2> m_to_child{};
   std::array<int, 2> m_from_child{};
