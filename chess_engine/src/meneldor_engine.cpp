@@ -65,7 +65,7 @@ int Meneldor_engine::quiesce_(Board const& board, int alpha, int beta) const
   }
   alpha = std::max(alpha, score);
 
-  auto moves = Move_generator::generate_legal_attack_moves(board);
+  auto moves = Move_generator::generate_pseudo_legal_attack_moves(board);
   m_orderer.sort_moves(moves, board);
 
   Board tmp_board{board};
@@ -73,6 +73,10 @@ int Meneldor_engine::quiesce_(Board const& board, int alpha, int beta) const
   {
     tmp_board = board;
     tmp_board.move_no_verify(move);
+    if (tmp_board.is_in_check(opposite_color(tmp_board.get_active_color())))
+    {
+      continue;
+    }
     auto const score = -quiesce_(tmp_board, -beta, -alpha);
 
     if (score >= beta)

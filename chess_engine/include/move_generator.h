@@ -15,6 +15,7 @@ public:
 
   static std::vector<Move> generate_legal_moves(Board const& board);
   static std::vector<Move> generate_legal_attack_moves(Board const& board);
+  static std::vector<Move> generate_pseudo_legal_attack_moves(Board const& board);
   static std::vector<Move> generate_pseudo_legal_moves(Board const& board);
   static bool has_any_legal_moves(Board const& board);
   static Bitboard get_all_attacked_squares(Board const& board, Color attacking_color);

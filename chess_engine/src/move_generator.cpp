@@ -698,6 +698,18 @@ std::vector<Move> Move_generator::generate_legal_moves(Board const& board)
   return legal_moves;
 }
 
+std::vector<Move> Move_generator::generate_pseudo_legal_attack_moves(Board const& board)
+{
+  auto const color = board.get_active_color();
+  std::vector<Move> pseudo_legal_attacks;
+  pseudo_legal_attacks.reserve(64);
+
+  generate_piece_attacks(board, color, pseudo_legal_attacks);
+  generate_pawn_attacks(board, color, pseudo_legal_attacks);
+
+  return pseudo_legal_attacks;
+}
+
 std::vector<Move> Move_generator::generate_legal_attack_moves(Board const& board)
 {
   auto const color = board.get_active_color();
