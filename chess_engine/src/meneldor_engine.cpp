@@ -397,7 +397,7 @@ uint64_t Meneldor_engine::perft(const int depth)
 Move Meneldor_engine::search(int depth)
 {
   auto pseudo_legal_moves = Move_generator::generate_pseudo_legal_moves(m_board);
-  MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
+  MY_ASSERT(!pseudo_legal_moves.empty(), "Already in checkmate or stalemate");
   m_orderer.sort_moves(pseudo_legal_moves, m_board);
 
   std::pair<Move, int> best{pseudo_legal_moves.front(), negative_inf};

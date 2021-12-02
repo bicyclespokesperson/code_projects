@@ -2,6 +2,7 @@
 #include "board.h"
 #include "engine_player.h"
 #include "meneldor_engine.h"
+#include "uci_engine_player.h"
 #include "user_player.h"
 
 namespace
@@ -58,7 +59,8 @@ void Game::player_vs_computer(Color player_color)
   if (player_color == Color::white)
   {
     User_player white_player("White player");
-    Engine_player black_player("Black engine");
+    //Engine_player black_player("Black engine");
+    Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
     play_game(white_player, black_player);
   }
   else

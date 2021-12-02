@@ -1072,7 +1072,7 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
     if (candidates.size() == 1)
     {
       // Exactly one piece can move to the target square
-      
+
       auto const is_ep = is_en_passant(piece, candidates.front(), *target_square, *this);
       auto const victim = is_ep ? Piece::pawn : get_piece(*target_square);
       auto const move_type = is_ep ? Move_type::en_passant : Move_type::normal;

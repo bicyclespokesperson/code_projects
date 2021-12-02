@@ -1,6 +1,7 @@
 #ifndef MY_ASSERT_H_2323
 #define MY_ASSERT_H_2323
 
+//NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ASSERT_IN_RELEASE 0
 
 #if defined(NDEBUG) && ASSERT_IN_RELEASE
