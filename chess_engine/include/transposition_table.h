@@ -15,24 +15,13 @@ public:
 
   struct Entry
   {
-    Entry() = default;
-
-    Entry(zhash_t key_, int depth_, int evaluation_, Move best_move_, Eval_type type_)
-    : key(key_),
-      depth(depth_),
-      evaluation(evaluation_),
-      best_move(best_move_),
-      type(type_)
-    {
-    }
-
     zhash_t key{0};
     int depth{0};
     int evaluation{0};
     Move best_move{};
     Eval_type type{Eval_type::alpha};
-    //bool recently_used{false};
   };
+
   static_assert(sizeof(Entry) == 24);
 
   Transposition_table(size_t table_size_bytes);
