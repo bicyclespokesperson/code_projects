@@ -1,15 +1,5 @@
 #include "uci_engine_player.h"
 
-#include <cassert>
-#include <cerrno>
-#include <cstdarg>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <sys/wait.h>
-#include <unistd.h>
-
 Uci_engine_player::Uci_engine_player(std::string name, std::string engine_path)
 : Player(std::move(name)),
   m_engine_path(std::move(engine_path)),
@@ -19,8 +9,7 @@ Uci_engine_player::Uci_engine_player(std::string name, std::string engine_path)
 
   if (pipe(m_to_child.data()) != 0 || pipe(m_from_child.data()) != 0)
   {
-    // Pipe failed to open
-    //TODO: Handle error
+    MY_ASSERT(false, "Failed to open pipe");
   }
 
   MY_ASSERT(m_to_child[0] > STDERR_FILENO && m_to_child[1] > STDERR_FILENO && m_from_child[0] > STDERR_FILENO &&
@@ -31,7 +20,7 @@ Uci_engine_player::Uci_engine_player(std::string name, std::string engine_path)
   if ((pid = fork()) < 0)
   {
     // Failed to fork
-    // TODO: Handle error
+    MY_ASSERT(false, "Failed to fork process");
   }
 
   if (pid == 0)
@@ -84,7 +73,7 @@ bool Uci_engine_player::init_engine_()
   auto engine_uci_info = receive_message_();
   std::cout << "Engine: " << engine_uci_info << "\n";
 
-  // Options can be read and/or set here
+  // Options could be read and/or set here
 
   int tries{2};
   send_message_("isready");
