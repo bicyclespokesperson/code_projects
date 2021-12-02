@@ -1,6 +1,6 @@
 #include "uci_engine_player.h"
 
-Uci_engine_player::Uci_engine_player(std::string name, std::string engine_path)
+Uci_engine_player::Uci_engine_player(std::string name, std::filesystem::path engine_path)
 : Player(std::move(name)),
   m_engine_path(std::move(engine_path)),
   m_board{}
@@ -203,6 +203,6 @@ void Uci_engine_player::terminate_engine_process_()
   }
   else
   {
-    std::cout << "Engine exited successfully\n";
+    std::cout << get_name() << " exited successfully\n";
   }
 }

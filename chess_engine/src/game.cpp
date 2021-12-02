@@ -9,6 +9,18 @@ namespace
 {
 //NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables) Can't be a member variable because we want to use it in a handler
 std::atomic_flag is_cancelled;
+
+const std::filesystem::path c_engine_binary_dir{"/Users/jeremysigrist/Desktop/chess_engine_binaries"};
+
+std::unique_ptr<Uci_engine_player> create_engine_player(std::filesystem::path const& name)
+{
+  auto engine_path = c_engine_binary_dir / name;
+  if (!std::filesystem::exists(engine_path))
+  {
+    return nullptr;
+  }
+  return std::make_unique<Uci_engine_player>(name, engine_path);
+}
 } // namespace
 
 void my_handler(int /* s */)
@@ -72,17 +84,20 @@ void Game::player_vs_computer(Color player_color)
 
 void Game::computer_vs_computer()
 {
-  //Engine_player white_player("White engine");
-  Uci_engine_player white_player("Laser", "/Users/jeremysigrist/Desktop/laser-chess-engine/src/laser");
-  Uci_engine_player black_player("Stockfish", "/Users/jeremysigrist/Desktop/Stockfish/src/stockfish");
-  //Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
-  //Engine_player black_player("Black engine");
-  play_game(white_player, black_player);
+  //Engine_player white_player("Meneldor");
+  //auto white_player = create_engine_player("laser");
+  auto white_player = create_engine_player("Defenchess");
+  //auto white_player = create_engine_player("stockfish");
+  //auto white_player = create_engine_player("shallowblue");
+  
+  auto black_player = create_engine_player("stockfish");
+  
+  play_game(*white_player, *black_player);
 }
 
 bool is_drawn(Board const& board, Threefold_repetition_detector const& detector)
 {
-  auto color = board.get_active_color();
+  auto const color = board.get_active_color();
 
   if (!(board.has_sufficient_material(color) || board.has_sufficient_material(opposite_color(color))))
   {
@@ -169,7 +184,7 @@ void Game::play_game(Player& white_player, Player& black_player)
   }
   else
   {
-    std::string winning_player = ((state == Game_state::black_victory) ? std::string{"Black"} : std::string{"White"});
+    std::string winning_player = ((state == Game_state::black_victory) ? (black_player.get_name() + " (as black)") : (white_player.get_name() + " (as white)"));
     std::cout << winning_player << " is victorious!\n";
   }
 
