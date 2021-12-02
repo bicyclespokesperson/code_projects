@@ -528,20 +528,27 @@ constexpr void generate_piece_moves(Board const& board, std::vector<Move>& moves
   auto const friends = ~board.get_all(color);
   auto const enemies = board.get_all(opposite_color(color));
   auto const occupied = board.get_occupied_squares();
+
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
-    for (auto piece_location : board.get_piece_set(color, piece_types[i]))
+    auto pieces = board.get_piece_set(color, piece_types[i]);
+    while (!pieces.is_empty())
     {
+      auto const piece_location = pieces.pop_first_bit();
       auto possible_moves = piece_move_functions[i](Coordinates{piece_location}, occupied);
       possible_moves &= friends; // Throw out any moves to a square that is already occupied by our color
-      auto const possible_attacks = possible_moves & enemies;
+      auto possible_attacks = possible_moves & enemies;
       possible_moves &= ~possible_attacks; // Handle attacks separately
-      for (auto end_location : possible_moves)
+
+      while (!possible_moves.is_empty())
       {
+        auto const end_location = possible_moves.pop_first_bit();
         moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], Piece::empty);
       }
-      for (auto end_location : possible_attacks)
+
+      while (!possible_attacks.is_empty())
       {
+        auto const end_location = possible_attacks.pop_first_bit();
         moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i],
                            board.get_piece(Coordinates{end_location}));
       }
@@ -556,18 +563,22 @@ constexpr void generate_piece_attacks(Board const& board, std::vector<Move>& mov
   constexpr std::array piece_types{Piece::rook, Piece::knight, Piece::bishop, Piece::queen, Piece::king};
   constexpr std::array piece_move_functions{&rook_attacks, &knight_attacks, &bishop_attacks, &queen_attacks,
                                             &king_attacks};
-  auto const friends = ~board.get_all(color);
+
+  auto const not_friends = ~board.get_all(color);
   auto const enemies = board.get_all(opposite_color(color));
   auto const occupied = board.get_occupied_squares();
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
-    for (auto piece_location : board.get_piece_set(color, piece_types[i]))
+    auto pieces = board.get_piece_set(color, piece_types[i]);
+    while (!pieces.is_empty())
     {
+      auto const piece_location = pieces.pop_first_bit();
       auto attacks = piece_move_functions[i](Coordinates{piece_location}, occupied);
-      attacks &= friends; // Throw out any moves to a square that is already occupied by our color
+      attacks &= not_friends; // Throw out any moves to a square that is already occupied by our color
       attacks &= enemies; // Throw out any moves that are not captures
-      for (auto end_location : attacks)
+      while (!attacks.is_empty())
       {
+        auto const end_location = attacks.pop_first_bit();
         moves.emplace_back(Coordinates{piece_location}, Coordinates{end_location}, piece_types[i],
                            board.get_piece(Coordinates{end_location}));
       }
@@ -580,11 +591,12 @@ constexpr void generate_pawn_attacks(Board const& board, std::vector<Move>& move
 {
   // Handle east captures
   auto const east_offset = get_east_capture_offset(color);
-  for (auto location :
-       pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+  auto east_attacks = pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color)));
+  while (!east_attacks.is_empty())
   {
-    Coordinates from{location + east_offset};
-    Coordinates to{location};
+    auto const location = east_attacks.pop_first_bit();
+    Coordinates const from{location + east_offset};
+    Coordinates const to{location};
     auto const victim = board.get_piece(to);
     if (to.y() == 0 || to.y() == 7)
     {
@@ -601,12 +613,13 @@ constexpr void generate_pawn_attacks(Board const& board, std::vector<Move>& move
 
   // Handle west captures
   auto const west_offset = get_west_capture_offset(color);
-  for (auto location :
-       pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color))))
+  auto west_attacks = pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color)));
+  while (!west_attacks.is_empty())
   {
-    Coordinates from{location + west_offset};
-    Coordinates to{location};
-    auto victim = board.get_piece(to);
+    auto const location = west_attacks.pop_first_bit();
+    Coordinates const from{location + west_offset};
+    Coordinates const to{location};
+    auto const victim = board.get_piece(to);
     if (to.y() == 0 || to.y() == 7)
     {
       moves.emplace_back(from, to, Piece::pawn, victim, Piece::bishop);
@@ -625,11 +638,12 @@ template <Color color>
 constexpr void generate_pawn_moves(Board const& board, std::vector<Move>& moves)
 {
   // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
-  auto offset_from_end_square = get_start_square_offset(color);
+  auto const offset_from_end_square = get_start_square_offset(color);
 
-  for (auto location :
-       pawn_short_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
+  auto short_advances = pawn_short_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares());
+  while (!short_advances.is_empty())
   {
+    auto const location = short_advances.pop_first_bit();
     Coordinates from{location + offset_from_end_square};
     Coordinates to{location};
     if (to.y() == 0 || to.y() == 7)
@@ -645,24 +659,29 @@ constexpr void generate_pawn_moves(Board const& board, std::vector<Move>& moves)
     }
   }
 
-  // Handle long advances
-  for (auto location : pawn_long_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares()))
+  auto long_advances = pawn_long_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares());
+  while (!long_advances.is_empty())
   {
+    auto const location = long_advances.pop_first_bit();
     moves.emplace_back(Coordinates{location + 2 * offset_from_end_square}, Coordinates{location}, Piece::pawn,
                        Piece::empty);
   }
 
-  auto const east_offset = get_east_capture_offset(color);
   // Handle en passant
-  for (auto location : pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  auto const east_offset = get_east_capture_offset(color);
+  auto east_captures = pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_en_passant_square());
+  while (!east_captures.is_empty())
   {
+    auto const location = east_captures.pop_first_bit();
     moves.emplace_back(Coordinates{location + east_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
                        Piece::empty, Move_type::en_passant);
   }
 
   auto const west_offset = get_west_capture_offset(color);
-  for (auto location : pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_en_passant_square()))
+  auto west_captures = pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_en_passant_square());
+  while (!west_captures.is_empty())
   {
+    auto const location = west_captures.pop_first_bit();
     moves.emplace_back(Coordinates{location + west_offset}, Coordinates{location}, Piece::pawn, Piece::pawn,
                        Piece::empty, Move_type::en_passant);
   }
@@ -748,20 +767,7 @@ std::vector<Move> Move_generator::generate_pseudo_legal_attack_moves(Board const
 
 std::vector<Move> Move_generator::generate_legal_attack_moves(Board const& board)
 {
-  auto const color = board.get_active_color();
-  std::vector<Move> pseudo_legal_attacks;
-  pseudo_legal_attacks.reserve(64);
-
-  if (color == Color::black)
-  {
-    generate_piece_attacks<Color::black>(board, pseudo_legal_attacks);
-    generate_pawn_attacks<Color::black>(board, pseudo_legal_attacks);
-  }
-  else
-  {
-    generate_piece_attacks<Color::white>(board, pseudo_legal_attacks);
-    generate_pawn_attacks<Color::white>(board, pseudo_legal_attacks);
-  }
+  auto pseudo_legal_attacks = generate_pseudo_legal_attack_moves(board);
 
   std::vector<Move> legal_attacks;
   legal_attacks.reserve(64);
@@ -780,20 +786,32 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
 {
   auto const occupied = board.get_occupied_squares();
   Bitboard attacked_squares;
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::rook))
+
+  auto pieces = board.get_piece_set(attacking_color, Piece::rook);
+  while (!pieces.is_empty())
   {
+    auto const piece_location = pieces.pop_first_bit();
     attacked_squares |= rook_attacks(Coordinates{piece_location}, occupied);
   }
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::knight))
+
+  pieces = board.get_piece_set(attacking_color, Piece::knight);
+  while (!pieces.is_empty())
   {
+    auto const piece_location = pieces.pop_first_bit();
     attacked_squares |= knight_attacks(Coordinates{piece_location}, occupied);
   }
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::bishop))
+
+  pieces = board.get_piece_set(attacking_color, Piece::bishop);
+  while (!pieces.is_empty())
   {
+    auto const piece_location = pieces.pop_first_bit();
     attacked_squares |= bishop_attacks(Coordinates{piece_location}, occupied);
   }
-  for (auto piece_location : board.get_piece_set(attacking_color, Piece::queen))
+
+  pieces = board.get_piece_set(attacking_color, Piece::queen);
+  while (!pieces.is_empty())
   {
+    auto const piece_location = pieces.pop_first_bit();
     attacked_squares |= queen_attacks(Coordinates{piece_location}, occupied);
   }
 
@@ -865,28 +883,19 @@ bool Move_generator::has_any_legal_moves(Board const& board)
   auto const color = board.get_active_color();
   for (size_t i{0}; i < piece_types.size(); ++i)
   {
-    for (auto piece_location : board.get_piece_set(color, piece_types[i]))
+    auto pieces = board.get_piece_set(color, piece_types[i]);
+    while (!pieces.is_empty())
     {
+      auto const piece_location = pieces.pop_first_bit();
       auto possible_moves = piece_move_functions[i](Coordinates{piece_location}, board.get_occupied_squares());
       possible_moves &= ~board.get_all(color); // Throw out any moves to a square that is already occupied by our color
-      auto const possible_attacks = possible_moves & board.get_all(opposite_color(color));
-      possible_moves &= ~possible_attacks; // Handle attacks separately
 
-      for (auto end_location : possible_moves)
+      while (!possible_moves.is_empty())
       {
+        auto const end_location = possible_moves.pop_first_bit();
         tmp_board = board;
         if (!tmp_board.move_results_in_check_destructive(
               {Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], Piece::empty}))
-        {
-          return true;
-        }
-      }
-
-      for (auto end_location : possible_attacks)
-      {
-        tmp_board = board;
-        if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location},
-                                                          piece_types[i], board.get_piece(Coordinates{end_location})}))
         {
           return true;
         }

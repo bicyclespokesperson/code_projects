@@ -1,3 +1,5 @@
+Fancy magics? Might have better cache performance
+
 Finish uci compliance (ponder, double check all functions in interface)
 
 Search

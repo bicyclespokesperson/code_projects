@@ -145,6 +145,14 @@ struct Bitboard
     return val == 0;
   }
 
+  constexpr int32_t pop_first_bit()
+  {
+    auto const result = bitscan_forward();
+    val &= val-1;
+
+    return result;
+  }
+
   constexpr int32_t bitscan_forward() const
   {
     if (val == 0)
