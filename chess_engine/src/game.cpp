@@ -60,7 +60,8 @@ void Game::player_vs_computer(Color player_color)
   {
     User_player white_player("White player");
     //Engine_player black_player("Black engine");
-    Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
+    //Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
+    Uci_engine_player black_player("Stockfish", "/Users/jeremysigrist/Desktop/Stockfish/src/stockfish");
     play_game(white_player, black_player);
   }
   else
@@ -74,7 +75,9 @@ void Game::player_vs_computer(Color player_color)
 void Game::computer_vs_computer()
 {
   Engine_player white_player("White engine");
-  Engine_player black_player("Black engine");
+  //Engine_player black_player("Black engine");
+  //Uci_engine_player black_player("Shallow blue", "/Users/jeremysigrist/Desktop/shallow-blue/shallowblue");
+  Uci_engine_player black_player("Stockfish", "/Users/jeremysigrist/Desktop/Stockfish/src/stockfish");
   play_game(white_player, black_player);
 }
 
@@ -143,7 +146,7 @@ void Game::play_game(Player& white_player, Player& black_player)
       }
       else
       {
-        std::cout << "\n ------------ Invalid Move ------------ \n\n";
+        std::cout << "\n ------------ Invalid Move: " << *move << " ------------ \n\n";
       }
     }
     else
