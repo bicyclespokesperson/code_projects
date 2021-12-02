@@ -517,7 +517,7 @@ constexpr void generate_castling_moves(Board const& board, std::vector<Move>& mo
 }
 
 //TODO: Refactor this to be more like get_all_attacked_squares
-template<Color color>
+template <Color color>
 constexpr void generate_piece_moves(Board const& board, std::vector<Move>& moves)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
@@ -549,7 +549,7 @@ constexpr void generate_piece_moves(Board const& board, std::vector<Move>& moves
   }
 }
 
-template<Color color>
+template <Color color>
 constexpr void generate_piece_attacks(Board const& board, std::vector<Move>& moves)
 {
   // Parallel arrays that can be iterated together to get the piece type and the function that matches it
@@ -621,7 +621,7 @@ constexpr void generate_pawn_attacks(Board const& board, std::vector<Move>& move
   }
 }
 
-template<Color color>
+template <Color color>
 constexpr void generate_pawn_moves(Board const& board, std::vector<Move>& moves)
 {
   // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
@@ -698,7 +698,6 @@ std::vector<Move> Move_generator::generate_legal_moves(Board const& board)
   std::vector<Move> pseudo_legal_moves;
   pseudo_legal_moves.reserve(218); // Max possible number of chess moves in a position
 
-
   if (color == Color::black)
   {
     generate_pawn_moves<Color::black>(board, pseudo_legal_moves);
@@ -732,7 +731,6 @@ std::vector<Move> Move_generator::generate_pseudo_legal_attack_moves(Board const
   auto const color = board.get_active_color();
   std::vector<Move> pseudo_legal_attacks;
   pseudo_legal_attacks.reserve(64);
-
 
   if (color == Color::black)
   {
@@ -804,7 +802,9 @@ Bitboard Move_generator::get_all_attacked_squares(Board const& board, Color atta
   attacked_squares |=
     king_attacks(Coordinates{board.get_piece_set(attacking_color, Piece::king).bitscan_forward()}, occupied);
 
-  auto const pawn_attacks = (attacking_color == Color::black) ? pawn_potential_attacks<Color::black>(board.get_piece_set(attacking_color, Piece::pawn)) : pawn_potential_attacks<Color::white>(board.get_piece_set(attacking_color, Piece::pawn));
+  auto const pawn_attacks = (attacking_color == Color::black) ?
+                              pawn_potential_attacks<Color::black>(board.get_piece_set(attacking_color, Piece::pawn)) :
+                              pawn_potential_attacks<Color::white>(board.get_piece_set(attacking_color, Piece::pawn));
 
   return attacked_squares | pawn_attacks;
 }
