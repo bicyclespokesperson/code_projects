@@ -29,18 +29,13 @@ int Meneldor_engine::evaluate(Board const& board) const
     // Add depth so the search function can return a slightly higher value if it finds an earlier mate
     return negative_inf + m_depth_for_current_search;
   }
-  if (state == Game_state::draw)
-  {
-    return c_contempt_score;
-  }
-
-  if (board.get_halfmove_clock() >= 100)
+  if (state == Game_state::draw || board.get_halfmove_clock() >= 100)
   {
     return c_contempt_score;
   }
 
   auto const color = board.get_active_color();
-  auto const enemy_color = opposite_color(board.get_active_color());
+  auto const enemy_color = opposite_color(color);
   int result{0};
   for (size_t i{0}; i < pieces.size(); ++i)
   {

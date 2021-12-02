@@ -105,10 +105,11 @@ Uci_engine_player::~Uci_engine_player()
 
 std::optional<std::string> Uci_engine_player::get_next_move(std::istream& /* in */, std::ostream& out)
 {
+  out << get_name() << " thinking:\n";
   static const std::string move_prefix{"bestmove "};
   send_message_(std::string{"position fen "} + m_board.to_fen());
 
-  int const depth = 5;
+  int const depth = 10;
   send_message_(std::string{"go depth "} + std::to_string(depth));
 
   size_t index{0};
