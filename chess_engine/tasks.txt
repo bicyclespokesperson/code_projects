@@ -1,12 +1,8 @@
-
-This position leads to a strange move for white, possibly related to repetition?
-r3kb1r/6p1/4p2p/n4p1P/p2P1Pn1/P5P1/3NN3/R1B1K2R w KQkq - 2 24
-
-Implement insufficient material draws? Would this actually affect anything?
+Finish uci compliance (ponder, double check all functions in interface)
 
 Search
-  Iterative deepening
-    Measure alpha/beta success rate? ID ostensibly speeds up search by improving that
+  Principle variation search
+  Null move pruning
   Move ordering
     Attack piece that most recently moved first?
     SEE?
@@ -15,6 +11,7 @@ Search
     https://chess.stackexchange.com/questions/27257/chess-engine-quiescence-search-increases-required-time-by-a-factor-of-20
       Use iterative deepening to order all moves, not just best move?
 
+Implement insufficient material draws? Would this actually affect anything?
 
 Iterative deepening articles:
 https://fizyka.umk.pl/~duch/Wyklady/AI/Notki/Chess%20Programming%20Theory.htm
@@ -47,8 +44,9 @@ Integrated UCI protocol using
 
 qperft runs at 170,000,000 nodes/sec on my macbook
 Stockfish is somewhere around 120,000,000 nodes/sec (very rough estimate)
+Shallow blue is somewhere around 17,000,000 nodes/sec (very rough estimate)
 Python chess lib is 60,000 nodes/sec
-My perft implementation runs at 7,500,000 by comparison
+My perft implementation runs at 16,300,000 by comparison
 
 WORST CODE OF ALL TIME
 https://home.hccnet.nl/h.g.muller/delay.html
