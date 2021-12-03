@@ -267,7 +267,7 @@ Castling_rights Board::get_castling_rights() const
 //TODO: Can the return value here be removed? Might need to make sure Move::type_en_passant is always correctly set
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
-  MY_ASSERT(get_piece(capture_location) == m.victim, "");
+  MY_ASSERT(get_piece(capture_location) == m.victim, "Move is in an invalid state");
 
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
   auto const color = get_active_color();
@@ -426,7 +426,6 @@ bool Board::move_no_verify(Move m, bool skip_check_detection)
     auto const color = get_active_color();
 
     auto capture_location = m.to;
-
     if (m.type == Move_type::en_passant)
     {
       capture_location = en_passant_capture_location(color, m.to);
@@ -1018,9 +1017,10 @@ std::optional<Move> Board::move_from_algebraic(std::string_view move_param, Colo
   if (candidates.size() == 1)
   {
     // Exactly one piece can move to the target square
-    auto const victim =
-      is_en_passant(piece, candidates.front(), *target_square, *this) ? Piece::pawn : get_piece(*target_square);
-    return Move{candidates.front(), *target_square, piece, victim, promotion_result};
+    auto const is_ep = is_en_passant(piece, candidates.front(), *target_square, *this);
+    auto const victim = is_ep ? Piece::pawn : get_piece(*target_square);
+    auto const move_type = is_ep ? Move_type::en_passant : Move_type::normal;
+    return Move{candidates.front(), *target_square, piece, victim, promotion_result, move_type};
   }
 
   if (move_str.empty())

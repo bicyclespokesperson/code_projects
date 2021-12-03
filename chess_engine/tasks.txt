@@ -2,9 +2,11 @@ Fancy magics? Might have better cache performance
 
 Finish uci compliance (ponder, double check all functions in interface)
 
+Check awareness in move generator
+
 Search
   Principle variation search
-  Null move pruning
+  Null move pruning // See laser, search "null move pruning"
   Move ordering
     Attack piece that most recently moved first?
     SEE?

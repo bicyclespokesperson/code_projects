@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
     std::cerr << "Invalid fen string\n";
   }
 
-  constexpr bool print_moves = false;
   auto const start = std::chrono::system_clock::now();
   std::atomic_flag is_cancelled{false};
   auto result = Move_generator::perft(depth, *board, is_cancelled);

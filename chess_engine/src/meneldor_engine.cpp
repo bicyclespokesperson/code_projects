@@ -1,6 +1,7 @@
 #include "meneldor_engine.h"
 #include "feature_toggle.h"
 #include "move_generator.h"
+#include "senjo/Output.h"
 #include "utils.h"
 
 namespace
@@ -390,7 +391,19 @@ void Meneldor_engine::waitForSearchFinish()
 uint64_t Meneldor_engine::perft(const int depth)
 {
   m_stop_requested.clear();
-  return Move_generator::perft(depth, m_board, m_stop_requested);
+
+  auto const start = std::chrono::system_clock::now();
+  std::atomic_flag is_cancelled{false};
+  auto const result = Move_generator::perft(depth, m_board, is_cancelled);
+  auto const end = std::chrono::system_clock::now();
+  std::chrono::duration<double> const elapsed = end - start;
+  auto const elapsed_seconds = elapsed.count();
+
+  std::cout << "perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n"
+    << "Elapsed time: " << std::to_string(elapsed_seconds) << " seconds\n"
+    << "Nodes/sec: " << format_with_commas(result / elapsed_seconds) << "\n";
+
+  return result;
 }
 
 Move Meneldor_engine::search(int depth)

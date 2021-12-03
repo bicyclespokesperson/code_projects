@@ -895,7 +895,7 @@ bool Move_generator::has_any_legal_moves(Board const& board)
         auto const end_location = possible_moves.pop_first_bit();
         tmp_board = board;
         if (!tmp_board.move_results_in_check_destructive(
-              {Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], Piece::empty}))
+              {Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], board.get_piece(Coordinates{end_location})}))
         {
           return true;
         }
