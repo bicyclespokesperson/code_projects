@@ -272,14 +272,14 @@ std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordi
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
   auto const color = get_active_color();
 
-  if (is_occupied(m.to) || capture_location != m.to)
+  if (is_occupied(m.to()) || capture_location != m.to())
   {
-    captured_piece.emplace(capture_location, Piece{m.victim});
+    captured_piece.emplace(capture_location, Piece{m.victim()});
     remove_piece_(opposite_color(color), captured_piece->second, capture_location);
   }
 
-  add_piece_(color, m.piece, m.to);
-  remove_piece_(color, m.piece, m.from);
+  add_piece_(color, m.piece(), m.to());
+  remove_piece_(color, m.piece(), m.from());
 
   return captured_piece;
 }
@@ -289,8 +289,8 @@ void Board::unperform_move_(Color color, Move m, std::optional<std::pair<Coordin
   MY_ASSERT(is_occupied(m.to) && !is_occupied(m.from),
             "This function can only be called after a move has been performed");
 
-  remove_piece_(color, m.piece, m.to);
-  add_piece_(color, m.piece, m.from);
+  remove_piece_(color, m.piece(), m.to());
+  add_piece_(color, m.piece(), m.from());
 
   if (captured_piece)
   {
@@ -308,29 +308,29 @@ bool Board::undo_move(Move m, Bitboard en_passant_square, Castling_rights rights
 
   MY_ASSERT((m.promotion == Piece::empty) || (m.to.y() == 0 || m.to.y() == 7), "Promotion move must end on back rank");
   std::optional<std::pair<Coordinates, Piece>> captured;
-  if (m.victim != Piece::empty)
+  if (m.victim() != Piece::empty)
   {
-    if (en_passant_square.is_set(m.to))
+    if (en_passant_square.is_set(m.to()))
     {
-      captured = {en_passant_capture_location(color, m.to), Piece{m.victim}};
+      captured = {en_passant_capture_location(color, m.to()), Piece{m.victim()}};
     }
     else
     {
-      captured = {m.to, Piece{m.victim}};
+      captured = {m.to(), Piece{m.victim()}};
     }
   }
 
   unperform_move_(color, m, captured);
-  if (m.piece == Piece::king && distance_between(m.to, m.from) == 2)
+  if (m.piece() == Piece::king && distance_between(m.to(), m.from()) == 2)
   {
-    auto const rook_move = find_castling_rook_move_(m.to);
+    auto const rook_move = find_castling_rook_move_(m.to());
     unperform_move_(color, rook_move, {});
   }
 
-  if (m.promotion != Piece::empty)
+  if (m.promotion() != Piece::empty)
   {
-    remove_piece_(color, m.promotion, m.from);
-    add_piece_(color, Piece::pawn, m.from);
+    remove_piece_(color, m.promotion(), m.from());
+    add_piece_(color, Piece::pawn, m.from());
   }
 
   m_zhash.update_castling_rights(m_rights);
@@ -345,7 +345,7 @@ bool Board::undo_move(Move m, Bitboard en_passant_square, Castling_rights rights
   {
     --m_fullmove_count;
   }
-  if (m.piece == Piece::pawn || m.victim != Piece::empty || m.promotion != Piece::empty)
+  if (m.piece() == Piece::pawn || m.victim() != Piece::empty || m.promotion() != Piece::empty)
   {
     m_halfmove_clock = halfmove_clock;
   }
@@ -366,10 +366,10 @@ bool Board::move_results_in_check_destructive(Move m)
 {
   auto const color = get_active_color();
 
-  auto capture_location = m.to;
-  if (m.type == Move_type::en_passant)
+  auto capture_location = m.to();
+  if (m.type() == Move_type::en_passant)
   {
-    capture_location = en_passant_capture_location(color, m.to);
+    capture_location = en_passant_capture_location(color, m.to());
   }
 
   perform_move_(m, capture_location);
@@ -380,38 +380,38 @@ bool Board::try_move(Move m)
 {
   MY_ASSERT(m.piece == get_piece(m.from), "Move has incorrect moving piece");
 
-  if (m.piece == Piece::empty)
+  if (m.piece() == Piece::empty)
   {
-    std::cerr << "Empty start square " << m.from << "\n";
+    std::cerr << "Empty start square " << m.from() << "\n";
     return false;
   }
 
   auto const color = get_active_color();
 
-  if (get_piece_color(m.from) != color)
+  if (get_piece_color(m.from()) != color)
   {
     std::cerr << "Wrong color " << color << "\n";
     // Make sure the correct color is moving
     return false;
   }
 
-  if (!piece_can_move(m.from, m.to, *this))
+  if (!piece_can_move(m.from(), m.to(), *this))
   {
-    std::cerr << "Piece doesn't move like that: " << m.piece << "\n";
+    std::cerr << "Piece doesn't move like that: " << m.piece() << "\n";
     return false;
   }
 
   // Ensure that a promotion square is present iff we have a pawn move to the back rank
-  if ((m.piece == Piece::pawn && (m.to.y() == 0 || m.to.y() == 7)) != (m.promotion != Piece::empty))
+  if ((m.piece() == Piece::pawn && (m.to().y() == 0 || m.to().y() == 7)) != (m.promotion() != Piece::empty))
   {
-    std::cerr << "Invalid promotion target: " << m.promotion << "\n";
+    std::cerr << "Invalid promotion target: " << m.promotion() << "\n";
     return false;
   }
 
-  if (m.promotion == Piece::king || m.promotion == Piece::pawn)
+  if (m.promotion() == Piece::king || m.promotion() == Piece::pawn)
   {
     // Cannot promote to king or pawn
-    std::cerr << "Can't promote to: " << m.promotion << "\n";
+    std::cerr << "Can't promote to: " << m.promotion() << "\n";
     return false;
   }
 
@@ -421,14 +421,14 @@ bool Board::try_move(Move m)
 
 bool Board::move_no_verify(Move m, bool skip_check_detection)
 {
-  if (m.type != Move_type::null)
+  if (m.type() != Move_type::null)
   {
     auto const color = get_active_color();
 
-    auto capture_location = m.to;
-    if (m.type == Move_type::en_passant)
+    auto capture_location = m.to();
+    if (m.type() == Move_type::en_passant)
     {
-      capture_location = en_passant_capture_location(color, m.to);
+      capture_location = en_passant_capture_location(color, m.to());
     }
 
     auto const captured_piece = perform_move_(m, capture_location);
@@ -439,30 +439,30 @@ bool Board::move_no_verify(Move m, bool skip_check_detection)
     }
 
     m_zhash.update_castling_rights(m_rights);
-    update_castling_rights_(color, m.piece, m);
+    update_castling_rights_(color, m.piece(), m);
     m_zhash.update_castling_rights(m_rights);
 
     // Move rook if the move was a castle
-    if (m.piece == Piece::king && distance_between(m.from, m.to) == 2)
+    if (m.piece() == Piece::king && distance_between(m.from(), m.to()) == 2)
     {
-      auto const rook_move = find_castling_rook_move_(m.to);
-      perform_move_(rook_move, rook_move.to);
+      auto const rook_move = find_castling_rook_move_(m.to());
+      perform_move_(rook_move, rook_move.to());
     }
 
     // Promote pawn if it reached the last rank
-    if (m.promotion != Piece::empty)
+    if (m.promotion() != Piece::empty)
     {
-      remove_piece_(color, Piece::pawn, m.to);
-      add_piece_(color, m.promotion, m.to);
+      remove_piece_(color, Piece::pawn, m.to());
+      add_piece_(color, m.promotion(), m.to());
     }
 
     // Set en passant square if applicable
     m_zhash.update_en_passant_square(m_en_passant_square);
     m_en_passant_square.unset_all();
-    if (m.piece == Piece::pawn && distance_between(m.from, m.to) == 2)
+    if (m.piece() == Piece::pawn && distance_between(m.from(), m.to()) == 2)
     {
       int const offset = (color == Color::white) ? -1 : 1;
-      m_en_passant_square.set_square(Coordinates{m.to.x(), m.to.y() + offset});
+      m_en_passant_square.set_square(Coordinates{m.to().x(), m.to().y() + offset});
     }
     m_zhash.update_en_passant_square(m_en_passant_square);
 
@@ -470,7 +470,7 @@ bool Board::move_no_verify(Move m, bool skip_check_detection)
     {
       ++m_fullmove_count;
     }
-    if (m.piece == Piece::pawn || captured_piece)
+    if (m.piece() == Piece::pawn || captured_piece)
     {
       m_halfmove_clock = 0;
     }
@@ -606,19 +606,19 @@ void Board::update_castling_rights_(Color color, Piece piece, Move m)
   }
   else
   {
-    if (Coordinates target{0, 0}; m.to == target || m.from == target)
+    if (Coordinates target{0, 0}; m.to() == target || m.from() == target)
     {
       set_white_long_castle_false(m_rights);
     }
-    else if (Coordinates target{7, 0}; m.to == target || m.from == target)
+    else if (Coordinates target{7, 0}; m.to() == target || m.from() == target)
     {
       set_white_short_castle_false(m_rights);
     }
-    else if (Coordinates target{0, 7}; m.to == target || m.from == target)
+    else if (Coordinates target{0, 7}; m.to() == target || m.from() == target)
     {
       set_black_long_castle_false(m_rights);
     }
-    else if (Coordinates target{7, 7}; m.to == target || m.from == target)
+    else if (Coordinates target{7, 7}; m.to() == target || m.from() == target)
     {
       set_black_short_castle_false(m_rights);
     }

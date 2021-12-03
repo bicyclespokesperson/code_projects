@@ -370,7 +370,8 @@ TEST_CASE("bitboard", "[bitboard]")
   REQUIRE((~b3).val == ~(b3.val));
 }
 
-//TODO: Bring these back using the updated move generator API?
+//TODO: Bring these back using the updated move generator API? The functions have been inlined for performance 
+//      and so are no longer accessible
 #if 0
 TEST_CASE("Piece moves", "[Move_generator]")
 {
@@ -563,8 +564,8 @@ TEST_CASE("Zobrist hashing", "[Zobrist_hash]")
     auto move = board.move_from_algebraic("Rb8", color);
     REQUIRE(move.has_value());
     auto old_hash = hash1;
-    hash1.update_piece_location(color, Piece::rook, move->from);
-    hash1.update_piece_location(color, Piece::rook, move->to);
+    hash1.update_piece_location(color, Piece::rook, move->from());
+    hash1.update_piece_location(color, Piece::rook, move->to());
     REQUIRE(hash1 != old_hash);
   }
 

@@ -128,7 +128,7 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
           break;
       }
     }
-    else if (entry->best_move.type != Move_type::null)
+    else if (entry->best_move.type() != Move_type::null)
     {
       // TODO: Set the best move as the first one in our search; even though we need to search to a
       // larger depth it still has a good chance of being the best move
@@ -148,7 +148,7 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
   static const bool skip_guess_move = is_feature_enabled("skip_guess_move");
   if (!skip_guess_move)
   {
-    if (best_guess.type != Move_type::null)
+    if (best_guess.type() != Move_type::null)
     {
       auto const guess_location = std::find(moves.begin(), moves.end(), best_guess);
       if (guess_location != moves.end())

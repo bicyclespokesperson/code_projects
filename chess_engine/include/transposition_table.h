@@ -42,7 +42,7 @@ public:
     return std::count_if(m_table.cbegin(), m_table.cend(),
                          [](const auto& entry)
                          {
-                           return entry.best_move.type != Move_type::null;
+                           return entry.best_move.type() != Move_type::null;
                          });
   }
 
@@ -50,7 +50,7 @@ public:
   {
     for (auto const& entry : m_table)
     {
-      if (entry.best_move.type != Move_type::null)
+      if (entry.best_move.type() != Move_type::null)
       {
         out << "depth: " << entry.depth << ", eval: " << entry.evaluation << ", move: " << entry.best_move << "\n";
       }

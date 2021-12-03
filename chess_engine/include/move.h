@@ -6,22 +6,15 @@
 
 struct Move
 {
-  constexpr Move() : from({0, 0}), to({0, 0})
-  {
-  }
+  constexpr Move() = default;
 
   constexpr Move(Coordinates from_coord,
                  Coordinates to_coord,
                  Piece moving_piece,
                  Piece victim_piece,
                  Piece promotion_piece = Piece::empty,
-                 Move_type move_type = Move_type::normal)
-  : from(from_coord),
-    to(to_coord),
-    piece(moving_piece),
-    victim(victim_piece),
-    promotion(promotion_piece),
-    type(move_type)
+                 Move_type move_type = Move_type::normal,
+                 uint8_t score = 0)
   {
     MY_ASSERT(!(static_cast<uint8_t>(moving_piece) & 0xf0),
               "Ensure we aren't throwing away any information about the piece");
@@ -29,24 +22,122 @@ struct Move
               "Ensure we aren't throwing away any information about the piece");
     MY_ASSERT(!(static_cast<uint8_t>(promotion_piece) & 0xf0),
               "Ensure we aren't throwing away any information about the piece");
+
+    set_from(from_coord);
+    set_to(to_coord);
+    set_piece(moving_piece);
+    set_victim(victim_piece);
+    set_promotion(promotion_piece);
+    set_type(move_type);
+    set_score(score);
+  }
+
+  constexpr Coordinates from() const
+  {
+    return Coordinates{static_cast<int32_t>(m_val & 0x0000003f)};
+  }
+
+  constexpr void set_from(Coordinates from)
+  {
+    MY_ASSERT(from.square_index() < 63, "Square index too large");
+    MY_ASSERT(from() == 0, "From square already set");
+    m_val |= static_cast<uint8_t>(from.square_index());
+    MY_ASSERT(from() == from, "Invalid state");
+  }
+
+  constexpr Coordinates to() const
+  {
+    return Coordinates{static_cast<int32_t>((m_val & 0x00000fc0) >> 6)};
+  }
+
+  constexpr void set_to(Coordinates to)
+  {
+    MY_ASSERT(from.square_index() < 63, "Square index too large");
+    MY_ASSERT(to() == 0, "To square already set");
+    m_val |= (static_cast<uint8_t>(to.square_index()) << 6);
+    MY_ASSERT(to() == to, "Invalid state");
+  }
+
+  constexpr Piece piece() const
+  {
+    return static_cast<Piece>((m_val & 0x0000f000) >> 12);
+  }
+
+  constexpr void set_piece(Piece piece)
+  {
+    MY_ASSERT(piece() == 0, "Piece already set");
+    m_val |= (static_cast<uint8_t>(piece) << 12);
+    MY_ASSERT(piece() == piece, "Invalid state");
+  }
+
+  constexpr Piece victim() const
+  {
+    return static_cast<Piece>((m_val & 0x000f0000) >> 16);
+  }
+
+  constexpr void set_victim(Piece victim)
+  {
+    MY_ASSERT(victim() == 0, "Victim already set");
+    m_val |= (static_cast<uint8_t>(victim) << 16);
+    MY_ASSERT(victim() == victim, "Invalid state");
+  }
+
+  constexpr Piece promotion() const
+  {
+    return static_cast<Piece>((m_val & 0x00f00000) >> 20);
+  }
+
+  constexpr void set_promotion(Piece promotion)
+  {
+    MY_ASSERT(promotion() == 0, "Promotion already set");
+    m_val |= (static_cast<uint8_t>(promotion) << 20);
+    MY_ASSERT(promotion() == promotion, "Invalid state");
+  }
+
+  constexpr Move_type type() const
+  {
+    return static_cast<Move_type>((m_val & 0x0f000000) >> 24);
+  }
+
+  constexpr void set_type(Move_type type)
+  {
+    MY_ASSERT(type() == 0, "Type already set");
+    m_val |= (static_cast<uint8_t>(type) << 24);
+    MY_ASSERT(type() == type, "Invalid state");
+  }
+
+  constexpr uint8_t score() const
+  {
+    return static_cast<uint8_t>((m_val & 0xf0000000) >> 28);
+  }
+
+  constexpr void set_score(uint8_t score)
+  {
+    m_val &= ~0xf0000000; // Clear score field
+    m_val |= (static_cast<uint8_t>(score) << 28);
+    MY_ASSERT(score() == score, "Invalid state");
   }
 
   constexpr auto operator<=>(Move const& other) const = default;
 
-  Coordinates from; // 8
-  Coordinates to; // 8
+#if 0
+  // Layout:
+  Coordinates from : 6;
+  Coordinates to : 6;
   Piece piece : 4 {Piece::empty};
 
   // Piece::empty represents no piece will be captured by this move
   Piece victim : 4 {Piece::empty};
   Piece promotion : 4 {Piece::empty};
   Move_type type : 4 {Move_type::null};
+  uint8_t score : 4 {0};
+#endif
+
+private:
+  uint32_t m_val{0};
 };
 
-constexpr void test_fn()
-{
-  static_assert(sizeof(Move) == 4);
-}
+static_assert(sizeof(Move) == 4);
 
 std::ostream& operator<<(std::ostream& os, Move const& self);
 

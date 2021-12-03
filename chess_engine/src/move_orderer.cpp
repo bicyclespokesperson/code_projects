@@ -2,8 +2,8 @@
 
 int Move_orderer::score_move_(Move m, Board const& /* board */)
 {
-  auto const m_victim_index{static_cast<uint8_t>(m.victim) - static_cast<uint8_t>(Piece::pawn)};
-  auto const m_attacker_index{static_cast<uint8_t>(m.piece) - static_cast<uint8_t>(Piece::pawn)};
+  auto const m_victim_index{static_cast<uint8_t>(m.victim()) - static_cast<uint8_t>(Piece::pawn)};
+  auto const m_attacker_index{static_cast<uint8_t>(m.piece()) - static_cast<uint8_t>(Piece::pawn)};
 
   auto const score = mvv_lva_table[m_victim_index][m_attacker_index];
 
