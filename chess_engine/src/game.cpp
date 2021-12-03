@@ -89,7 +89,8 @@ void Game::computer_vs_computer()
   auto white_player = create_engine_player("Defenchess");
   //auto white_player = create_engine_player("stockfish");
   //auto white_player = create_engine_player("shallowblue");
-  auto black_player = std::make_unique<Uci_engine_player>("Meneldor", "/Users/jeremysigrist/Desktop/code_projects/chess_engine/bin/engine_main");
+  auto black_player = std::make_unique<Uci_engine_player>(
+    "Meneldor", "/Users/jeremysigrist/Desktop/code_projects/chess_engine/bin/engine_main");
 
   //auto black_player = create_engine_player("stockfish");
 

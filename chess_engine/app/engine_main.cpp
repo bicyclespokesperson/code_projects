@@ -7,7 +7,8 @@ int main(int argc, char* argv[])
   try
   {
     Meneldor_engine engine;
-    std::cout << engine.getEngineName() << " v" << engine.getEngineVersion() << " by " << engine.getAuthorName() << "\n";
+    std::cout << engine.getEngineName() << " v" << engine.getEngineVersion() << " by " << engine.getAuthorName()
+              << "\n";
     engine.setDebug(false);
     senjo::UCIAdapter adapter(engine);
 

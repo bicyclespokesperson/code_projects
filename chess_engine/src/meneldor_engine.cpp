@@ -400,29 +400,37 @@ uint64_t Meneldor_engine::perft(const int depth)
   auto const elapsed_seconds = elapsed.count();
 
   std::cout << "perft(" << std::to_string(depth) << ") = " << std::to_string(result) << "\n"
-    << "Elapsed time: " << std::to_string(elapsed_seconds) << " seconds\n"
-    << "Nodes/sec: " << format_with_commas(result / elapsed_seconds) << "\n";
+            << "Elapsed time: " << std::to_string(elapsed_seconds) << " seconds\n"
+            << "Nodes/sec: " << format_with_commas(result / elapsed_seconds) << "\n";
 
   return result;
 }
 
-Move Meneldor_engine::search(int depth)
+Move Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
 {
-  auto pseudo_legal_moves = Move_generator::generate_pseudo_legal_moves(m_board);
-  MY_ASSERT(!pseudo_legal_moves.empty(), "Already in checkmate or stalemate");
-  m_orderer.sort_moves(pseudo_legal_moves, m_board);
-
-  std::pair<Move, int> best{pseudo_legal_moves.front(), negative_inf};
-  for (auto move : pseudo_legal_moves)
+  MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
+  constexpr static int c_depth_to_use_id_score{3};
+  if (depth < c_depth_to_use_id_score)
   {
-    auto tmp_board = m_board;
-    tmp_board.move_no_verify(move); //TODO: Use skip check detection=false here?
-    if (tmp_board.is_in_check(opposite_color(tmp_board.get_active_color())))
-    {
-      continue;
-    }
+    m_orderer.sort_moves(legal_moves, m_board);
+  }
+  else
+  {
+    std::sort(legal_moves.begin(), legal_moves.end(),
+              [](auto m1, auto m2)
+              {
+                return m1.score() > m2.score();
+              });
+  }
+
+  auto tmp_board = m_board;
+  std::pair<Move, int> best{legal_moves.front(), negative_inf};
+  for (auto& move : legal_moves)
+  {
+    tmp_board.move_no_verify(move);
 
     auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth - 1);
+    move.set_score(std::min(15, score / 200));
 
     if (m_is_debug)
     {
@@ -460,33 +468,27 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   auto time_per_move = std::chrono::duration<double>{1000.5};
 
+  auto legal_moves = Move_generator::generate_legal_moves(m_board);
   int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
   Move best_move;
-  if (!is_feature_enabled("skip_iterative_deepening"))
+  for (int depth{std::min(2, max_depth)}; depth <= max_depth; ++depth)
   {
-    for (int depth{std::min(2, max_depth)}; depth <= max_depth; ++depth)
+    m_depth_for_current_search = depth;
+
+    best_move = search(m_depth_for_current_search, legal_moves);
+
+    auto const current_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> const elapsed_time = current_time - m_search_start_time;
+
+    bool const out_of_time = elapsed_time > time_per_move;
+    if (out_of_time)
     {
-      m_depth_for_current_search = depth;
-      best_move = search(m_depth_for_current_search);
-
-      auto const current_time = std::chrono::system_clock::now();
-      std::chrono::duration<double> const elapsed_time = current_time - m_search_start_time;
-
-      bool const out_of_time = elapsed_time > time_per_move;
-      if (out_of_time)
+      if (m_is_debug)
       {
-        if (m_is_debug)
-        {
-          std::cout << "Searched to depth: " << depth << "\n";
-        }
-        break;
+        std::cout << "Searched to depth: " << depth << "\n";
       }
+      break;
     }
-  }
-  else
-  {
-    m_depth_for_current_search = max_depth;
-    best_move = search(m_depth_for_current_search);
   }
 
   m_search_end_time = std::chrono::system_clock::now();

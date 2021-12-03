@@ -23,6 +23,7 @@ struct Move
     MY_ASSERT(!(static_cast<uint8_t>(promotion_piece) & 0xf0),
               "Ensure we aren't throwing away any information about the piece");
 
+    m_val = 0;
     set_from(from_coord);
     set_to(to_coord);
     set_piece(moving_piece);
@@ -39,10 +40,10 @@ struct Move
 
   constexpr void set_from(Coordinates from)
   {
-    MY_ASSERT(from.square_index() < 63, "Square index too large");
-    MY_ASSERT(from() == 0, "From square already set");
+    MY_ASSERT(from.square_index() < c_board_dimension_squared, "Square index too large");
+    MY_ASSERT(this->from() == Coordinates{0}, "From square already set");
     m_val |= static_cast<uint8_t>(from.square_index());
-    MY_ASSERT(from() == from, "Invalid state");
+    MY_ASSERT(this->from() == from, "Invalid state");
   }
 
   constexpr Coordinates to() const
@@ -52,10 +53,10 @@ struct Move
 
   constexpr void set_to(Coordinates to)
   {
-    MY_ASSERT(from.square_index() < 63, "Square index too large");
-    MY_ASSERT(to() == 0, "To square already set");
+    MY_ASSERT(this->from().square_index() < c_board_dimension_squared, "Square index too large");
+    MY_ASSERT(this->to() == Coordinates{0}, "To square already set");
     m_val |= (static_cast<uint8_t>(to.square_index()) << 6);
-    MY_ASSERT(to() == to, "Invalid state");
+    MY_ASSERT(this->to() == to, "Invalid state");
   }
 
   constexpr Piece piece() const
@@ -65,9 +66,9 @@ struct Move
 
   constexpr void set_piece(Piece piece)
   {
-    MY_ASSERT(piece() == 0, "Piece already set");
+    MY_ASSERT(this->piece() == static_cast<Piece>(0), "Piece already set");
     m_val |= (static_cast<uint8_t>(piece) << 12);
-    MY_ASSERT(piece() == piece, "Invalid state");
+    MY_ASSERT(this->piece() == piece, "Invalid state");
   }
 
   constexpr Piece victim() const
@@ -77,9 +78,9 @@ struct Move
 
   constexpr void set_victim(Piece victim)
   {
-    MY_ASSERT(victim() == 0, "Victim already set");
+    MY_ASSERT(this->victim() == static_cast<Piece>(0), "Victim already set");
     m_val |= (static_cast<uint8_t>(victim) << 16);
-    MY_ASSERT(victim() == victim, "Invalid state");
+    MY_ASSERT(this->victim() == victim, "Invalid state");
   }
 
   constexpr Piece promotion() const
@@ -89,9 +90,9 @@ struct Move
 
   constexpr void set_promotion(Piece promotion)
   {
-    MY_ASSERT(promotion() == 0, "Promotion already set");
+    MY_ASSERT(this->promotion() == static_cast<Piece>(0), "Promotion already set");
     m_val |= (static_cast<uint8_t>(promotion) << 20);
-    MY_ASSERT(promotion() == promotion, "Invalid state");
+    MY_ASSERT(this->promotion() == promotion, "Invalid state");
   }
 
   constexpr Move_type type() const
@@ -101,9 +102,9 @@ struct Move
 
   constexpr void set_type(Move_type type)
   {
-    MY_ASSERT(type() == 0, "Type already set");
+    MY_ASSERT(this->type() == static_cast<Move_type>(0), "Type already set");
     m_val |= (static_cast<uint8_t>(type) << 24);
-    MY_ASSERT(type() == type, "Invalid state");
+    MY_ASSERT(this->type() == type, "Invalid state");
   }
 
   constexpr uint8_t score() const
@@ -115,7 +116,7 @@ struct Move
   {
     m_val &= ~0xf0000000; // Clear score field
     m_val |= (static_cast<uint8_t>(score) << 28);
-    MY_ASSERT(score() == score, "Invalid state");
+    MY_ASSERT(this->score() == score, "Invalid state");
   }
 
   constexpr auto operator<=>(Move const& other) const = default;

@@ -148,7 +148,7 @@ struct Bitboard
   constexpr int32_t pop_first_bit()
   {
     auto const result = bitscan_forward();
-    val &= val-1;
+    val &= val - 1;
 
     return result;
   }

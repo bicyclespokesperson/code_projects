@@ -370,7 +370,7 @@ TEST_CASE("bitboard", "[bitboard]")
   REQUIRE((~b3).val == ~(b3.val));
 }
 
-//TODO: Bring these back using the updated move generator API? The functions have been inlined for performance 
+//TODO: Bring these back using the updated move generator API? The functions have been inlined for performance
 //      and so are no longer accessible
 #if 0
 TEST_CASE("Piece moves", "[Move_generator]")

@@ -591,7 +591,8 @@ constexpr void generate_pawn_attacks(Board const& board, std::vector<Move>& move
 {
   // Handle east captures
   auto const east_offset = get_east_capture_offset(color);
-  auto east_attacks = pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color)));
+  auto east_attacks =
+    pawn_east_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color)));
   while (!east_attacks.is_empty())
   {
     auto const location = east_attacks.pop_first_bit();
@@ -613,7 +614,8 @@ constexpr void generate_pawn_attacks(Board const& board, std::vector<Move>& move
 
   // Handle west captures
   auto const west_offset = get_west_capture_offset(color);
-  auto west_attacks = pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color)));
+  auto west_attacks =
+    pawn_west_attacks<color>(board.get_piece_set(color, Piece::pawn), board.get_all(opposite_color(color)));
   while (!west_attacks.is_empty())
   {
     auto const location = west_attacks.pop_first_bit();
@@ -640,7 +642,8 @@ constexpr void generate_pawn_moves(Board const& board, std::vector<Move>& moves)
   // For a one square pawn push, the starting square will be either 8 squares higher or lower than the ending square
   auto const offset_from_end_square = get_start_square_offset(color);
 
-  auto short_advances = pawn_short_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares());
+  auto short_advances =
+    pawn_short_advances<color>(board.get_piece_set(color, Piece::pawn), board.get_occupied_squares());
   while (!short_advances.is_empty())
   {
     auto const location = short_advances.pop_first_bit();
@@ -894,8 +897,8 @@ bool Move_generator::has_any_legal_moves(Board const& board)
       {
         auto const end_location = possible_moves.pop_first_bit();
         tmp_board = board;
-        if (!tmp_board.move_results_in_check_destructive(
-              {Coordinates{piece_location}, Coordinates{end_location}, piece_types[i], board.get_piece(Coordinates{end_location})}))
+        if (!tmp_board.move_results_in_check_destructive({Coordinates{piece_location}, Coordinates{end_location},
+                                                          piece_types[i], board.get_piece(Coordinates{end_location})}))
         {
           return true;
         }

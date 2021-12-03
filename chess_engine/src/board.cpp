@@ -267,7 +267,7 @@ Castling_rights Board::get_castling_rights() const
 //TODO: Can the return value here be removed? Might need to make sure Move::type_en_passant is always correctly set
 std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordinates capture_location)
 {
-  MY_ASSERT(get_piece(capture_location) == m.victim, "Move is in an invalid state");
+  MY_ASSERT(get_piece(capture_location) == m.victim(), "Move is in an invalid state");
 
   std::optional<std::pair<Coordinates, Piece>> captured_piece;
   auto const color = get_active_color();
@@ -286,7 +286,7 @@ std::optional<std::pair<Coordinates, Piece>> Board::perform_move_(Move m, Coordi
 
 void Board::unperform_move_(Color color, Move m, std::optional<std::pair<Coordinates, Piece>> captured_piece)
 {
-  MY_ASSERT(is_occupied(m.to) && !is_occupied(m.from),
+  MY_ASSERT(is_occupied(m.to()) && !is_occupied(m.from()),
             "This function can only be called after a move has been performed");
 
   remove_piece_(color, m.piece(), m.to());
@@ -300,13 +300,13 @@ void Board::unperform_move_(Color color, Move m, std::optional<std::pair<Coordin
 
 bool Board::undo_move(Move m, Bitboard en_passant_square, Castling_rights rights, uint8_t halfmove_clock)
 {
-  MY_ASSERT(get_piece(m.to) == m.piece, "Move has incorrect piece");
-  MY_ASSERT(m.piece != Piece::empty, "Cannot undo move without a piece on target square");
+  MY_ASSERT(get_piece(m.to()) == m.piece(), "Move has incorrect piece");
+  MY_ASSERT(m.piece() != Piece::empty, "Cannot undo move without a piece on target square");
 
   auto const color = opposite_color(get_active_color());
-  MY_ASSERT(color == get_piece_color(m.to), "Cannot undo move for current player's turn");
+  MY_ASSERT(color == get_piece_color(m.to()), "Cannot undo move for current player's turn");
 
-  MY_ASSERT((m.promotion == Piece::empty) || (m.to.y() == 0 || m.to.y() == 7), "Promotion move must end on back rank");
+  MY_ASSERT((m.promotion() == Piece::empty) || (m.to().y() == 0 || m.to().y() == 7), "Promotion move must end on back rank");
   std::optional<std::pair<Coordinates, Piece>> captured;
   if (m.victim() != Piece::empty)
   {
@@ -378,7 +378,7 @@ bool Board::move_results_in_check_destructive(Move m)
 
 bool Board::try_move(Move m)
 {
-  MY_ASSERT(m.piece == get_piece(m.from), "Move has incorrect moving piece");
+  MY_ASSERT(m.piece() == get_piece(m.from()), "Move has incorrect moving piece");
 
   if (m.piece() == Piece::empty)
   {
