@@ -410,27 +410,32 @@ Move Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
 {
   MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
   constexpr static int c_depth_to_use_id_score{3};
-  if (depth < c_depth_to_use_id_score)
+
+  // TODO: Is this useful?
+  // Currently use_id_sort appears to slightly slow down the engine, and shows no benefit over the MVV/LVA tables
+  static const bool use_id_sort = is_feature_enabled("use_id_sort");
+  if (use_id_sort && depth < c_depth_to_use_id_score)
   {
     m_orderer.sort_moves(legal_moves, m_board);
   }
   else
   {
-    std::sort(legal_moves.begin(), legal_moves.end(),
+    std::stable_sort(legal_moves.begin(), legal_moves.end(),
               [](auto m1, auto m2)
               {
                 return m1.score() > m2.score();
               });
   }
 
-  auto tmp_board = m_board;
   std::pair<Move, int> best{legal_moves.front(), negative_inf};
   for (auto& move : legal_moves)
   {
+    auto tmp_board = m_board;
     tmp_board.move_no_verify(move);
 
     auto const score = -negamax_(tmp_board, negative_inf, positive_inf, depth - 1);
-    move.set_score(std::min(15, score / 200));
+    uint8_t score_four_bits = std::clamp((score / 200) + 7, 0, 15);
+    move.set_score(score_four_bits);
 
     if (m_is_debug)
     {
@@ -447,9 +452,21 @@ Move Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
       break;
     }
   }
+    
+#if 0
+  // Print moves and scores
+    std::cout << "Depth: " << depth << " ";
+    for (auto const& m : legal_moves)
+    {
+        std::cout << "{" << m << ", " << std::to_string(m.score()) << "} ";
+    }
+    std::cout << "\n";
+#endif
 
   return best.first;
 }
+
+
 
 std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)
 {

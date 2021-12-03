@@ -109,7 +109,7 @@ struct Move
 
   constexpr uint8_t score() const
   {
-    return static_cast<uint8_t>((m_val & 0xf0000000) >> 28);
+      return uint8_t{0x0f} & static_cast<uint8_t>((m_val & 0xf0000000) >> 28);
   }
 
   constexpr void set_score(uint8_t score)

@@ -7,7 +7,7 @@ namespace
 {
 auto engine_stats_from_position(std::string_view fen, bool debug = false)
 {
-  static std::string const c_performance_log_filename{"./output/performance_log.txt"};
+  static std::string const c_performance_log_filename{"/Users/jeremysigrist/Desktop/code_projects/chess_engine/output/performance_log.txt"};
   std::ofstream outfile{c_performance_log_filename, std::ios_base::app};
   MY_ASSERT(outfile.good(), "Outfile could not be opened");
 
@@ -27,7 +27,7 @@ auto engine_stats_from_position(std::string_view fen, bool debug = false)
   engine.setPosition(std::string{fen});
 
   senjo::GoParams params;
-  params.depth = 6;
+  params.depth = 7;
   params.nodes = 0; // ignored for now
 
   auto const engine_move = engine.go(params, nullptr);
