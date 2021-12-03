@@ -73,7 +73,7 @@ int Meneldor_engine::quiesce_(Board const& board, int alpha, int beta) const
     {
       continue;
     }
-    auto const score = -quiesce_(tmp_board, -beta, -alpha);
+    score = -quiesce_(tmp_board, -beta, -alpha);
 
     if (score >= beta)
     {
@@ -462,21 +462,18 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
   Move best_move;
-  if (is_feature_enabled("skip_iterative_deepening"))
+  if (!is_feature_enabled("skip_iterative_deepening"))
   {
-    m_depth_for_current_search = max_depth;
-    best_move = search(m_depth_for_current_search);
-  }
-  else
-  {
-    for (int depth{2}; depth <= max_depth; ++depth)
+    for (int depth{std::min(2, max_depth)}; depth <= max_depth; ++depth)
     {
       m_depth_for_current_search = depth;
       best_move = search(m_depth_for_current_search);
 
       auto const current_time = std::chrono::system_clock::now();
       std::chrono::duration<double> const elapsed_time = current_time - m_search_start_time;
-      if (elapsed_time > time_per_move)
+
+      bool const out_of_time = elapsed_time > time_per_move;
+      if (out_of_time)
       {
         if (m_is_debug)
         {
@@ -485,6 +482,11 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
         break;
       }
     }
+  }
+  else
+  {
+    m_depth_for_current_search = max_depth;
+    best_move = search(m_depth_for_current_search);
   }
 
   m_search_end_time = std::chrono::system_clock::now();
