@@ -37,12 +37,15 @@ public:
     std::array<Bitboard, 64> bishop_possible_blockers;
     std::array<Bitboard, 64> rook_possible_blockers;
 
-    // Table of possible attacked squares for a rook/bishop for each possible set of blockers
-    std::array<std::array<Bitboard, 512>, 64> bishop_attacks{};
-    std::array<std::array<Bitboard, 4096>, 64> rook_attacks{};
+    std::array<int, 64> bishop_attacks_starting_offset{};
+    std::array<int, 64> rook_attacks_starting_offset{};
 
-    void init_bishop_magic_tables_(int index);
-    void init_rook_magic_tables_(int index);
+    // Table of possible attacked squares for a rook & bishop for each possible set of blockers
+    constexpr static size_t c_attacks_table_size{107'648};
+    std::array<Bitboard, c_attacks_table_size> attacks;
+
+    int init_bishop_magic_tables_(int index, int start_offset);
+    int init_rook_magic_tables_(int index, int start_offset);
 
   private:
     void initialize_knight_attacks_();
