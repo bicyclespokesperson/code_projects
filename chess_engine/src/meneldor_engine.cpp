@@ -478,7 +478,7 @@ void Meneldor_engine::print_stats(std::pair<Move, int> best_move) const
   auto const nodes_per_second =
     (stats.msecs == 0) ? 0 : static_cast<int32_t>(1000.0 * static_cast<double>(stats.nodes) / stats.msecs);
   std::stringstream out;
-  out << "depth " << stats.depth << " seldepth " << stats.seldepth << " score cp " << best_move.second << " nodes "
+  out << "info depth " << stats.depth << " seldepth " << stats.seldepth << " score cp " << best_move.second << " nodes "
       << stats.nodes << " nps " << nodes_per_second << " time " << stats.msecs;
 
   if (auto pv = get_principle_variation(move_to_string(best_move.first)))
@@ -489,7 +489,10 @@ void Meneldor_engine::print_stats(std::pair<Move, int> best_move) const
       out << m << " ";
     }
   }
-  senjo::Output() << out.str();
+
+  // Output() adds the prefix "info string" by default to make UCI clients ignore the info. We want to
+  // use the "info" prefix so UCI clients can parse the search info, so we add that prefix manually.
+  senjo::Output(senjo::Output::OutputPrefix::NoPrefix) << out.str();
 }
 
 std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)

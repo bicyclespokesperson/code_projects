@@ -1,6 +1,6 @@
 Fancy magics? Might have better cache performance
 
-Finish uci compliance (ponder, double check all functions in interface)
+Finish uci compliance (ponder, double check all functions in interface, time awareness, quicker stopping on stopSearch)
 
 Make move generator aware of check
 
