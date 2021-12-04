@@ -306,7 +306,8 @@ bool Board::undo_move(Move m, Bitboard en_passant_square, Castling_rights rights
   auto const color = opposite_color(get_active_color());
   MY_ASSERT(color == get_piece_color(m.to()), "Cannot undo move for current player's turn");
 
-  MY_ASSERT((m.promotion() == Piece::empty) || (m.to().y() == 0 || m.to().y() == 7), "Promotion move must end on back rank");
+  MY_ASSERT((m.promotion() == Piece::empty) || (m.to().y() == 0 || m.to().y() == 7),
+            "Promotion move must end on back rank");
   std::optional<std::pair<Coordinates, Piece>> captured;
   if (m.victim() != Piece::empty)
   {

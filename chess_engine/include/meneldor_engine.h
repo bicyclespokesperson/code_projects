@@ -70,7 +70,7 @@ public:
 
   uint64_t perft(const int depth) override;
 
-  Move search(int depth, std::vector<Move>& legal_moves);
+  std::pair<Move, int> search(int depth, std::vector<Move>& legal_moves);
 
   std::string go(const senjo::GoParams& params, std::string* ponder = nullptr) override;
 
@@ -82,7 +82,9 @@ public:
 
   int evaluate(Board const& board) const;
 
-  bool try_print_principle_variation(std::string move_str) const;
+  std::optional<std::vector<std::string>> get_principle_variation(std::string move_str) const;
+
+  void print_stats(std::pair<Move, int> best_move) const;
 
 private:
   int negamax_(Board& board, int alpha, int beta, int depth_remaining);

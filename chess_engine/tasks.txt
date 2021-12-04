@@ -2,7 +2,9 @@ Fancy magics? Might have better cache performance
 
 Finish uci compliance (ponder, double check all functions in interface)
 
-Check awareness in move generator
+Make move generator aware of check
+
+Fancy magics for better cache performance?
 
 Search
   Principle variation search

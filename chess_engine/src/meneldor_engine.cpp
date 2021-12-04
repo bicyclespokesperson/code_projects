@@ -406,7 +406,7 @@ uint64_t Meneldor_engine::perft(const int depth)
   return result;
 }
 
-Move Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
+std::pair<Move, int> Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
 {
   MY_ASSERT(!legal_moves.empty(), "Already in checkmate or stalemate");
   constexpr static int c_depth_to_use_id_score{3};
@@ -421,10 +421,10 @@ Move Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
   else
   {
     std::stable_sort(legal_moves.begin(), legal_moves.end(),
-              [](auto m1, auto m2)
-              {
-                return m1.score() > m2.score();
-              });
+                     [](auto m1, auto m2)
+                     {
+                       return m1.score() > m2.score();
+                     });
   }
 
   std::pair<Move, int> best{legal_moves.front(), negative_inf};
@@ -452,7 +452,7 @@ Move Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
       break;
     }
   }
-    
+
 #if 0
   // Print moves and scores
     std::cout << "Depth: " << depth << " ";
@@ -463,10 +463,34 @@ Move Meneldor_engine::search(int depth, std::vector<Move>& legal_moves)
     std::cout << "\n";
 #endif
 
-  return best.first;
+  return best;
 }
 
+void Meneldor_engine::print_stats(std::pair<Move, int> best_move) const
+{
+  /*
+  Example output from stockfish:
+  info depth 1 seldepth 1 multipv 1 score cp -18 nodes 22 nps 7333 tbhits 0 time 3 pv e7e5
+  info depth 2 seldepth 2 multipv 1 score cp 3 nodes 43 nps 14333 tbhits 0 time 3 pv e7e5 a2a3
+  */
 
+  auto const stats = getSearchStats();
+  auto const nodes_per_second =
+    (stats.msecs == 0) ? 0 : static_cast<int32_t>(1000.0 * static_cast<double>(stats.nodes) / stats.msecs);
+  std::stringstream out;
+  out << "depth " << stats.depth << " seldepth " << stats.seldepth << " score cp " << best_move.second << " nodes "
+      << stats.nodes << " nps " << nodes_per_second << " time " << stats.msecs;
+
+  if (auto pv = get_principle_variation(move_to_string(best_move.first)))
+  {
+    out << " pv ";
+    for (auto const& m : *pv)
+    {
+      out << m << " ";
+    }
+  }
+  senjo::Output() << out.str();
+}
 
 std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* ponder = nullptr */)
 {
@@ -487,7 +511,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
 
   auto legal_moves = Move_generator::generate_legal_moves(m_board);
   int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
-  Move best_move;
+  std::pair<Move, int> best_move;
   for (int depth{std::min(2, max_depth)}; depth <= max_depth; ++depth)
   {
     m_depth_for_current_search = depth;
@@ -497,6 +521,7 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     auto const current_time = std::chrono::system_clock::now();
     std::chrono::duration<double> const elapsed_time = current_time - m_search_start_time;
 
+    print_stats(best_move);
     bool const out_of_time = elapsed_time > time_per_move;
     if (out_of_time)
     {
@@ -509,9 +534,6 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
   }
 
   m_search_end_time = std::chrono::system_clock::now();
-  std::chrono::duration<double> const elapsed_seconds = m_search_end_time - m_search_start_time;
-  std::stringstream ss;
-  ss << best_move;
 
   if (m_is_debug)
   {
@@ -524,20 +546,13 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
               << ", sufficient_depth: " << tt_sufficient_depth
               << ", hit%: " << (static_cast<float>(tt_hits) / (tt_hits + tt_misses)) << "\n";
 
-    auto search_stats = getSearchStats();
-    std::cout << "For position: " << getFEN() << "\n  Engine found " << ss.str() << " after thinking for " << std::fixed
-              << std::setprecision(2) << format_with_commas(elapsed_seconds.count()) << " seconds and searching "
-              << format_with_commas(search_stats.nodes) << " nodes ("
-              << format_with_commas(search_stats.nodes / elapsed_seconds.count()) << " nodes/sec)\n"
-              << "  QNodes searched: " << format_with_commas(search_stats.qnodes) << "\n";
-
     tt_hits = 0;
     tt_misses = 0;
     tt_sufficient_depth = 0;
   }
 
   m_is_searching.clear();
-  return ss.str();
+  return move_to_string(best_move.first);
 }
 
 senjo::SearchStats Meneldor_engine::getSearchStats() const
@@ -567,51 +582,36 @@ void Meneldor_engine::showEngineStats() const
 }
 
 // Should be called after go() but before makeMove()
-bool Meneldor_engine::try_print_principle_variation(std::string move_str) const
+std::optional<std::vector<std::string>> Meneldor_engine::get_principle_variation(std::string move_str) const
 {
+  std::vector<std::string> result;
   Board tmp_board{m_board};
   auto next_move = tmp_board.move_from_uci(std::move(move_str));
 
-  std::cout << "Next move: " << *next_move << "\n";
   auto depth = m_depth_for_current_search;
   while (depth > 1)
   {
     if (!tmp_board.try_move(*next_move))
     {
       std::cout << "Could not find move in transposition table\n";
-      return false;
+      return {};
     }
 
     auto entry = m_transpositions.get(tmp_board.get_hash_key());
     if (!entry)
     {
       std::cout << "Could not find next move in transposition table\n";
-      return false;
+      return {};
     }
+    result.push_back(move_to_string(*next_move));
     depth = entry->depth;
     next_move = entry->best_move;
-    std::cout << "Next move: " << *next_move;
 
-    switch (entry->type)
+    if (entry->type != Transposition_table::Eval_type::exact)
     {
-      case Transposition_table::Eval_type::alpha:
-        // Eval_type::alpha implies we didn't find a move from this position that was as good as a move that
-        // we could have made earlier to lead to a different position. That means the position has an evaluation
-        // that is at most "entry.evaluation"
-        std::cout << " (upper)";
-        break;
-      case Transposition_table::Eval_type::beta:
-        // Eval_type::beta implies that we stopped evaluating last time because we didn't think the opposing player
-        // would allow this position to be reached. That means the position has an evaluation of at least "entry.evaluation",
-        // but there may be an even better move that was skipped
-        std::cout << " (lower)";
-        break;
-      case Transposition_table::Eval_type::exact:
-        std::cout << " (exact)";
-        break;
+      return {};
     }
-    std::cout << "\n";
   }
 
-  return true;
+  return result;
 }

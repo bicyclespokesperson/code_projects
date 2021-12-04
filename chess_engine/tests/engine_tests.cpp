@@ -7,7 +7,8 @@ namespace
 {
 auto engine_stats_from_position(std::string_view fen, bool debug = false)
 {
-  static std::string const c_performance_log_filename{"/Users/jeremysigrist/Desktop/code_projects/chess_engine/output/performance_log.txt"};
+  static std::string const c_performance_log_filename{
+    "/Users/jeremysigrist/Desktop/code_projects/chess_engine/output/performance_log.txt"};
   std::ofstream outfile{c_performance_log_filename, std::ios_base::app};
   MY_ASSERT(outfile.good(), "Outfile could not be opened");
 
@@ -84,36 +85,6 @@ TEST_CASE("Search_mid3", "[.Meneldor_engine]")
   // London main line
   std::string fen = "r1bq1rk1/p4ppp/1pnbpn2/2ppN3/3P4/2PBP1B1/PP1N1PPP/R2QK2R b KQ - 1 9";
   engine_stats_from_position(fen);
-}
-
-TEST_CASE("Search_mid4", "[.Meneldor_engine]")
-{
-  // Might need to print out principle variation to understand this one. Probably a horizon but not quite sure
-  // I get a better move when commenting out threefold repetition detection, so maybe it thinks it can repeat moves
-  // when it's calculating?
-
-  // From engine vs. engine game
-  std::string fen = "r3kb1r/6p1/4p2p/n4p1P/p2P1Pn1/P5P1/3NN3/R1B1K2R w KQkq - 2 24";
-
-  Meneldor_engine engine;
-  engine.setDebug(false);
-  engine.initialize();
-  engine.setPosition(std::string{fen});
-
-  senjo::GoParams params;
-  params.depth = 5;
-  params.nodes = 0; // ignored for now
-  auto engine_move = engine.go(params, nullptr);
-  std::cout << "Engine move: " << engine_move << "\n";
-
-  engine.try_print_principle_variation(engine_move);
-  engine.makeMove(engine_move);
-
-  engine.makeMove("a5b3");
-  engine_move = engine.go(params, nullptr);
-  std::cout << "Engine move: " << engine_move << "\n";
-  engine.try_print_principle_variation(engine_move);
-  engine.try_print_principle_variation("a1a2");
 }
 
 TEST_CASE("Search_end1", "[.Meneldor_engine]")
