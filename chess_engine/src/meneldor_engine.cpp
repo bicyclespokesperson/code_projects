@@ -85,14 +85,65 @@ int Meneldor_engine::quiesce_(Board const& board, int alpha, int beta) const
   return alpha;
 }
 
+bool Meneldor_engine::has_more_time_() const
+{
+  if (m_search_mode != Search_mode::time)
+  {
+    return true;
+  }
+
+  auto const current_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> const elapsed_time = current_time - m_search_start_time;
+  return elapsed_time < m_time_for_move;
+}
+
+void Meneldor_engine::calc_time_for_move_(senjo::GoParams const& params)
+{
+  // We won't exit right away once time has expired, so include a buffer 
+  // so we can return a move in time
+  constexpr double c_percent_time_to_use{0.95};
+
+  if (params.movetime > 0)
+  {
+    m_time_for_move = std::chrono::milliseconds{params.movetime} * c_percent_time_to_use;
+    return;
+  }
+
+  int our_time = params.wtime;
+  int their_time = params.btime;
+  int our_increment = params.winc;
+  int their_increment = params.winc;
+  if (m_board.get_active_color() == Color::black)
+  {
+    std::swap(our_time, their_time);
+    std::swap(our_increment, their_increment);
+  }
+
+  int moves_to_go = params.movestogo;
+  if (moves_to_go == 0)
+  {
+    constexpr int c_estimated_moves_to_go{20};
+
+    // We need to move faster if our opponent has more time than we do
+    double const time_ratio = std::max((static_cast<double>(our_time) / their_time), 1.0);
+    moves_to_go = static_cast<int>(c_estimated_moves_to_go * std::min(2.0, time_ratio));
+  }
+  
+  // Slight fudge factor to ensure that we don't go over when moves_to_go is small
+  moves_to_go += 3;
+
+  m_time_for_move = std::chrono::milliseconds{((m_board.get_active_color() == Color::black) ? params.btime : params.wtime) / (moves_to_go)};
+  m_time_for_move += std::chrono::milliseconds{our_increment};
+  m_time_for_move *= c_percent_time_to_use;
+}
+
 int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remaining)
 {
   ++m_visited_nodes;
 
   if (depth_remaining == 0)
   {
-    auto result = quiesce_(board, alpha, beta);
-    return result;
+    return quiesce_(board, alpha, beta);
   }
 
   if (std::find(m_previous_positions.cbegin(), m_previous_positions.cend(), board.get_hash_key()) !=
@@ -200,16 +251,20 @@ int Meneldor_engine::negamax_(Board& board, int alpha, int beta, int depth_remai
       // If this is never hit, we know that the best alpha can be is the alpha that was passed into the function
       eval_type = Transposition_table::Eval_type::exact;
     }
+
+    if (!has_more_time_())
+    {
+      break;
+    }
   }
 
-  // We didn't find any moves that were legal if eval_type is still alpha
   if (!has_any_moves)
   {
     if (board.is_in_check(board.get_active_color()))
     {
       return negative_inf + (m_depth_for_current_search - depth_remaining);
     }
-    return 0;
+    return c_contempt_score;
   }
 
   m_transpositions.insert(board.get_hash_key(), {board.get_hash_key(), depth_remaining, alpha, best, eval_type});
@@ -453,16 +508,6 @@ std::pair<Move, int> Meneldor_engine::search(int depth, std::vector<Move>& legal
     }
   }
 
-#if 0
-  // Print moves and scores
-    std::cout << "Depth: " << depth << " ";
-    for (auto const& m : legal_moves)
-    {
-        std::cout << "{" << m << ", " << std::to_string(m.score()) << "} ";
-    }
-    std::cout << "\n";
-#endif
-
   return best;
 }
 
@@ -510,23 +555,24 @@ std::string Meneldor_engine::go(const senjo::GoParams& params, std::string* /* p
     std::cout << "Eval of current position (for " << color << "): " << std::to_string(evaluate(m_board)) << "\n";
   }
 
-  auto time_per_move = std::chrono::duration<double>{1000.5};
-
+  calc_time_for_move_(params);
   auto legal_moves = Move_generator::generate_legal_moves(m_board);
+
   int const max_depth = (params.depth > 0) ? params.depth : c_default_depth;
+  m_search_mode = Search_mode::depth;
+  if (params.wtime > 0 || params.btime > 0)
+  {
+    m_search_mode = Search_mode::time;
+  }
+
   std::pair<Move, int> best_move;
   for (int depth{std::min(2, max_depth)}; depth <= max_depth; ++depth)
   {
     m_depth_for_current_search = depth;
 
     best_move = search(m_depth_for_current_search, legal_moves);
-
-    auto const current_time = std::chrono::system_clock::now();
-    std::chrono::duration<double> const elapsed_time = current_time - m_search_start_time;
-
     print_stats(best_move);
-    bool const out_of_time = elapsed_time > time_per_move;
-    if (out_of_time)
+    if (!has_more_time_())
     {
       if (m_is_debug)
       {
@@ -596,14 +642,12 @@ std::optional<std::vector<std::string>> Meneldor_engine::get_principle_variation
   {
     if (!tmp_board.try_move(*next_move))
     {
-      std::cout << "Could not find move in transposition table\n";
       return {};
     }
 
     auto entry = m_transpositions.get(tmp_board.get_hash_key());
     if (!entry)
     {
-      std::cout << "Could not find next move in transposition table\n";
       return {};
     }
     result.push_back(move_to_string(*next_move));

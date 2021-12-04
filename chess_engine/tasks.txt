@@ -1,4 +1,5 @@
 Fancy magics? Might have better cache performance
+  Implemented, appears slower unfortunately
 
 Finish uci compliance (ponder, double check all functions in interface, time awareness, quicker stopping on stopSearch)
 

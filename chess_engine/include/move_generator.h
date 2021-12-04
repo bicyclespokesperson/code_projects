@@ -44,10 +44,10 @@ public:
     constexpr static size_t c_attacks_table_size{107'648};
     std::array<Bitboard, c_attacks_table_size> attacks;
 
+  private:
     int init_bishop_magic_tables_(int index, int start_offset);
     int init_rook_magic_tables_(int index, int start_offset);
 
-  private:
     void initialize_knight_attacks_();
     void initialize_king_attacks_();
   };
