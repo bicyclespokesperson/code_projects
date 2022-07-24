@@ -49,6 +49,7 @@ __pycache__
 
 # Virtualenvwrapper hooks
 !.virtualenvs
+venv/
 !.virtualenvs/postmkvirtualenv
 
 # IRb config
