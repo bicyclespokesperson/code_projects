@@ -1,2 +1,14 @@
 Running `brew install python-tk` made tkinter work outside the venv, it fails inside the venv though
 
+
+
+Architecture
+    Need a game that knows the rules, probably knows what each player has, and asks players for their move
+        Probably want to be able to run a game of all AI players quickly.
+        Might want to make the GUI optional?
+    Need a player class that can be subclassed to human and AI
+    Need a window that can display the current state and get clicks to get the user's move
+        Will need to show total points taken, and maybe be able to highlight a card
+    
+
+
