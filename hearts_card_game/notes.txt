@@ -1,0 +1,2 @@
+Running `brew install python-tk` made tkinter work outside the venv, it fails inside the venv though
+
