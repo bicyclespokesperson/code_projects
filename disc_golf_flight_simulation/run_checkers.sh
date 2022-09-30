@@ -2,5 +2,5 @@
 
 set -e
 
-cargo fmt
 cargo clippy --fix
+cargo fmt
