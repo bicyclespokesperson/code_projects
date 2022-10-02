@@ -4,7 +4,7 @@ use glm::DVec3;
 
 //TODO: Is this needed?
 pub struct SimControls {
-    time_per_step: f64, // seconds
+    dt: f64, // seconds
     max_time: f64,      // seconds
 }
 
@@ -13,6 +13,7 @@ mod coords {
     extern crate nalgebra_glm as glm;
     use glm::DVec3;
 
+    #[derive(Default)]
     pub struct Ground {
         pub pos: DVec3, // position in m
         pub vel: DVec3, // velocity in m/s
@@ -21,12 +22,14 @@ mod coords {
         pub rot: DVec3, // roll, pitch, yaw rate in rad/s
     }
 
+    #[derive(Default)]
     pub struct Disc {
         pub acl: DVec3, // acceleration in m/s^2
         pub vel: DVec3, // velocity in m/s
         pub rot: DVec3, // roll, pitch, yaw rate in rad/s
     }
 
+    #[derive(Default)]
     pub struct SideSlip {
         pub acl: DVec3, // acceleration in m/s^2
         pub vel: DVec3, // velocity in m/s
@@ -34,6 +37,7 @@ mod coords {
         pub beta: f64,
     }
 
+    #[derive(Default)]
     pub struct Wind {
         pub acl: DVec3, // acceleration in m/s^2
         pub vel: DVec3, // velocity in m/s
@@ -41,34 +45,71 @@ mod coords {
     }
 }
 
-struct SimParameters {
+#[derive(Default)]
+pub struct SimStep {
     ground_coords: coords::Ground,
     disc_coords: coords::Disc,
     side_slip_coords: coords::SideSlip,
     wind_coords: coords::Wind,
+    time: f64, // Time in seconds
 
     drag: f64,
     lift: f64,
     mom: f64,
-
-    pos: DVec3,
 }
 
-pub fn simulate(_disc: &Disc, _initial_trajectory: &Launch) -> Vec<DVec3> {
+pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls) -> Vec<SimStep> {
     const AIR_DENSITY: f64 = 1.18; // Air density, rho in orig code. In kg/m^3
     const G: f64 = 9.81;
     const GROUND_HEIGHT: f64 = 0.0;
 
-    let mut steps: Vec<SimParameters> = Vec::new();
+    let ixy = disc.jxy * disc.mass; // Rotational moment of inertia of disc about roll axis in kg-m^2
+    let iz = disc.jz * disc.mass; // Rotational moment of inertia of disc about spin axis in kg-m^2
+    let area = std::f64::consts::PI * (0.5 * disc.diam).powi(2); // Planform area of disc in m^2
+    let omega = initial_trajectory.spin
+        * match initial_trajectory.spindir {
+            SpinDirection::Clockwise => 1.0,
+            SpinDirection::Counterclockwise => -1.0,
+        }; // Assign spin direction
+    let weight = G * disc.mass; // Gravitational force acting on the disc center of mass in N
 
-    while steps.last().map_or(false, |val| val.pos.z > GROUND_HEIGHT) {
+    let mut steps: Vec<SimStep> = Vec::new();
+
+
+    let mut initial_step = SimStep::default();
+
+    //ori_g[step] = np.array([throw.roll_angle, throw.nose_angle, 0])
+    //vel_g[step] = np.array([throw.speed*np.cos(throw.launch_angle), 0, throw.speed*np.sin(throw.launch_angle)])
+    //launch_angle_d = np.matmul(t_gd(ori_g[step]), [0, throw.launch_angle, 0])
+    //ori_g[step] += launch_angle_d
+    initial_step.ground_coords.ori = DVec3::new(initial_trajectory.roll_angle, initial_trajectory.nose_angle, 0.0);
+    initial_step.ground_coords.vel = DVec3::new(initial_trajectory.speed * initial_trajectory.launch_angle.cos(), 0.0, initial_trajectory.speed * initial_trajectory.launch_angle.sin());
+    let launch_angle_d = transforms::gd(initial_step.ground_coords.ori) * DVec3::new(0.0, initial_trajectory.launch_angle, 0.0);
+    initial_step.ground_coords.ori += launch_angle_d;
+    initial_step.ground_coords.pos = DVec3::new(0.0, 0.0, initial_trajectory.height);
+    steps.push(initial_step);
+
+
+    while steps.last().unwrap().ground_coords.pos.z > GROUND_HEIGHT {
         //if step >= maxSteps: # Safety valve in case the disc never returns to earth
         //  break
 
         let mut ii: u32 = 0;
+        let mut step= SimStep::default();
+
+        if steps.len() > 1 {
+            //vel_g[step+1] = vel_g[step] + acl_g[step]*dt
+            //pos_g[step+1] = pos_g[step] + vel_g[step]*dt + 0.5*acl_g[step]*dt**2
+            //ori_g[step+1] = ori_g[step] + rot_g[step]*dt
+            let prev = &steps.last().unwrap();
+            step.ground_coords.vel = prev.ground_coords.vel + prev.ground_coords.acl * controls.dt;
+            step.ground_coords.pos = prev.ground_coords.pos + prev.ground_coords.vel * controls.dt + 0.5 * prev.ground_coords.acl * controls.dt.powf(2.0);
+            step.ground_coords.ori = prev.ground_coords.ori + prev.ground_coords.rot * controls.dt;
+        }
+
+
         loop {
-            let l = steps.len();
-            let mut current_step = &mut steps[l - 1];
+            //TODO: populate and add to steps vector
 
             // Transform ground velocity to wind coordinate system
             //vel_d[step] = np.matmul(T_gd(ori_g[step]), vel_g[step]); // Transform ground velocity to disc coordinate system
@@ -76,48 +117,75 @@ pub fn simulate(_disc: &Disc, _initial_trajectory: &Launch) -> Vec<DVec3> {
             //vel_s[step] = np.matmul(T_ds(beta[step]), vel_d[step]); // Transform velocity to zero side-slip coordinate system
             //alpha[step] = -np.arctan2(vel_s[step][2], vel_s[step][0]); // Calculate the angle of attack
             //vel_w[step] = np.matmul(T_sw(alpha[step]), vel_s[step]); // Transform velocity to wind coordinate system where aerodynamic calculations can be made
-            current_step.disc_coords.vel =
-                transforms::gd(current_step.ground_coords.ori) * current_step.ground_coords.vel;
-            current_step.side_slip_coords.beta = -(current_step
-                .disc_coords
-                .vel
-                .y
-                .atan2(current_step.disc_coords.vel.x));
-            current_step.side_slip_coords.vel =
-                transforms::ds(current_step.side_slip_coords.beta) * current_step.disc_coords.vel;
-            current_step.wind_coords.alpha = -(current_step
+            step.disc_coords.vel = transforms::gd(step.ground_coords.ori) * step.ground_coords.vel;
+            step.side_slip_coords.beta = -(step.disc_coords.vel.y.atan2(step.disc_coords.vel.x));
+            step.side_slip_coords.vel =
+                transforms::ds(step.side_slip_coords.beta) * step.disc_coords.vel;
+            step.wind_coords.alpha = -(step
                 .side_slip_coords
                 .vel
                 .z
-                .atan2(current_step.side_slip_coords.vel.x));
-            current_step.wind_coords.vel =
-                transforms::sw(current_step.wind_coords.alpha) * current_step.side_slip_coords.vel;
+                .atan2(step.side_slip_coords.vel.x));
+            step.wind_coords.vel =
+                transforms::sw(step.wind_coords.alpha) * step.side_slip_coords.vel;
 
             // Transform gravity loads to wind coordinate system
             //grav_d = np.matmul(T_gd(ori_g[step]), [0, 0, -weight]);
             //grav_s = np.matmul(T_ds(beta[step]), grav_d);
             //grav_w = np.matmul(T_sw(alpha[step]), grav_s);
+            let grav_d = transforms::gd(step.ground_coords.ori) * DVec3::new(0.0, 0.0, G * weight);
+            let grav_s = transforms::ds(step.side_slip_coords.beta) * grav_d;
+            let grav_w = transforms::sw(step.wind_coords.alpha) * grav_s;
 
             // Calculate aerodynamic forces on the disc
             //drag[step] = 0.5*rho*(vel_w[step][0]**2)*area*disc.getCd(alpha[step]); // Calculate drag force in N
-            //lift[step] = 0.5*rho*vel_w[step][0]**2*area*disc.getCl(alpha[step]); // Calculate lift force in N
-            //mom[step] = 0.5*rho*vel_w[step][0]**2*area*diam*disc.getCm(alpha[step]); // Calculate pitching moment in N-m
+            //lift[step] = 0.5*rho*(vel_w[step][0]**2)*area*disc.getCl(alpha[step]); // Calculate lift force in N
+            //mom[step] =  0.5*rho*(vel_w[step][0]**2)*area*diam*disc.getCm(alpha[step]); // Calculate pitching moment in N-m
+            step.drag = 0.5
+                * AIR_DENSITY
+                * (step.wind_coords.vel.x.powf(2.0))
+                * area
+                * disc.get_cl(step.wind_coords.alpha);
+            step.lift = 0.5
+                * AIR_DENSITY
+                * (step.wind_coords.vel.x.powf(2.0))
+                * area
+                * disc.get_cl(step.wind_coords.alpha);
+            step.lift = 0.5
+                * AIR_DENSITY
+                * (step.wind_coords.vel.x.powf(2.0))
+                * area
+                * disc.diam
+                * disc.get_cm(step.wind_coords.alpha);
 
             // Calculate body accelerations from second law and force balances
             //acl_w[step,0] = (-drag[step] + grav_w[0]) / mass; // Calculate deceleration due to drag
             //acl_w[step,2] = (lift[step] + grav_w[2]) / mass; // Calculate acceleration due to lift
             //acl_w[step,1] = grav_w[1] / mass; // Calculate acceleration due to side loading (just gravity)
             //rot_s[step,0] = -mom[step]/(omega*(ixy - iz)); // Calculate roll rate from pitching moment
+            step.wind_coords.acl.x = (-step.drag + grav_w.x) / disc.mass;
+            step.wind_coords.acl.z = (step.lift + grav_w.z) / disc.mass;
+            step.wind_coords.acl.y = grav_w.y / disc.mass;
+            step.side_slip_coords.rot.x = -step.mom / omega * (ixy - iz);
 
             // Tranform disc acceleration to ground coordinate system
             //acl_s[step] = np.matmul(T_ws(alpha[step]), acl_w[step]);
             //acl_d[step] = np.matmul(T_sd(beta[step]), acl_s[step]);
             //acl_g[step] = np.matmul(T_dg(ori_g[step]), acl_d[step]);
+            step.side_slip_coords.acl =
+                transforms::ws(step.wind_coords.alpha) * step.wind_coords.acl;
+            step.disc_coords.acl =
+                transforms::sd(step.side_slip_coords.beta) * step.side_slip_coords.acl;
+            step.ground_coords.acl = transforms::dg(step.ground_coords.ori) * step.disc_coords.acl;
 
             // Transform roll rate from zero side-slip to ground coordinate system
             //rot_d[step] = np.matmul(T_sd(beta[step]), rot_s[step]);
             //rot_g[step] = np.matmul(T_dg(ori_g[step]), rot_d[step]);
+            step.disc_coords.rot =
+                transforms::sd(step.side_slip_coords.beta) * step.side_slip_coords.rot;
+            step.ground_coords.rot = transforms::dg(step.ground_coords.ori) * step.disc_coords.rot;
 
+            //TODO: clean up this logic
             // Perform one inner iteration to refine speed and position vectors
             if steps.len() == 1 {
                 // Do not run inner iterations for initial time step
@@ -128,20 +196,30 @@ pub fn simulate(_disc: &Disc, _initial_trajectory: &Launch) -> Vec<DVec3> {
                 break;
             }
 
-            let previous_step = &steps[steps.len() - 2];
+            let previous_step = &steps.last().unwrap();
 
             // Calculate average accelerations and rotation rates between current and previous time steps
             //avg_acl_g = (acl_g[step-1] + acl_g[step])/2;
             //avg_rot_g = (rot_g[step-1] + rot_g[step])/2;
+            let avg_acl_g = (previous_step.ground_coords.acl + step.ground_coords.acl) / 2.0;
+            let avg_rot_g = (previous_step.ground_coords.rot + step.ground_coords.rot) / 2.0;
 
             // Calculate new velocity, position and orientation for current time step
             //vel_g[step] = vel_g[step-1] + avg_acl_g*dt;
             //pos_g[step] = pos_g[step-1] + vel_g[step-1]*dt + 0.5*avg_acl_g*dt**2;
             //ori_g[step] = ori_g[step-1] + avg_rot_g*dt;
+            step.ground_coords.vel =
+                previous_step.ground_coords.vel + avg_acl_g * controls.dt;
+            step.ground_coords.pos = previous_step.ground_coords.pos
+                + previous_step.ground_coords.vel * controls.dt
+                + 0.5 * avg_acl_g * controls.dt.powf(2.0);
+            step.ground_coords.ori =
+                previous_step.ground_coords.ori + avg_rot_g * controls.dt;
 
             ii += 1
         }
 
+        //THIS IS MOVED TO THE TOP OF THE FUNCTION
         // Estimate disc velocity, position, and orientation at next time step
         //vel_g[step+1] = vel_g[step] + acl_g[step]*dt
         //pos_g[step+1] = pos_g[step] + vel_g[step]*dt + 0.5*acl_g[step]*dt**2
@@ -150,10 +228,12 @@ pub fn simulate(_disc: &Disc, _initial_trajectory: &Launch) -> Vec<DVec3> {
         // Update simulation variables
         //t[step+1] = t[step] + dt
         //step += 1
+        step.time = steps.last().unwrap().time + controls.dt;
+        steps.push(step);
     }
 
     //TODO: remove
-    vec![DVec3::new(1.0, 1.0, 1.2)]
+    steps
 }
 
 fn update_throw(_disc: &Disc, _launch: &Launch) {}
@@ -168,7 +248,7 @@ pub struct Disc {
 }
 
 // clockwise=>1, counterclockwise=>-1. Will probably want a match statement on this at some point
-enum SpinDirection {
+pub enum SpinDirection {
     Clockwise,
     Counterclockwise,
 }
