@@ -25,12 +25,12 @@ fn main() {
                 })
                 .unwrap(),
             msg
-        )
+        ),
     };
 
     let wraith = discs
         .iter()
-        .find(|&disc| disc.name == "Wraith")
+        .find(|disc| disc.name == "Wraith")
         .expect("Could not find disc");
 
     let initial_trajectory = Launch {
@@ -52,6 +52,7 @@ fn main() {
 
     dbg!(&flight_path);
 
-    let output_filename = Path::new("./flight_plot.png");
+    let output_filename = Path::new("./flight_plot.bmp");
     plotter::plot(&flight_path, output_filename).expect("Failed to plot");
+    println!("Plot saved to {}", output_filename.to_str().unwrap());
 }

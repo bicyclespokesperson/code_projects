@@ -198,3 +198,5 @@ chess_engine/feature_set.txt
 
 # Rust
 disc_golf_flight_simulation/target/*
+disc_golf_flight_simulation/flight_plot.bmp
+

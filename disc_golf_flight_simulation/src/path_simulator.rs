@@ -107,25 +107,12 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
 
     let mut steps: Vec<SimStep> = Vec::new();
 
-    let mut initial_step = SimStep::default();
-
     //ori_g[step] = np.array([throw.roll_angle, throw.nose_angle, 0])
     //vel_g[step] = np.array([throw.speed*np.cos(throw.launch_angle), 0, throw.speed*np.sin(throw.launch_angle)])
     //launch_angle_d = np.matmul(t_gd(ori_g[step]), [0, throw.launch_angle, 0])
     //ori_g[step] += launch_angle_d
-    initial_step.ground_coords.ori = DVec3::new(initial_trajectory.roll_angle, initial_trajectory.nose_angle, 0.0);
-    initial_step.ground_coords.vel = DVec3::new(
-        initial_trajectory.speed * initial_trajectory.launch_angle.cos(),
-        0.0,
-        initial_trajectory.speed * initial_trajectory.launch_angle.sin(),
-    );
-    let launch_angle_d =
-        transforms::gd(initial_step.ground_coords.ori) * DVec3::new(0.0, initial_trajectory.launch_angle, 0.0);
-    initial_step.ground_coords.ori += launch_angle_d;
-    initial_step.ground_coords.pos = DVec3::new(0.0, 0.0, initial_trajectory.height);
-    steps.push(initial_step);
 
-    while steps.last().unwrap().ground_coords.pos.z > GROUND_HEIGHT {
+    while steps.is_empty() || steps.last().unwrap().ground_coords.pos.z > GROUND_HEIGHT {
         //if step >= maxSteps: # Safety valve in case the disc never returns to earth
         //  break
 
@@ -142,6 +129,19 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
                 + prev.ground_coords.vel * controls.dt
                 + 0.5 * prev.ground_coords.acl * controls.dt.powf(2.0);
             step.ground_coords.ori = prev.ground_coords.ori + prev.ground_coords.rot * controls.dt;
+        } else {
+            step.ground_coords.ori = DVec3::new(initial_trajectory.roll_angle, initial_trajectory.nose_angle, 0.0);
+            step.ground_coords.vel = DVec3::new(
+                initial_trajectory.speed * initial_trajectory.launch_angle.cos(),
+                0.0,
+                initial_trajectory.speed * initial_trajectory.launch_angle.sin(),
+            );
+            let launch_angle_d =
+                transforms::gd(step.ground_coords.ori) * DVec3::new(0.0, initial_trajectory.launch_angle, 0.0);
+            step.ground_coords.ori += launch_angle_d;
+            step.ground_coords.pos = DVec3::new(0.0, 0.0, initial_trajectory.height);
+            //let mut initial_step = SimStep::default();
+            //steps.push(initial_step);
         }
 
         loop {
@@ -208,7 +208,7 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
 
             //TODO: clean up this logic
             // Perform one inner iteration to refine speed and position vectors
-            if steps.len() == 1 {
+            if steps.is_empty() {
                 // Do not run inner iterations for initial time step
                 break;
             }
@@ -246,7 +246,7 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
         // Update simulation variables
         //t[step+1] = t[step] + dt
         //step += 1
-        step.ground_coords.time = steps.last().unwrap().ground_coords.time + controls.dt;
+        step.ground_coords.time = steps.last().map_or(0.0, |item| item.ground_coords.time) + controls.dt;
         steps.push(step);
     }
 
