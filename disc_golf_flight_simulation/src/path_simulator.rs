@@ -24,8 +24,8 @@ pub struct Launch {
 }
 
 pub struct SimControls {
-    dt: f64,       // seconds
-    max_time: f64, // seconds
+    pub dt: f64,       // seconds
+    pub max_time: f64, // seconds
 }
 
 pub enum SpinDirection {
@@ -40,18 +40,19 @@ pub struct AeroProps {
     pub cm: f64,
 }
 
-mod coords {
+pub mod coords {
 
     extern crate nalgebra_glm as glm;
     use glm::DVec3;
 
-    #[derive(Default)]
+    #[derive(Default, Debug)]
     pub struct Ground {
         pub pos: DVec3, // position in m
         pub vel: DVec3, // velocity in m/s
         pub acl: DVec3, // acceleration in m/s^2
         pub ori: DVec3, // rol, pitch, yaw in rad
         pub rot: DVec3, // roll, pitch, yaw rate in rad/s
+        pub time: f64,  // time in seconds
     }
 
     #[derive(Default)]
@@ -83,7 +84,6 @@ struct SimStep {
     disc_coords: coords::Disc,
     side_slip_coords: coords::SideSlip,
     wind_coords: coords::Wind,
-    time: f64, // Time in seconds
 
     drag: f64,
     lift: f64,
@@ -246,7 +246,7 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
         // Update simulation variables
         //t[step+1] = t[step] + dt
         //step += 1
-        step.time = steps.last().unwrap().time + controls.dt;
+        step.ground_coords.time = steps.last().unwrap().ground_coords.time + controls.dt;
         steps.push(step);
     }
 
@@ -265,6 +265,7 @@ impl Disc {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn new_from_lists(
         name: String,
         jxy: f64,

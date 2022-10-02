@@ -2,5 +2,6 @@
 
 set -e
 
-cargo clippy --fix
+# Disable --fix so I can see the errors
+cargo clippy
 cargo fmt
