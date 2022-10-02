@@ -3,8 +3,8 @@
 // Allow unused code in the project
 #![allow(dead_code)]
 
-mod path_simulator;
 mod disc_reader;
+mod path_simulator;
 
 fn main() {
     println!("Hello, world!");

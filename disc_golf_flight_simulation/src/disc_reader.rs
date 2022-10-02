@@ -1,4 +1,3 @@
-
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
@@ -8,10 +7,8 @@ extern crate serde_json;
 
 use crate::path_simulator::Disc;
 
-//use serde::{Deserialize, Serialize};
-use  serde_derive::Deserialize;
+use serde_derive::Deserialize;
 use serde_derive::Serialize;
-//use serde_json::{Value, from_reader};
 
 // Generated with: https://transform.tools/json-to-rust-serde
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -27,16 +24,27 @@ pub struct DiscJS {
     pub diam: f64,
 }
 
-
 pub fn discs_from_filename(filename: &Path) -> Result<Vec<Disc>, Box<dyn Error>> {
-
     let file = File::open(filename)?;
     let reader = BufReader::new(file);
-    let discs : Vec<DiscJS> = serde_json::from_reader(reader)?;
+    let discs: Vec<DiscJS> = serde_json::from_reader(reader)?;
 
     let disc_mass = 0.175; // kg
 
-    Ok(discs.into_iter().map(|disc| Disc::new_from_lists(disc.name, 
-        disc.jxy, disc.jz, disc.diam, disc_mass, &disc.aoarange, &disc.cl, &disc.cd, &disc.cm)).collect())
+    Ok(discs
+        .into_iter()
+        .map(|disc| {
+            Disc::new_from_lists(
+                disc.name,
+                disc.jxy,
+                disc.jz,
+                disc.diam,
+                disc_mass,
+                &disc.aoarange,
+                &disc.cl,
+                &disc.cd,
+                &disc.cm,
+            )
+        })
+        .collect())
 }
-

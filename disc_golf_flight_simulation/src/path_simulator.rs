@@ -91,18 +91,14 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
     //vel_g[step] = np.array([throw.speed*np.cos(throw.launch_angle), 0, throw.speed*np.sin(throw.launch_angle)])
     //launch_angle_d = np.matmul(t_gd(ori_g[step]), [0, throw.launch_angle, 0])
     //ori_g[step] += launch_angle_d
-    initial_step.ground_coords.ori = DVec3::new(
-        initial_trajectory.roll_angle,
-        initial_trajectory.nose_angle,
-        0.0,
-    );
+    initial_step.ground_coords.ori = DVec3::new(initial_trajectory.roll_angle, initial_trajectory.nose_angle, 0.0);
     initial_step.ground_coords.vel = DVec3::new(
         initial_trajectory.speed * initial_trajectory.launch_angle.cos(),
         0.0,
         initial_trajectory.speed * initial_trajectory.launch_angle.sin(),
     );
-    let launch_angle_d = transforms::gd(initial_step.ground_coords.ori)
-        * DVec3::new(0.0, initial_trajectory.launch_angle, 0.0);
+    let launch_angle_d =
+        transforms::gd(initial_step.ground_coords.ori) * DVec3::new(0.0, initial_trajectory.launch_angle, 0.0);
     initial_step.ground_coords.ori += launch_angle_d;
     initial_step.ground_coords.pos = DVec3::new(0.0, 0.0, initial_trajectory.height);
     steps.push(initial_step);
@@ -137,15 +133,9 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
             //vel_w[step] = np.matmul(T_sw(alpha[step]), vel_s[step]); // Transform velocity to wind coordinate system where aerodynamic calculations can be made
             step.disc_coords.vel = transforms::gd(step.ground_coords.ori) * step.ground_coords.vel;
             step.side_slip_coords.beta = -(step.disc_coords.vel.y.atan2(step.disc_coords.vel.x));
-            step.side_slip_coords.vel =
-                transforms::ds(step.side_slip_coords.beta) * step.disc_coords.vel;
-            step.wind_coords.alpha = -(step
-                .side_slip_coords
-                .vel
-                .z
-                .atan2(step.side_slip_coords.vel.x));
-            step.wind_coords.vel =
-                transforms::sw(step.wind_coords.alpha) * step.side_slip_coords.vel;
+            step.side_slip_coords.vel = transforms::ds(step.side_slip_coords.beta) * step.disc_coords.vel;
+            step.wind_coords.alpha = -(step.side_slip_coords.vel.z.atan2(step.side_slip_coords.vel.x));
+            step.wind_coords.vel = transforms::sw(step.wind_coords.alpha) * step.side_slip_coords.vel;
 
             // Transform gravity loads to wind coordinate system
             //grav_d = np.matmul(T_gd(ori_g[step]), [0, 0, -weight]);
@@ -159,16 +149,10 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
             //drag[step] = 0.5*rho*(vel_w[step][0]**2)*area*disc.getCd(alpha[step]); // Calculate drag force in N
             //lift[step] = 0.5*rho*(vel_w[step][0]**2)*area*disc.getCl(alpha[step]); // Calculate lift force in N
             //mom[step] =  0.5*rho*(vel_w[step][0]**2)*area*diam*disc.getCm(alpha[step]); // Calculate pitching moment in N-m
-            step.drag = 0.5
-                * AIR_DENSITY
-                * (step.wind_coords.vel.x.powf(2.0))
-                * area
-                * disc.get_cl(step.wind_coords.alpha);
-            step.lift = 0.5
-                * AIR_DENSITY
-                * (step.wind_coords.vel.x.powf(2.0))
-                * area
-                * disc.get_cl(step.wind_coords.alpha);
+            step.drag =
+                0.5 * AIR_DENSITY * (step.wind_coords.vel.x.powf(2.0)) * area * disc.get_cl(step.wind_coords.alpha);
+            step.lift =
+                0.5 * AIR_DENSITY * (step.wind_coords.vel.x.powf(2.0)) * area * disc.get_cl(step.wind_coords.alpha);
             step.lift = 0.5
                 * AIR_DENSITY
                 * (step.wind_coords.vel.x.powf(2.0))
@@ -190,17 +174,14 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
             //acl_s[step] = np.matmul(T_ws(alpha[step]), acl_w[step]);
             //acl_d[step] = np.matmul(T_sd(beta[step]), acl_s[step]);
             //acl_g[step] = np.matmul(T_dg(ori_g[step]), acl_d[step]);
-            step.side_slip_coords.acl =
-                transforms::ws(step.wind_coords.alpha) * step.wind_coords.acl;
-            step.disc_coords.acl =
-                transforms::sd(step.side_slip_coords.beta) * step.side_slip_coords.acl;
+            step.side_slip_coords.acl = transforms::ws(step.wind_coords.alpha) * step.wind_coords.acl;
+            step.disc_coords.acl = transforms::sd(step.side_slip_coords.beta) * step.side_slip_coords.acl;
             step.ground_coords.acl = transforms::dg(step.ground_coords.ori) * step.disc_coords.acl;
 
             // Transform roll rate from zero side-slip to ground coordinate system
             //rot_d[step] = np.matmul(T_sd(beta[step]), rot_s[step]);
             //rot_g[step] = np.matmul(T_dg(ori_g[step]), rot_d[step]);
-            step.disc_coords.rot =
-                transforms::sd(step.side_slip_coords.beta) * step.side_slip_coords.rot;
+            step.disc_coords.rot = transforms::sd(step.side_slip_coords.beta) * step.side_slip_coords.rot;
             step.ground_coords.rot = transforms::dg(step.ground_coords.ori) * step.disc_coords.rot;
 
             //TODO: clean up this logic
@@ -227,9 +208,8 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
             //pos_g[step] = pos_g[step-1] + vel_g[step-1]*dt + 0.5*avg_acl_g*dt**2;
             //ori_g[step] = ori_g[step-1] + avg_rot_g*dt;
             step.ground_coords.vel = prev.ground_coords.vel + avg_acl_g * controls.dt;
-            step.ground_coords.pos = prev.ground_coords.pos
-                + prev.ground_coords.vel * controls.dt
-                + 0.5 * avg_acl_g * controls.dt.powf(2.0);
+            step.ground_coords.pos =
+                prev.ground_coords.pos + prev.ground_coords.vel * controls.dt + 0.5 * avg_acl_g * controls.dt.powf(2.0);
             step.ground_coords.ori = prev.ground_coords.ori + avg_rot_g * controls.dt;
 
             ii += 1
@@ -279,14 +259,7 @@ pub struct AeroProps {
 }
 
 impl Disc {
-    pub fn new(
-        name: String,
-        props: Vec<AeroProps>,
-        jxy: f64,
-        jz: f64,
-        diam: f64,
-        mass: f64,
-    ) -> Disc {
+    pub fn new(name: String, props: Vec<AeroProps>, jxy: f64, jz: f64, diam: f64, mass: f64) -> Disc {
         Disc {
             name,
             props,
@@ -367,8 +340,7 @@ impl Disc {
         let lower_prop = key_fn(lower_item);
         let higher_prop = key_fn(higher_item);
 
-        lower_prop
-            + (angle_of_attack - lower_aoa) * (higher_prop - lower_prop) / (higher_aoa - lower_aoa)
+        lower_prop + (angle_of_attack - lower_aoa) * (higher_prop - lower_prop) / (higher_aoa - lower_aoa)
     }
 }
 
@@ -414,31 +386,11 @@ mod transforms {
     }
 
     pub fn ds(beta: f64) -> DMat3x3 {
-        DMat3x3::new(
-            beta.cos(),
-            -beta.sin(),
-            0.0,
-            beta.sin(),
-            beta.cos(),
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        )
+        DMat3x3::new(beta.cos(), -beta.sin(), 0.0, beta.sin(), beta.cos(), 0.0, 0.0, 0.0, 1.0)
     }
 
     pub fn sd(beta: f64) -> DMat3x3 {
-        DMat3x3::new(
-            beta.cos(),
-            beta.sin(),
-            0.0,
-            -beta.sin(),
-            beta.cos(),
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        )
+        DMat3x3::new(beta.cos(), beta.sin(), 0.0, -beta.sin(), beta.cos(), 0.0, 0.0, 0.0, 1.0)
     }
 
     pub fn sw(alpha: f64) -> DMat3x3 {
