@@ -1,11 +1,21 @@
 extern crate nalgebra_glm as glm;
+extern crate serde_json;
 
 use glm::DVec3;
 
+pub struct Disc {
+    pub name: String,
+    pub props: Vec<AeroProps>, // Should be sorted by aoa ascending
+    pub jxy: f64,
+    pub jz: f64,
+    pub diam: f64,
+    pub mass: f64, // in grams
+}
+
 //TODO: Is this needed?
 pub struct SimControls {
-    dt: f64, // seconds
-    max_time: f64,      // seconds
+    dt: f64,       // seconds
+    max_time: f64, // seconds
 }
 
 mod coords {
@@ -75,27 +85,34 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
 
     let mut steps: Vec<SimStep> = Vec::new();
 
-
     let mut initial_step = SimStep::default();
 
     //ori_g[step] = np.array([throw.roll_angle, throw.nose_angle, 0])
     //vel_g[step] = np.array([throw.speed*np.cos(throw.launch_angle), 0, throw.speed*np.sin(throw.launch_angle)])
     //launch_angle_d = np.matmul(t_gd(ori_g[step]), [0, throw.launch_angle, 0])
     //ori_g[step] += launch_angle_d
-    initial_step.ground_coords.ori = DVec3::new(initial_trajectory.roll_angle, initial_trajectory.nose_angle, 0.0);
-    initial_step.ground_coords.vel = DVec3::new(initial_trajectory.speed * initial_trajectory.launch_angle.cos(), 0.0, initial_trajectory.speed * initial_trajectory.launch_angle.sin());
-    let launch_angle_d = transforms::gd(initial_step.ground_coords.ori) * DVec3::new(0.0, initial_trajectory.launch_angle, 0.0);
+    initial_step.ground_coords.ori = DVec3::new(
+        initial_trajectory.roll_angle,
+        initial_trajectory.nose_angle,
+        0.0,
+    );
+    initial_step.ground_coords.vel = DVec3::new(
+        initial_trajectory.speed * initial_trajectory.launch_angle.cos(),
+        0.0,
+        initial_trajectory.speed * initial_trajectory.launch_angle.sin(),
+    );
+    let launch_angle_d = transforms::gd(initial_step.ground_coords.ori)
+        * DVec3::new(0.0, initial_trajectory.launch_angle, 0.0);
     initial_step.ground_coords.ori += launch_angle_d;
     initial_step.ground_coords.pos = DVec3::new(0.0, 0.0, initial_trajectory.height);
     steps.push(initial_step);
-
 
     while steps.last().unwrap().ground_coords.pos.z > GROUND_HEIGHT {
         //if step >= maxSteps: # Safety valve in case the disc never returns to earth
         //  break
 
         let mut ii: u32 = 0;
-        let mut step= SimStep::default();
+        let mut step = SimStep::default();
 
         if steps.len() > 1 {
             //vel_g[step+1] = vel_g[step] + acl_g[step]*dt
@@ -103,10 +120,11 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
             //ori_g[step+1] = ori_g[step] + rot_g[step]*dt
             let prev = &steps.last().unwrap();
             step.ground_coords.vel = prev.ground_coords.vel + prev.ground_coords.acl * controls.dt;
-            step.ground_coords.pos = prev.ground_coords.pos + prev.ground_coords.vel * controls.dt + 0.5 * prev.ground_coords.acl * controls.dt.powf(2.0);
+            step.ground_coords.pos = prev.ground_coords.pos
+                + prev.ground_coords.vel * controls.dt
+                + 0.5 * prev.ground_coords.acl * controls.dt.powf(2.0);
             step.ground_coords.ori = prev.ground_coords.ori + prev.ground_coords.rot * controls.dt;
         }
-
 
         loop {
             //TODO: populate and add to steps vector
@@ -196,25 +214,23 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
                 break;
             }
 
-            let previous_step = &steps.last().unwrap();
+            let prev = &steps.last().unwrap();
 
             // Calculate average accelerations and rotation rates between current and previous time steps
             //avg_acl_g = (acl_g[step-1] + acl_g[step])/2;
             //avg_rot_g = (rot_g[step-1] + rot_g[step])/2;
-            let avg_acl_g = (previous_step.ground_coords.acl + step.ground_coords.acl) / 2.0;
-            let avg_rot_g = (previous_step.ground_coords.rot + step.ground_coords.rot) / 2.0;
+            let avg_acl_g = (prev.ground_coords.acl + step.ground_coords.acl) / 2.0;
+            let avg_rot_g = (prev.ground_coords.rot + step.ground_coords.rot) / 2.0;
 
             // Calculate new velocity, position and orientation for current time step
             //vel_g[step] = vel_g[step-1] + avg_acl_g*dt;
             //pos_g[step] = pos_g[step-1] + vel_g[step-1]*dt + 0.5*avg_acl_g*dt**2;
             //ori_g[step] = ori_g[step-1] + avg_rot_g*dt;
-            step.ground_coords.vel =
-                previous_step.ground_coords.vel + avg_acl_g * controls.dt;
-            step.ground_coords.pos = previous_step.ground_coords.pos
-                + previous_step.ground_coords.vel * controls.dt
+            step.ground_coords.vel = prev.ground_coords.vel + avg_acl_g * controls.dt;
+            step.ground_coords.pos = prev.ground_coords.pos
+                + prev.ground_coords.vel * controls.dt
                 + 0.5 * avg_acl_g * controls.dt.powf(2.0);
-            step.ground_coords.ori =
-                previous_step.ground_coords.ori + avg_rot_g * controls.dt;
+            step.ground_coords.ori = prev.ground_coords.ori + avg_rot_g * controls.dt;
 
             ii += 1
         }
@@ -237,15 +253,6 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
 }
 
 fn update_throw(_disc: &Disc, _launch: &Launch) {}
-
-pub struct Disc {
-    pub name: String,
-    pub props: Vec<AeroProps>, // Should be sorted by aoa ascending
-    pub jxy: f64,
-    pub jz: f64,
-    pub diam: f64,
-    pub mass: f64, // in grams
-}
 
 // clockwise=>1, counterclockwise=>-1. Will probably want a match statement on this at some point
 pub enum SpinDirection {
