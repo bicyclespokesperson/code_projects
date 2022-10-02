@@ -13,18 +13,20 @@ use std::path::Path;
 fn main() {
     let discs_filename = Path::new("./data/discs.json");
 
-    let discs = disc_reader::discs_from_filename(discs_filename).unwrap_or_else(|_| {
-        panic!(
-            "Could not load discs from {}",
+    let discs = match disc_reader::discs_from_filename(discs_filename) {
+        Ok(val) => val,
+        Err(msg) => panic!(
+            "Could not load discs from {}: {}",
             std::fs::canonicalize(discs_filename)
                 .and_then(|p| {
                     p.to_str()
                         .map(str::to_string)
                         .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::Other, "Could not create absolute path"))
                 })
-                .unwrap()
+                .unwrap(),
+            msg
         )
-    });
+    };
 
     let wraith = discs
         .iter()
