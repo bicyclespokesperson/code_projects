@@ -12,10 +12,32 @@ pub struct Disc {
     pub mass: f64, // in grams
 }
 
-//TODO: Is this needed?
+// Initial conditions for the throw
+pub struct Launch {
+    pub speed: f64, // m/s
+    pub spin: f64,  // rad/s
+    pub spindir: SpinDirection,
+    pub launch_angle: f64, // rad
+    pub nose_angle: f64,   // rad
+    pub roll_angle: f64,   // rad
+    pub height: f64,       // meters (1.5 by default probably)
+}
+
 pub struct SimControls {
     dt: f64,       // seconds
     max_time: f64, // seconds
+}
+
+pub enum SpinDirection {
+    Clockwise,
+    Counterclockwise,
+}
+
+pub struct AeroProps {
+    pub angle_of_attack: f64,
+    pub cl: f64,
+    pub cd: f64,
+    pub cm: f64,
 }
 
 mod coords {
@@ -56,7 +78,7 @@ mod coords {
 }
 
 #[derive(Default)]
-pub struct SimStep {
+struct SimStep {
     ground_coords: coords::Ground,
     disc_coords: coords::Disc,
     side_slip_coords: coords::SideSlip,
@@ -68,7 +90,7 @@ pub struct SimStep {
     mom: f64,
 }
 
-pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls) -> Vec<SimStep> {
+pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls) -> Vec<coords::Ground> {
     const AIR_DENSITY: f64 = 1.18; // Air density, rho in orig code. In kg/m^3
     const G: f64 = 9.81;
     const GROUND_HEIGHT: f64 = 0.0;
@@ -228,34 +250,7 @@ pub fn simulate(disc: &Disc, initial_trajectory: &Launch, controls: &SimControls
         steps.push(step);
     }
 
-    //TODO: remove
-    steps
-}
-
-fn update_throw(_disc: &Disc, _launch: &Launch) {}
-
-// clockwise=>1, counterclockwise=>-1. Will probably want a match statement on this at some point
-pub enum SpinDirection {
-    Clockwise,
-    Counterclockwise,
-}
-
-// Initial conditions for the throw
-pub struct Launch {
-    pub speed: f64, // m/s
-    pub spin: f64,  // rad/s
-    pub spindir: SpinDirection,
-    pub launch_angle: f64, // rad
-    pub nose_angle: f64,   // rad
-    pub roll_angle: f64,   // rad
-    pub height: f64,       // meters (1.5 by default probably)
-}
-
-pub struct AeroProps {
-    pub angle_of_attack: f64,
-    pub cl: f64,
-    pub cd: f64,
-    pub cm: f64,
+    steps.into_iter().map(|step| step.ground_coords).collect()
 }
 
 impl Disc {
