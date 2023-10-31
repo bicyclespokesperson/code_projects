@@ -1,32 +1,30 @@
 #!/usr/bin/env bash
+#
+# Automatically clang-formats files when commiting them.
+# To use, from the top level of the repo, run:
+#   cp tools/clang-format-pre-commit .git/hooks/pre-commit 
 
-if ! [[ $(command -v "clang-format") ]]; then
-  echo "Commit cannot proceed. clang-format is not installed."
+CLANG_FORMAT_EXE="clang-format"
+
+if [[ "${1}" = "-h" ]] || [[ "${1}" = "--help" ]]; then
+  >&2 echo "Runs clang-format on source files changed in commit"
   exit 1
 fi
 
-format_file() {
-  fullfile="${1}"
+if ! [[ $(command -v "${CLANG_FORMAT_EXE}") ]]; then
+  >&2 echo "Warning: clang-format is not installed. Autoformatting not supported. (from git pre-commit hook)"
+  exit 0
+fi
 
-  if [ -f $fullfile ]; then
+for FILE in $(git diff-index --cached --name-only HEAD) ; do
+  if [ -f ${FILE} ]; then
+    WITHOUT_PATH=$(basename -- "${FILE}")
+    EXTENSION="${WITHOUT_PATH##*.}"
 
-    filename=$(basename -- "$fullfile")
-    extension="${filename##*.}"
-
-    if [ $extension = "h" ] || [ $extension = "cpp" ]; then
-      clang-format -i ${1}
-      git add ${1}
+    if [[ "${EXTENSION}" = "h" ]] || [[ "${EXTENSION}" = "cpp" ]] || [[ "${EXTENSION}" = "c" ]]; then
+      "${CLANG_FORMAT_EXE}" -i "${FILE}"
+      git add "${FILE}"
     fi
   fi
-}
+done
 
-case "${1}" in
-  --about )
-    echo "Runs clang-format on source files"
-    ;;
-  * )
-    for file in `git diff-index --cached --name-only HEAD` ; do
-      format_file "${file}"
-    done
-    ;;
-esac
