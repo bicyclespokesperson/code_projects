@@ -1,3 +1,5 @@
+use std::io::Write;
+use std::io::{self, stdout, BufRead};
 use std::path::Path;
 use std::process::exit;
 use std::{env, fs};
@@ -6,7 +8,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 2 {
-        eprintln!("Usage: {} [arg]", env::args().next().unwrap());
+        eprintln!("Usage: {} [arg]", args[0]);
         exit(64);
     } else if args.len() == 2 {
         println!("Loading {}", args[0]);
@@ -19,11 +21,30 @@ fn main() {
     }
 }
 
-fn run_prompt() {}
+fn run_prompt() {
+    let mut buf: String = String::new();
+    loop {
+        print!("> ");
+        stdout().flush().expect("Failed to flush stdout buffer");
+        match io::stdin().lock().read_line(&mut buf) {
+            Err(err) => panic!("Failed to read from stdin: {err}"),
+            Ok(0) => break,
+            Ok(_) => run(&buf),
+        }
+        println!();
+    }
+}
 
 fn run_file(path: &Path) -> std::io::Result<()> {
     let contents = fs::read_to_string(path)?;
-    Ok(run(&contents))
+    run(&contents);
+    Ok(())
 }
 
-fn run(source: &str) {}
+fn run(source: &String) {
+    let tokens = source.split_whitespace();
+
+    for token in tokens {
+        print!("{} ", token);
+    }
+}
