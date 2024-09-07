@@ -21,6 +21,10 @@ fn main() {
     }
 }
 
+pub struct Lox {
+    had_error: bool,
+}
+
 fn run_prompt() {
     let mut buf: String = String::new();
     loop {
@@ -47,4 +51,13 @@ fn run(source: &String) {
     for token in tokens {
         print!("{} ", token);
     }
+}
+
+fn error(line: i32, message: &str) {
+    report(line, "", message);
+}
+
+fn report(line: i32, wheree: &str, message: &str) {
+    println!("[line {}] Error{}: {}", line, wheree, message);
+    // hadError = true;
 }
