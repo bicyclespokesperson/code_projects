@@ -9,7 +9,7 @@ fn main() {
     l.main()
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, strum_macros::Display)]
 enum TokenType {
     // Single-character tokens.
     LeftParen,
@@ -61,7 +61,7 @@ enum TokenType {
 }
 
 pub struct Token {
-    token: TokenType,
+    token_type: TokenType,
     lexeme: String,
     literal: String,
     line: i32,
@@ -70,7 +70,7 @@ pub struct Token {
 impl Token {
     fn new(token: TokenType, lexeme: String, literal: String, line: i32) -> Token {
         Token {
-            token,
+            token_type: token,
             lexeme,
             literal,
             line,
@@ -79,9 +79,8 @@ impl Token {
 }
 
 impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Write the custom string representation
-        write!(f, "{} {} {}", self.token, self.lexeme, self.literal)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {} {}", self.token_type, self.lexeme, self.literal)
     }
 }
 
@@ -143,8 +142,8 @@ impl Lox {
         self.report(line, "", message);
     }
 
-    fn report(&mut self, line: i32, wheree: &str, message: &str) {
-        println!("[line {}] Error{}: {}", line, wheree, message);
+    fn report(&mut self, line: i32, location: &str, message: &str) {
+        println!("[line {}] Error{}: {}", line, location, message);
         self.had_error = true;
     }
 }
