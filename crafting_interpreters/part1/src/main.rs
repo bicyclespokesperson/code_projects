@@ -2,11 +2,87 @@ use std::io::Write;
 use std::io::{self, stdout, BufRead};
 use std::path::Path;
 use std::process::exit;
-use std::{env, fs};
+use std::{env, fmt, fs};
 
 fn main() {
     let mut l = Lox { had_error: false };
     l.main()
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum TokenType {
+    // Single-character tokens.
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
+    Comma,
+    Dot,
+    Minus,
+    Plus,
+    Semicolon,
+    Slash,
+    Star,
+
+    // One or two character tokens.
+    Bang,
+    BangEqual,
+    Equal,
+    EqualEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+
+    // Literals.
+    Identifier,
+    String,
+    Number,
+
+    // Keywords.
+    And,
+    Class,
+    Else,
+    False,
+    Fun,
+    For,
+    If,
+    Nil,
+    Or,
+    Print,
+    Return,
+    Super,
+    This,
+    True,
+    Var,
+    While,
+
+    Eof,
+}
+
+pub struct Token {
+    token: TokenType,
+    lexeme: String,
+    literal: String,
+    line: i32,
+}
+
+impl Token {
+    fn new(token: TokenType, lexeme: String, literal: String, line: i32) -> Token {
+        Token {
+            token,
+            lexeme,
+            literal,
+            line,
+        }
+    }
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Write the custom string representation
+        write!(f, "{} {} {}", self.token, self.lexeme, self.literal)
+    }
 }
 
 pub struct Lox {
@@ -19,6 +95,10 @@ impl Lox {
 
         for token in tokens {
             print!("{} ", token);
+        }
+
+        if self.had_error {
+            exit(65);
         }
     }
 
