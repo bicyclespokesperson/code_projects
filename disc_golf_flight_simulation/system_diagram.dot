@@ -1,0 +1,140 @@
+digraph DiscGolfFlightSimulation {
+    // Graph settings
+    rankdir=TB;
+    compound=true;
+    fontname="Arial";
+    fontsize=12;
+    node [fontname="Arial", fontsize=11];
+    edge [fontname="Arial", fontsize=10];
+
+    // Title
+    labelloc="t";
+    label=<<B>Disc Golf Flight Simulation System Architecture</B>>;
+
+    // External inputs/outputs
+    subgraph cluster_external {
+        label="External I/O";
+        style=dashed;
+        color=blue;
+
+        json_data [label="discs.json\n(Disc Properties)", shape=note, fillcolor=lightyellow, style=filled];
+        output_plot [label="flight_plot.bmp\n(Visualization)", shape=note, fillcolor=lightgreen, style=filled];
+    }
+
+    // Main entry point
+    subgraph cluster_main {
+        label="main.rs";
+        style=filled;
+        color=lightgray;
+
+        main [label="main()\nOrchestrates simulation", shape=box, fillcolor=lightblue, style=filled];
+        launch_config [label="Launch Configuration\n• speed\n• spin\n• angles\n• height", shape=rectangle, fillcolor=wheat, style=filled];
+        sim_controls [label="Simulation Controls\n• dt (time step)\n• max_time", shape=rectangle, fillcolor=wheat, style=filled];
+    }
+
+    // Disc reader module
+    subgraph cluster_disc_reader {
+        label="disc_reader.rs";
+        style=filled;
+        color=lightgray;
+
+        disc_reader [label="discs_from_filename()\nParse JSON disc data", shape=box, fillcolor=lightblue, style=filled];
+        disc_js [label="DiscJS\nSerde deserializer", shape=rectangle, fillcolor=wheat, style=filled];
+    }
+
+    // Path simulator module
+    subgraph cluster_simulator {
+        label="path_simulator.rs";
+        style=filled;
+        color=lightgray;
+
+        simulate [label="simulate()\nCore physics engine", shape=box, fillcolor=orange, style=filled];
+
+        subgraph cluster_data_structs {
+            label="Data Structures";
+            style=filled;
+            color=white;
+
+            disc [label="Disc\n• AeroProps\n• Mass, Diameter\n• Moments of Inertia", shape=rectangle, fillcolor=wheat, style=filled];
+            sim_step [label="SimStep\nPer-frame state", shape=rectangle, fillcolor=wheat, style=filled];
+        }
+
+        subgraph cluster_coords {
+            label="Coordinate Systems";
+            style=filled;
+            color=white;
+
+            ground_coords [label="Ground Coords\nworld reference frame", shape=ellipse, fillcolor=lightcyan, style=filled];
+            disc_coords [label="Disc Coords\ndisc body frame", shape=ellipse, fillcolor=lightcyan, style=filled];
+            sideslip_coords [label="Side-Slip Coords\nzero side-slip frame", shape=ellipse, fillcolor=lightcyan, style=filled];
+            wind_coords [label="Wind Coords\naerodynamic calculations", shape=ellipse, fillcolor=lightcyan, style=filled];
+        }
+
+        transforms [label="Coordinate Transforms\ngd, dg, ds, sd, sw, ws", shape=hexagon, fillcolor=pink, style=filled];
+
+        physics [label="Physics Calculations\n• Drag force\n• Lift force\n• Pitching moment\n• Gravity", shape=hexagon, fillcolor=pink, style=filled];
+    }
+
+    // Plotter module
+    subgraph cluster_plotter {
+        label="plotter.rs";
+        style=filled;
+        color=lightgray;
+
+        plot [label="plot()\nGenerate flight visualization", shape=box, fillcolor=lightblue, style=filled];
+        plotters_lib [label="Plotters Library\nChartBuilder, LineSeries", shape=component, fillcolor=lavender, style=filled];
+    }
+
+    // Data flow edges
+    json_data -> disc_reader [label="read", color=blue];
+    disc_reader -> disc_js [label="deserialize", style=dashed];
+    disc_js -> disc [label="convert", style=dashed];
+
+    main -> disc_reader [label="load discs", color=blue, penwidth=2];
+    disc_reader -> main [label="Vec<Disc>", color=blue, penwidth=2];
+
+    main -> launch_config [style=dashed];
+    main -> sim_controls [style=dashed];
+
+    main -> simulate [label="disc, launch, controls", color=red, penwidth=2];
+    disc -> simulate [style=dashed];
+    launch_config -> simulate [style=dashed];
+    sim_controls -> simulate [style=dashed];
+
+    simulate -> sim_step [label="iterative\nloop", style=dashed];
+    sim_step -> ground_coords [style=dashed];
+    sim_step -> disc_coords [style=dashed];
+    sim_step -> sideslip_coords [style=dashed];
+    sim_step -> wind_coords [style=dashed];
+
+    ground_coords -> transforms [label="transform"];
+    disc_coords -> transforms [label="transform"];
+    sideslip_coords -> transforms [label="transform"];
+    wind_coords -> transforms [label="transform"];
+
+    transforms -> physics [label="coordinate\nconversions"];
+    physics -> sim_step [label="update\nstate"];
+
+    simulate -> main [label="Vec<Ground>", color=red, penwidth=2];
+
+    main -> plot [label="flight_path", color=green, penwidth=2];
+    plot -> plotters_lib [label="use", style=dashed];
+    plotters_lib -> output_plot [label="render", color=green];
+
+    // Legend
+    subgraph cluster_legend {
+        label="Legend";
+        style=filled;
+        color=white;
+        rankdir=LR;
+
+        leg1 [label="Function/Method", shape=box, fillcolor=lightblue, style=filled];
+        leg2 [label="Data Structure", shape=rectangle, fillcolor=wheat, style=filled];
+        leg3 [label="Coordinate System", shape=ellipse, fillcolor=lightcyan, style=filled];
+        leg4 [label="Algorithm", shape=hexagon, fillcolor=pink, style=filled];
+
+        leg1 -> leg2 [style=invis];
+        leg2 -> leg3 [style=invis];
+        leg3 -> leg4 [style=invis];
+    }
+}
