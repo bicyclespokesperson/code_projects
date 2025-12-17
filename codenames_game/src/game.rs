@@ -431,6 +431,8 @@ pub enum GameError {
     NotEnoughPlayers,
     #[error("Invalid role for this action")]
     InvalidRole,
+    #[error("Player name '{0}' is already taken")]
+    PlayerNameTaken(String),
 }
 
 impl Serialize for GameError {
@@ -469,6 +471,12 @@ impl GameRoom {
         if self.players.len() >= self.max_players {
             return Err(GameError::RoomFull);
         }
+        
+        // Check for duplicate names (case-insensitive)
+        if self.players.values().any(|p| p.name.to_lowercase() == player.name.to_lowercase()) {
+            return Err(GameError::PlayerNameTaken(player.name));
+        }
+
         self.players.insert(player.id, player);
         Ok(())
     }
