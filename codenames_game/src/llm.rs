@@ -11,12 +11,60 @@ pub struct LlmClient {
     base_url: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct OpenRouterModelsResponse {
+    data: Vec<OpenRouterModel>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenRouterModel {
+    id: String,
+    name: String,
+}
+
 impl LlmClient {
     pub fn new() -> Self {
         Self {
             client: reqwest::Client::new(),
             base_url: "https://openrouter.ai/api/v1".to_string(),
         }
+    }
+
+    /// Fetch available models from OpenRouter
+    pub async fn fetch_models(&self) -> Result<Vec<ModelInfo>> {
+        let response = self.client
+            .get(format!("{}/models", self.base_url))
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            error!("OpenRouter API error fetching models: {} - {}", status, body);
+            return Err(anyhow!("API request failed: {} - {}", status, body));
+        }
+
+        let response: OpenRouterModelsResponse = response.json().await?;
+
+        let models = response.data
+            .into_iter()
+            .map(|m| {
+                let provider = m.id.split('/').next().unwrap_or("Unknown").to_string();
+                // Capitalize first letter of provider
+                let provider = provider.chars()
+                    .next()
+                    .map(|c| c.to_uppercase().to_string() + &provider[1..])
+                    .unwrap_or(provider);
+
+                ModelInfo {
+                    id: m.id,
+                    name: m.name,
+                    provider,
+                }
+            })
+            .collect();
+
+        Ok(models)
     }
 
     /// Generate a clue as a spymaster

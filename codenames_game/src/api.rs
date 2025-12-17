@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use crate::{
     game::{AiConfig, GameRoom, Player, Role, Team},
-    llm::get_available_models,
+    llm::{get_available_models, LlmClient},
     websocket::{CardInfo, ClueInfo, GameStateInfo, PlayerInfo, RoomState, ServerMessage},
     AppState,
 };
@@ -217,7 +217,13 @@ pub async fn remove_player(
 
 /// Get available LLM models
 pub async fn get_models() -> impl IntoResponse {
-    let models = get_available_models();
+    let models = match LlmClient::new().fetch_models().await {
+        Ok(models) => models,
+        Err(e) => {
+            tracing::error!("Failed to fetch models from OpenRouter: {}", e);
+            get_available_models()
+        }
+    };
     (StatusCode::OK, Json(ApiResponse::success(models)))
 }
 
