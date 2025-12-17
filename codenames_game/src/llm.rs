@@ -110,29 +110,6 @@ impl LlmClient {
         parse_guess_response(&response, game_view)
     }
 
-    /// Decide whether to pass or continue guessing
-    pub async fn should_pass(
-        &self,
-        api_key: &str,
-        model: &str,
-        game_view: &GameView,
-        team: Team,
-        clue: &Clue,
-        guesses_so_far: &[String],
-    ) -> Result<bool> {
-        let prompt = build_pass_decision_prompt(game_view, team, clue, guesses_so_far);
-
-        debug!("Pass decision prompt: {}", prompt);
-
-        let response = self.chat_completion(api_key, model, &prompt).await?;
-
-        info!("LLM pass decision response: {}", response);
-
-        // Parse yes/no response
-        let response_lower = response.to_lowercase();
-        Ok(response_lower.contains("pass") || response_lower.contains("yes"))
-    }
-
     async fn chat_completion(&self, api_key: &str, model: &str, prompt: &str) -> Result<String> {
         let request = OpenRouterRequest {
             model: model.to_string(),
@@ -355,53 +332,6 @@ Example: GUESS: 5"#,
         words = available_words.join("\n"),
         revealed = if revealed_info.is_empty() { "None".to_string() } else { revealed_info.join(", ") },
         history = if clue_history.is_empty() { "None".to_string() } else { clue_history },
-    )
-}
-
-fn build_pass_decision_prompt(
-    game_view: &GameView,
-    team: Team,
-    clue: &Clue,
-    guesses_so_far: &[String],
-) -> String {
-    let team_color = match team {
-        Team::Red => "RED",
-        Team::Blue => "BLUE",
-    };
-
-    let available_words: Vec<String> = game_view.cards
-        .iter()
-        .filter(|c| !c.revealed)
-        .map(|c| c.word.clone())
-        .collect();
-
-    let remaining_guesses = clue.number.saturating_sub(clue.guesses_made) + 1;
-
-    format!(r#"You are a {team_color} OPERATIVE in Codenames.
-
-The clue was: "{clue_word}" {clue_number}
-You have made {guesses_made} successful guesses so far: {guesses}
-You can make {remaining} more guesses.
-
-Remaining words on the board: {words}
-
-Should you PASS (end your turn safely) or continue guessing?
-
-Consider:
-- You've already found {guesses_made} words for this clue
-- Guessing wrong could help the opponent or hit the assassin
-- Are there other words clearly related to "{clue_word}"?
-
-Respond with ONLY:
-PASS - to end your turn safely
-CONTINUE - to make another guess"#,
-        team_color = team_color,
-        clue_word = clue.word,
-        clue_number = clue.number,
-        guesses_made = guesses_so_far.len(),
-        guesses = guesses_so_far.join(", "),
-        remaining = remaining_guesses,
-        words = available_words.join(", "),
     )
 }
 
