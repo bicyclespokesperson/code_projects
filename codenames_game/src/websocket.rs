@@ -301,11 +301,18 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
     if let Some(room_id) = conn_state.room_id {
         let mut rooms = state.rooms.lock().await;
         if let Some(room) = rooms.get_mut(&room_id) {
+            let player_name = room.get_player(player_id)
+                .map(|p| p.name.clone())
+                .unwrap_or_else(|| "Unknown".to_string());
+
             room.remove_player(player_id);
 
             // Broadcast player left
             let msg = ServerMessage::PlayerLeft { player_id };
             let _ = state.broadcast_tx.send((room_id, msg));
+
+            // Log to transcript
+            let _ = append_to_transcript(room_id, format!("**{}** left the room.", player_name)).await;
 
             // Remove empty rooms
             if room.players.is_empty() {
@@ -398,7 +405,7 @@ async fn handle_join_room(
     // Broadcast player joined to others
     let player_info = PlayerInfo {
         id: player_id,
-        name: player_name,
+        name: player_name.clone(),
         team: None,
         role: None,
         is_ai: false,
@@ -407,6 +414,9 @@ async fn handle_join_room(
     let _ = state.broadcast_tx.send((room_id, ServerMessage::PlayerJoined {
         player: player_info,
     }));
+
+    // Log to transcript
+    let _ = append_to_transcript(room_id, format!("**{}** joined the room.", player_name)).await;
 
     vec![
         ServerMessage::RoomJoined { room_id, player_id },
@@ -466,6 +476,9 @@ async fn handle_set_team(
         let _ = state.broadcast_tx.send((room_id, ServerMessage::PlayerUpdated {
             player: player_info.clone(),
         }));
+
+        // Log to transcript
+        let _ = append_to_transcript(room_id, format!("**{}** joined the **{:?}** team.", player.name, team)).await;
 
         vec![]
     } else {
@@ -534,6 +547,9 @@ async fn handle_set_role(
         let _ = state.broadcast_tx.send((room_id, ServerMessage::PlayerUpdated {
             player: player_info,
         }));
+
+        // Log to transcript
+        let _ = append_to_transcript(room_id, format!("**{}** became the **{:?}**.", player.name, role)).await;
 
         vec![]
     } else {
@@ -617,20 +633,20 @@ async fn handle_give_clue(
     };
 
     // Verify player is spymaster of current team
-    let player = match room.get_player(conn_state.player_id) {
-        Some(p) => p,
+    let (player_name, player_role, player_team) = match room.get_player(conn_state.player_id) {
+        Some(p) => (p.name.clone(), p.role, p.team),
         None => return vec![ServerMessage::Error {
             message: "Player not found".to_string(),
         }],
     };
 
-    if player.role != Some(Role::Spymaster) {
+    if player_role != Some(Role::Spymaster) {
         return vec![ServerMessage::Error {
             message: "Only spymasters can give clues".to_string(),
         }];
     }
 
-    if player.team != Some(room.game.current_team) {
+    if player_team != Some(room.game.current_team) {
         return vec![ServerMessage::Error {
             message: "It's not your team's turn".to_string(),
         }];
@@ -652,7 +668,7 @@ async fn handle_give_clue(
     }));
 
     // Log to transcript
-    let log = format!("**{:?} Spymaster** gives clue: `{} {}`", team, word, number);
+    let log = format!("**{} ({:?} Spymaster)** gives clue: `{} {}`", player_name, team, word, number);
     let _ = append_to_transcript(room_id, log).await;
 
     vec![]
@@ -679,20 +695,20 @@ async fn handle_make_guess(
     };
 
     // Verify player is operative of current team
-    let player = match room.get_player(conn_state.player_id) {
-        Some(p) => p,
+    let (player_name, player_role, player_team) = match room.get_player(conn_state.player_id) {
+        Some(p) => (p.name.clone(), p.role, p.team),
         None => return vec![ServerMessage::Error {
             message: "Player not found".to_string(),
         }],
     };
 
-    if player.role != Some(Role::Operative) {
+    if player_role != Some(Role::Operative) {
         return vec![ServerMessage::Error {
             message: "Only operatives can make guesses".to_string(),
         }];
     }
 
-    if player.team != Some(room.game.current_team) {
+    if player_team != Some(room.game.current_team) {
         return vec![ServerMessage::Error {
             message: "It's not your team's turn".to_string(),
         }];
@@ -759,7 +775,7 @@ async fn handle_make_guess(
     } else {
         format!("Wrong - {}", result_info.color)
     };
-    let log = format!("**{:?} Operative** guesses: `{}` (Result: {})", team, result_info.word, result_str);
+    let log = format!("**{} ({:?} Operative)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
     let _ = append_to_transcript(room_id, log).await;
 
     // If game ended, broadcast game ended
@@ -792,14 +808,14 @@ async fn handle_pass_turn(
         }],
     };
 
-    let player = match room.get_player(conn_state.player_id) {
-        Some(p) => p,
+    let (player_name, player_team) = match room.get_player(conn_state.player_id) {
+        Some(p) => (p.name.clone(), p.team),
         None => return vec![ServerMessage::Error {
             message: "Player not found".to_string(),
         }],
     };
 
-    if player.team != Some(room.game.current_team) {
+    if player_team != Some(room.game.current_team) {
         return vec![ServerMessage::Error {
             message: "It's not your team's turn".to_string(),
         }];
@@ -817,7 +833,7 @@ async fn handle_pass_turn(
     let _ = state.broadcast_tx.send((room_id, ServerMessage::TurnPassed { team }));
 
     // Log to transcript
-    let _ = append_to_transcript(room_id, format!("**{:?}** ended their turn.", team)).await;
+    let _ = append_to_transcript(room_id, format!("**{} ({:?})** ended their turn.", player_name, team)).await;
 
     vec![]
 }
@@ -835,7 +851,7 @@ async fn handle_ai_action(
     };
 
     // Get room data and AI player info
-    let (ai_config, team, role, game_view, current_clue) = {
+    let (ai_config, team, role, player_name, game_view, current_clue) = {
         let rooms = state.rooms.lock().await;
         let room = match rooms.get(&room_id) {
             Some(room) => room,
@@ -878,6 +894,8 @@ async fn handle_ai_action(
             }],
         };
 
+        let player_name = player.name.clone();
+
         // Check if it's this AI's turn
         if team != room.game.current_team {
             return vec![ServerMessage::Error {
@@ -889,7 +907,7 @@ async fn handle_ai_action(
         let game_view = room.game.get_view(is_spymaster);
         let current_clue = room.game.current_clue.clone();
 
-        (ai_config, team, role, game_view, current_clue)
+        (ai_config, team, role, player_name, game_view, current_clue)
     };
 
     // Get API key
@@ -922,7 +940,8 @@ async fn handle_ai_action(
                 Ok((word, number, debug_info)) => {
                     // Log AI thought process
                     let thought_log = format!(
-                        "### AI Thinking ({} Spymaster - {})\n**Prompt:**\n{}\n\n**Response:**\n{}",
+                        "### AI Thinking ({} - {} Spymaster - {})\n**Prompt:**\n{}\n\n**Response:**\n{}",
+                        player_name,
                         match team { Team::Red => "Red", Team::Blue => "Blue" },
                         ai_config.model,
                         debug_info.prompt,
@@ -945,7 +964,7 @@ async fn handle_ai_action(
                             number,
                         }));
 
-                        let _ = append_to_transcript(room_id, format!("**{:?} Spymaster (AI)** gives clue: `{} {}`", team, word, number)).await;
+                        let _ = append_to_transcript(room_id, format!("**{} ({:?} Spymaster AI)** gives clue: `{} {}`", player_name, team, word, number)).await;
                     }
                 }
                 Err(e) => {
@@ -967,12 +986,8 @@ async fn handle_ai_action(
                 Ok((position, debug_info)) => {
                     // Log AI thought process
                     let thought_log = format!(
-                        "### AI Thinking ({} Operative - {})
-**Prompt:**
-{}
-
-**Response:**
-{}",
+                        "### AI Thinking ({} - {} Operative - {})\n**Prompt:**\n{}\n\n**Response:**\n{}",
+                        player_name,
                         match team { Team::Red => "Red", Team::Blue => "Blue" },
                         ai_config.model,
                         debug_info.prompt,
@@ -1043,7 +1058,7 @@ async fn handle_ai_action(
                         } else {
                             format!("Wrong - {}", result_info.color)
                         };
-                        let log = format!("**{:?} Operative (AI)** guesses: `{}` (Result: {})", team, result_info.word, result_str);
+                        let log = format!("**{} ({:?} Operative AI)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
                         let _ = append_to_transcript(room_id, log).await;
 
                         if room.game.phase == GamePhase::Finished {
