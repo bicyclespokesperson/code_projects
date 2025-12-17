@@ -14,6 +14,7 @@ use uuid::Uuid;
 use crate::{
     game::{GamePhase, GameRoom, GuessResult, Player, Role, Team, TurnPhase},
     llm::LlmClient,
+    transcript::append_to_transcript,
     AppState,
 };
 
@@ -584,6 +585,9 @@ async fn handle_start_game(
     // Broadcast game started
     let _ = state.broadcast_tx.send((room_id, ServerMessage::GameStarted));
 
+    // Log to transcript
+    let _ = append_to_transcript(room_id, "Game started.".to_string()).await;
+
     // Send updated game state to all
     let room_state = build_room_state(room, conn_state.player_id);
     let _ = state.broadcast_tx.send((room_id, ServerMessage::GameState { room: room_state }));
@@ -643,9 +647,13 @@ async fn handle_give_clue(
     // Broadcast clue given
     let _ = state.broadcast_tx.send((room_id, ServerMessage::ClueGiven {
         team,
-        word,
+        word: word.clone(),
         number,
     }));
+
+    // Log to transcript
+    let log = format!("**{:?} Spymaster** gives clue: `{} {}`", team, word, number);
+    let _ = append_to_transcript(room_id, log).await;
 
     vec![]
 }
@@ -742,13 +750,23 @@ async fn handle_make_guess(
     let _ = state.broadcast_tx.send((room_id, ServerMessage::GuessMade {
         team,
         position,
-        result: result_info,
+        result: result_info.clone(),
     }));
+
+    // Log to transcript
+    let result_str = if result_info.correct {
+        "Correct".to_string()
+    } else {
+        format!("Wrong - {}", result_info.color)
+    };
+    let log = format!("**{:?} Operative** guesses: `{}` (Result: {})", team, result_info.word, result_str);
+    let _ = append_to_transcript(room_id, log).await;
 
     // If game ended, broadcast game ended
     if room.game.phase == GamePhase::Finished {
         if let Some(winner) = room.game.winner {
             let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
+            let _ = append_to_transcript(room_id, format!("**Game Over! Winner: {:?}**", winner)).await;
         }
     }
 
@@ -797,6 +815,9 @@ async fn handle_pass_turn(
 
     // Broadcast turn passed
     let _ = state.broadcast_tx.send((room_id, ServerMessage::TurnPassed { team }));
+
+    // Log to transcript
+    let _ = append_to_transcript(room_id, format!("**{:?}** ended their turn.", team)).await;
 
     vec![]
 }
@@ -898,7 +919,17 @@ async fn handle_ai_action(
     match role {
         Role::Spymaster => {
             match llm_client.generate_clue(&api_key, &ai_config.model, &game_view, team).await {
-                Ok((word, number)) => {
+                Ok((word, number, debug_info)) => {
+                    // Log AI thought process
+                    let thought_log = format!(
+                        "### AI Thinking ({} Spymaster - {})\n**Prompt:**\n{}\n\n**Response:**\n{}",
+                        match team { Team::Red => "Red", Team::Blue => "Blue" },
+                        ai_config.model,
+                        debug_info.prompt,
+                        debug_info.response
+                    );
+                    let _ = append_to_transcript(room_id, thought_log).await;
+
                     // Give the clue
                     let mut rooms = state.rooms.lock().await;
                     if let Some(room) = rooms.get_mut(&room_id) {
@@ -910,9 +941,11 @@ async fn handle_ai_action(
 
                         let _ = state.broadcast_tx.send((room_id, ServerMessage::ClueGiven {
                             team,
-                            word,
+                            word: word.clone(),
                             number,
                         }));
+
+                        let _ = append_to_transcript(room_id, format!("**{:?} Spymaster (AI)** gives clue: `{} {}`", team, word, number)).await;
                     }
                 }
                 Err(e) => {
@@ -931,15 +964,32 @@ async fn handle_ai_action(
             };
 
             match llm_client.make_guess(&api_key, &ai_config.model, &game_view, team, &clue).await {
-                Ok(position) => {
+                Ok((position, debug_info)) => {
+                    // Log AI thought process
+                    let thought_log = format!(
+                        "### AI Thinking ({} Operative - {})
+**Prompt:**
+{}
+
+**Response:**
+{}",
+                        match team { Team::Red => "Red", Team::Blue => "Blue" },
+                        ai_config.model,
+                        debug_info.prompt,
+                        debug_info.response
+                    );
+                    let _ = append_to_transcript(room_id, thought_log).await;
+
                     // Make the guess
                     let mut rooms = state.rooms.lock().await;
                     if let Some(room) = rooms.get_mut(&room_id) {
                         let result = match room.game.make_guess(team, position) {
                             Ok(r) => r,
-                            Err(e) => return vec![ServerMessage::Error {
-                                message: e.to_string(),
-                            }],
+                            Err(e) => {
+                                return vec![ServerMessage::Error {
+                                    message: e.to_string(),
+                                }];
+                            }
                         };
 
                         let card = &room.game.cards[position];
@@ -984,12 +1034,22 @@ async fn handle_ai_action(
                         let _ = state.broadcast_tx.send((room_id, ServerMessage::GuessMade {
                             team,
                             position,
-                            result: result_info,
+                            result: result_info.clone(),
                         }));
+
+                        // Log to transcript
+                        let result_str = if result_info.correct {
+                            "Correct".to_string()
+                        } else {
+                            format!("Wrong - {}", result_info.color)
+                        };
+                        let log = format!("**{:?} Operative (AI)** guesses: `{}` (Result: {})", team, result_info.word, result_str);
+                        let _ = append_to_transcript(room_id, log).await;
 
                         if room.game.phase == GamePhase::Finished {
                             if let Some(winner) = room.game.winner {
                                 let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
+                                let _ = append_to_transcript(room_id, format!("**Game Over! Winner: {:?}**", winner)).await;
                             }
                         }
                     }
@@ -1033,10 +1093,13 @@ async fn handle_chat(
     let timestamp = chrono::Utc::now().format("%H:%M:%S").to_string();
 
     let _ = state.broadcast_tx.send((room_id, ServerMessage::ChatMessage {
-        player_name,
-        message,
+        player_name: player_name.clone(),
+        message: message.clone(),
         timestamp,
     }));
+
+    // Log to transcript
+    let _ = append_to_transcript(room_id, format!("**{}:** {}", player_name, message)).await;
 
     vec![]
 }

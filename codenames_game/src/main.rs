@@ -1,6 +1,7 @@
 mod api;
 mod game;
 mod llm;
+mod transcript;
 mod websocket;
 
 use axum::{

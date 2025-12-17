@@ -22,6 +22,12 @@ struct OpenRouterModel {
     name: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LlmDebugInfo {
+    pub prompt: String,
+    pub response: String,
+}
+
 impl LlmClient {
     pub fn new() -> Self {
         Self {
@@ -82,7 +88,7 @@ impl LlmClient {
         model: &str,
         game_view: &GameView,
         team: Team,
-    ) -> Result<(String, u8)> {
+    ) -> Result<(String, u8, LlmDebugInfo)> {
         let prompt = build_spymaster_prompt(game_view, team);
 
         info!("Generating clue for {:?} team using model {}", team, model);
@@ -92,8 +98,14 @@ impl LlmClient {
 
         info!("LLM response: {}", response);
 
+        let debug_info = LlmDebugInfo {
+            prompt,
+            response: response.clone(),
+        };
+
         // Parse the response to extract clue word and number
-        parse_clue_response(&response)
+        let (word, number) = parse_clue_response(&response)?;
+        Ok((word, number, debug_info))
     }
 
     /// Make a guess as an operative
@@ -104,7 +116,7 @@ impl LlmClient {
         game_view: &GameView,
         team: Team,
         clue: &Clue,
-    ) -> Result<usize> {
+    ) -> Result<(usize, LlmDebugInfo)> {
         let prompt = build_operative_prompt(game_view, team, clue);
 
         info!("Generating guess for {:?} team using model {}", team, model);
@@ -114,8 +126,14 @@ impl LlmClient {
 
         info!("LLM response: {}", response);
 
+        let debug_info = LlmDebugInfo {
+            prompt,
+            response: response.clone(),
+        };
+
         // Parse the response to extract the chosen word position
-        parse_guess_response(&response, game_view)
+        let position = parse_guess_response(&response, game_view)?;
+        Ok((position, debug_info))
     }
 
     async fn chat_completion(&self, api_key: &str, model: &str, prompt: &str) -> Result<String> {
