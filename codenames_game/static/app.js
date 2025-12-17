@@ -194,14 +194,13 @@ class CodenamesGame {
         const configs = [
             { team: 'red', role: 'spymaster', search: 'anthropic/claude-sonnet-4.5' },
             { team: 'red', role: 'operative', search: 'google/gemini-3-flash-preview' },
-            { team: 'blue', role: 'spymaster', search: 'x-ai/grok-4.1-fast' },
-            { team: 'blue', role: 'operative', search: 'anthropic/claude-haiku-4.5' }
+            { team: 'blue', role: 'spymaster', search: 'x-ai/grok-4.1-fast' }
         ];
 
         for (const config of configs) {
             // Find best matching model
             let modelId = 'openai/gpt-4o-mini'; // fallback
-            if (this.availableModels.length > 0) {
+            if (this.availableModels && this.availableModels.length > 0) {
                 const match = this.availableModels.find(m => 
                     m.id.toLowerCase().includes(config.search) || 
                     m.name.toLowerCase().includes(config.search)
@@ -216,7 +215,7 @@ class CodenamesGame {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        name: `${config.search.charAt(0).toUpperCase() + config.search.slice(1)} Bot`,
+                        name: `${config.search.split('/')[1] || config.search} Bot`,
                         team: config.team,
                         role: config.role,
                         model: modelId,
@@ -230,6 +229,10 @@ class CodenamesGame {
             }
         }
         
+        // Set current player as Blue Operative
+        this.joinTeam('blue');
+        setTimeout(() => this.setRole('operative'), 100);
+
         this.showToast('Quick populate complete', 'success');
         this.send({ type: 'request_state' });
     }
