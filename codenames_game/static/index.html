@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenames - Play with Friends & AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Landing Screen -->
+        <div id="landing-screen" class="screen active">
+            <div class="landing-container">
+                <div class="logo-section">
+                    <h1 class="game-title">CODENAMES</h1>
+                    <p class="game-subtitle">Play with friends and AI agents</p>
+                </div>
+
+                <div class="landing-content">
+                    <div class="card create-game-card">
+                        <h2>Create New Game</h2>
+                        <div class="form-group">
+                            <label for="room-name">Room Name</label>
+                            <input type="text" id="room-name" placeholder="Enter room name..." maxlength="30">
+                        </div>
+                        <div class="form-group">
+                            <label for="player-name-create">Your Name</label>
+                            <input type="text" id="player-name-create" placeholder="Enter your name..." maxlength="20">
+                        </div>
+                        <button id="create-room-btn" class="btn btn-primary btn-large">Create Room</button>
+                    </div>
+
+                    <div class="divider">
+                        <span>OR</span>
+                    </div>
+
+                    <div class="card join-game-card">
+                        <h2>Join Existing Game</h2>
+                        <div id="room-list" class="room-list">
+                            <p class="loading">Loading rooms...</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="player-name-join">Your Name</label>
+                            <input type="text" id="player-name-join" placeholder="Enter your name..." maxlength="20">
+                        </div>
+                        <button id="refresh-rooms-btn" class="btn btn-secondary">Refresh Rooms</button>
+                    </div>
+                </div>
+
+                <div class="api-key-section">
+                    <details>
+                        <summary>AI Configuration (Optional)</summary>
+                        <div class="form-group">
+                            <label for="api-key">OpenRouter API Key</label>
+                            <input type="password" id="api-key" placeholder="sk-or-...">
+                            <p class="hint">Get your key at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a></p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen" class="screen">
+            <div class="lobby-container">
+                <div class="lobby-header">
+                    <button id="leave-lobby-btn" class="btn btn-ghost">&larr; Leave</button>
+                    <h1 id="lobby-room-name">Room Name</h1>
+                    <div class="room-id-display">
+                        Room ID: <span id="lobby-room-id"></span>
+                    </div>
+                </div>
+
+                <div class="lobby-content">
+                    <div class="teams-section">
+                        <!-- Red Team -->
+                        <div class="team-panel team-red">
+                            <div class="team-header">
+                                <h2>Red Team</h2>
+                                <span class="team-count" id="red-count">0</span>
+                            </div>
+                            <div class="team-roles">
+                                <div class="role-section">
+                                    <h3>Spymaster</h3>
+                                    <div id="red-spymaster" class="player-slot spymaster-slot">
+                                        <span class="empty-slot">Empty</span>
+                                    </div>
+                                </div>
+                                <div class="role-section">
+                                    <h3>Operatives</h3>
+                                    <div id="red-operatives" class="player-slots">
+                                        <span class="empty-slot">No operatives</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="team-actions">
+                                <button class="btn btn-red join-team-btn" data-team="red">Join Red</button>
+                            </div>
+                        </div>
+
+                        <!-- Unassigned -->
+                        <div class="unassigned-panel">
+                            <h3>Unassigned Players</h3>
+                            <div id="unassigned-players" class="player-list">
+                                <span class="empty-slot">No unassigned players</span>
+                            </div>
+
+                            <div class="ai-controls">
+                                <h3>Add AI Player</h3>
+                                <div class="form-group">
+                                    <label for="ai-name">AI Name</label>
+                                    <input type="text" id="ai-name" placeholder="AI Player" maxlength="20">
+                                </div>
+                                <div class="form-group">
+                                    <label for="ai-team">Team</label>
+                                    <select id="ai-team">
+                                        <option value="red">Red</option>
+                                        <option value="blue">Blue</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ai-role">Role</label>
+                                    <select id="ai-role">
+                                        <option value="spymaster">Spymaster</option>
+                                        <option value="operative">Operative</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ai-model">Model</label>
+                                    <select id="ai-model">
+                                        <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+                                    </select>
+                                </div>
+                                <button id="add-ai-btn" class="btn btn-secondary">Add AI</button>
+                            </div>
+                        </div>
+
+                        <!-- Blue Team -->
+                        <div class="team-panel team-blue">
+                            <div class="team-header">
+                                <h2>Blue Team</h2>
+                                <span class="team-count" id="blue-count">0</span>
+                            </div>
+                            <div class="team-roles">
+                                <div class="role-section">
+                                    <h3>Spymaster</h3>
+                                    <div id="blue-spymaster" class="player-slot spymaster-slot">
+                                        <span class="empty-slot">Empty</span>
+                                    </div>
+                                </div>
+                                <div class="role-section">
+                                    <h3>Operatives</h3>
+                                    <div id="blue-operatives" class="player-slots">
+                                        <span class="empty-slot">No operatives</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="team-actions">
+                                <button class="btn btn-blue join-team-btn" data-team="blue">Join Blue</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lobby-controls">
+                        <div class="role-selection" id="role-selection" style="display: none;">
+                            <p>Select your role:</p>
+                            <button class="btn btn-outline role-btn" data-role="spymaster">Spymaster</button>
+                            <button class="btn btn-outline role-btn" data-role="operative">Operative</button>
+                        </div>
+
+                        <div id="start-game-section" class="start-section">
+                            <button id="start-game-btn" class="btn btn-primary btn-large" disabled>
+                                Start Game
+                            </button>
+                            <p class="start-requirements">
+                                Each team needs at least 1 player and a spymaster
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="game-info">
+                        <span id="game-room-name" class="room-name"></span>
+                        <span id="turn-indicator" class="turn-indicator"></span>
+                    </div>
+                    <div class="score-display">
+                        <div class="score red-score">
+                            <span class="score-label">Red</span>
+                            <span id="red-remaining" class="score-value">9</span>
+                        </div>
+                        <div class="score blue-score">
+                            <span class="score-label">Blue</span>
+                            <span id="blue-remaining" class="score-value">8</span>
+                        </div>
+                    </div>
+                    <div class="game-actions">
+                        <button id="reset-game-btn" class="btn btn-ghost">New Game</button>
+                    </div>
+                </div>
+
+                <div class="game-main">
+                    <div class="game-sidebar left-sidebar">
+                        <div class="team-roster team-red-roster">
+                            <h3>Red Team</h3>
+                            <div id="game-red-players" class="roster-list"></div>
+                        </div>
+                        <div class="clue-history-section">
+                            <h3>Clue History</h3>
+                            <div id="clue-history" class="clue-history"></div>
+                        </div>
+                    </div>
+
+                    <div class="game-board-section">
+                        <div id="game-board" class="game-board">
+                            <!-- Cards will be rendered here -->
+                        </div>
+
+                        <div class="action-panel">
+                            <!-- Spymaster Clue Input -->
+                            <div id="clue-input-panel" class="action-card" style="display: none;">
+                                <h3>Give a Clue</h3>
+                                <div class="clue-form">
+                                    <input type="text" id="clue-word" placeholder="One word clue..." maxlength="30">
+                                    <input type="number" id="clue-number" min="0" max="9" value="1" placeholder="#">
+                                    <button id="give-clue-btn" class="btn btn-primary">Give Clue</button>
+                                </div>
+                            </div>
+
+                            <!-- Current Clue Display -->
+                            <div id="current-clue-panel" class="action-card" style="display: none;">
+                                <div class="current-clue">
+                                    <span class="clue-label">Current Clue:</span>
+                                    <span id="current-clue-word" class="clue-word"></span>
+                                    <span id="current-clue-number" class="clue-number"></span>
+                                </div>
+                                <div class="guess-info">
+                                    <span>Guesses: <span id="guesses-made">0</span> / <span id="guesses-allowed">1</span></span>
+                                </div>
+                                <button id="pass-turn-btn" class="btn btn-secondary" style="display: none;">End Turn</button>
+                            </div>
+
+                            <!-- AI Action Button -->
+                            <div id="ai-action-panel" class="action-card" style="display: none;">
+                                <p id="ai-thinking-text">Waiting for AI...</p>
+                                <button id="trigger-ai-btn" class="btn btn-primary">Trigger AI Action</button>
+                            </div>
+
+                            <!-- Waiting Message -->
+                            <div id="waiting-panel" class="action-card" style="display: none;">
+                                <p id="waiting-text">Waiting for other team...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-sidebar right-sidebar">
+                        <div class="team-roster team-blue-roster">
+                            <h3>Blue Team</h3>
+                            <div id="game-blue-players" class="roster-list"></div>
+                        </div>
+                        <div class="chat-section">
+                            <h3>Chat</h3>
+                            <div id="chat-messages" class="chat-messages"></div>
+                            <div class="chat-input">
+                                <input type="text" id="chat-input" placeholder="Type a message..." maxlength="200">
+                                <button id="send-chat-btn" class="btn btn-small">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="game-over-modal" class="modal" style="display: none;">
+            <div class="modal-content game-over-content">
+                <h2 id="winner-text">Game Over!</h2>
+                <div id="winner-animation" class="winner-animation"></div>
+                <div class="modal-actions">
+                    <button id="play-again-btn" class="btn btn-primary btn-large">Play Again</button>
+                    <button id="back-to-lobby-btn" class="btn btn-secondary">Back to Lobby</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
