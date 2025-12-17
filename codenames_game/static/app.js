@@ -37,7 +37,11 @@ class CodenamesGame {
             btn.addEventListener('click', (e) => this.setRole(e.target.dataset.role));
         });
         document.getElementById('add-ai-btn').addEventListener('click', () => this.addAiPlayer());
+        document.getElementById('quick-populate-btn').addEventListener('click', () => this.quickPopulate());
         document.getElementById('start-game-btn').addEventListener('click', () => this.startGame());
+        document.getElementById('ai-model-filter').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.filterModels(e.target.value);
+        });
 
         // Game screen
         document.getElementById('give-clue-btn').addEventListener('click', () => this.giveClue());
@@ -182,6 +186,52 @@ class CodenamesGame {
             console.error('Failed to add AI player:', error);
             this.showToast('Failed to add AI player', 'error');
         }
+    }
+
+    async quickPopulate() {
+        if (!this.roomId) return;
+
+        const configs = [
+            { team: 'red', role: 'spymaster', search: 'sonnet' },
+            { team: 'red', role: 'operative', search: 'gemini' },
+            { team: 'blue', role: 'spymaster', search: 'grok' },
+            { team: 'blue', role: 'operative', search: 'haiku' }
+        ];
+
+        for (const config of configs) {
+            // Find best matching model
+            let modelId = 'openai/gpt-4o-mini'; // fallback
+            if (this.availableModels.length > 0) {
+                const match = this.availableModels.find(m => 
+                    m.id.toLowerCase().includes(config.search) || 
+                    m.name.toLowerCase().includes(config.search)
+                );
+                if (match) {
+                    modelId = match.id;
+                }
+            }
+
+            try {
+                await fetch(`/api/rooms/${this.roomId}/ai-player`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: `${config.search.charAt(0).toUpperCase() + config.search.slice(1)} Bot`,
+                        team: config.team,
+                        role: config.role,
+                        model: modelId,
+                        api_key: this.apiKey || null
+                    })
+                });
+                // Small delay to ensure order and avoid rate limits
+                await new Promise(r => setTimeout(r, 200));
+            } catch (error) {
+                console.error(`Failed to add ${config.search} bot:`, error);
+            }
+        }
+        
+        this.showToast('Quick populate complete', 'success');
+        this.send({ type: 'request_state' });
     }
 
     // ===== WebSocket Connection =====
@@ -560,7 +610,7 @@ class CodenamesGame {
 
         if (!currentPlayer) return;
 
-        // Check if AI should act
+        // Check if AI should act (for AI trigger button)
         const currentTeamPlayers = this.gameState.players.filter(p => p.team === game.current_team);
         const activeAI = currentTeamPlayers.find(p => {
             if (!p.is_ai) return false;
@@ -573,7 +623,6 @@ class CodenamesGame {
             document.getElementById('ai-action-panel').style.display = 'block';
             document.getElementById('ai-thinking-text').textContent =
                 `${activeAI.name} is ready to ${game.turn_phase === 'giving_clue' ? 'give a clue' : 'guess'}`;
-            // Store the AI player ID for triggering
             const btn = document.getElementById('trigger-ai-btn');
             btn.dataset.aiId = activeAI.id;
             
@@ -584,24 +633,22 @@ class CodenamesGame {
                 btn.disabled = false;
                 btn.textContent = 'Trigger AI Action';
             }
-            return;
         }
 
+        // Handle turn-specific panels
         if (!isMyTeamTurn) {
             document.getElementById('waiting-panel').style.display = 'block';
             document.getElementById('waiting-text').textContent =
                 `Waiting for ${game.current_team.toUpperCase()} team...`;
-            return;
-        }
-
-        if (game.turn_phase === 'giving_clue') {
+        } else if (game.turn_phase === 'giving_clue') {
             if (isSpymaster) {
                 document.getElementById('clue-input-panel').style.display = 'block';
-            } else {
+            } else if (!activeAI) {
                 document.getElementById('waiting-panel').style.display = 'block';
                 document.getElementById('waiting-text').textContent = 'Waiting for your Spymaster...';
             }
         } else if (game.turn_phase === 'guessing') {
+            // ALWAYS show current clue panel in guessing phase
             document.getElementById('current-clue-panel').style.display = 'block';
 
             if (game.current_clue) {
@@ -610,7 +657,7 @@ class CodenamesGame {
                 document.getElementById('guesses-made').textContent = game.current_clue.guesses_made;
                 document.getElementById('guesses-allowed').textContent = game.current_clue.number + 1;
 
-                // Show pass button for operatives
+                // Show pass button for human operatives
                 const passBtnDisplay = !isSpymaster ? 'inline-block' : 'none';
                 document.getElementById('pass-turn-btn').style.display = passBtnDisplay;
             }
