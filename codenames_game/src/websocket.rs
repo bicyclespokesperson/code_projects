@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::{
     game::{GamePhase, GameRoom, GuessResult, Player, Role, Team, TurnPhase},
-    llm::LlmClient,
+    llm::{clean_response, extract_thought, AiGuess, LlmClient},
     transcript::append_to_transcript,
     AppState,
 };
@@ -960,13 +960,17 @@ async fn handle_ai_action(
             match llm_client.generate_clue(&api_key, &ai_config.model, &game_view, team).await {
                 Ok((word, number, debug_info)) => {
                     // Log AI thought process
+                    let thought = extract_thought(&debug_info.response).unwrap_or_else(|| "No thought provided".to_string());
+                    let answer = clean_response(&debug_info.response);
+                    
                     let thought_log = format!(
-                        "### AI Thinking ({} - {} Spymaster - {})\n**Prompt:**\n{}\n\n**Response:**\n{}",
+                        "### AI Thinking ({} - {} Spymaster - {})\n**Prompt:**\n{}\n\n**Thought:**\n{}\n\n**Final Answer:**\n{}",
                         player_name,
                         match team { Team::Red => "Red", Team::Blue => "Blue" },
                         ai_config.model,
                         debug_info.prompt,
-                        debug_info.response
+                        thought,
+                        answer
                     );
                     let _ = append_to_transcript(room_id, &room_name, thought_log).await;
 
@@ -1004,88 +1008,108 @@ async fn handle_ai_action(
             };
 
             match llm_client.make_guess(&api_key, &ai_config.model, &game_view, team, &clue).await {
-                Ok((position, debug_info)) => {
+                Ok((ai_guess, debug_info)) => {
                     // Log AI thought process
+                    let thought = extract_thought(&debug_info.response).unwrap_or_else(|| "No thought provided".to_string());
+                    let answer = clean_response(&debug_info.response);
+
                     let thought_log = format!(
-                        "### AI Thinking ({} - {} Operative - {})\n**Prompt:**\n{}\n\n**Response:**\n{}",
+                        "### AI Thinking ({} - {} Operative - {})\n**Prompt:**\n{}\n\n**Thought:**\n{}\n\n**Final Answer:**\n{}",
                         player_name,
                         match team { Team::Red => "Red", Team::Blue => "Blue" },
                         ai_config.model,
                         debug_info.prompt,
-                        debug_info.response
+                        thought,
+                        answer
                     );
                     let _ = append_to_transcript(room_id, &room_name, thought_log).await;
 
-                    // Make the guess
-                    let mut rooms = state.rooms.lock().await;
-                    if let Some(room) = rooms.get_mut(&room_id) {
-                        let result = match room.game.make_guess(team, position) {
-                            Ok(r) => r,
-                            Err(e) => {
-                                return vec![ServerMessage::Error {
-                                    message: e.to_string(),
-                                }];
+                    match ai_guess {
+                        AiGuess::Position(position) => {
+                            // Make the guess
+                            let mut rooms = state.rooms.lock().await;
+                            if let Some(room) = rooms.get_mut(&room_id) {
+                                let result = match room.game.make_guess(team, position) {
+                                    Ok(r) => r,
+                                    Err(e) => {
+                                        return vec![ServerMessage::Error {
+                                            message: e.to_string(),
+                                        }];
+                                    }
+                                };
+
+                                let card = &room.game.cards[position];
+                                let result_info = match &result {
+                                    GuessResult::Correct { color, word } => GuessResultInfo {
+                                        word: word.clone(),
+                                        color: format!("{:?}", color),
+                                        correct: true,
+                                        game_over: false,
+                                        winner: None,
+                                    },
+                                    GuessResult::WrongTeam { color, word } => GuessResultInfo {
+                                        word: word.clone(),
+                                        color: format!("{:?}", color),
+                                        correct: false,
+                                        game_over: false,
+                                        winner: None,
+                                    },
+                                    GuessResult::Neutral { word } => GuessResultInfo {
+                                        word: word.clone(),
+                                        color: "Neutral".to_string(),
+                                        correct: false,
+                                        game_over: false,
+                                        winner: None,
+                                    },
+                                    GuessResult::Assassin { winner } => GuessResultInfo {
+                                        word: card.word.clone(),
+                                        color: "Assassin".to_string(),
+                                        correct: false,
+                                        game_over: true,
+                                        winner: Some(*winner),
+                                    },
+                                    GuessResult::LastCard { winner, word } => GuessResultInfo {
+                                        word: word.clone(),
+                                        color: format!("{:?}", team),
+                                        correct: true,
+                                        game_over: true,
+                                        winner: Some(*winner),
+                                    },
+                                };
+
+                                let _ = state.broadcast_tx.send((room_id, ServerMessage::GuessMade {
+                                    team,
+                                    position,
+                                    result: result_info.clone(),
+                                }));
+
+                                // Log to transcript
+                                let result_str = if result_info.correct {
+                                    "Correct".to_string()
+                                } else {
+                                    format!("Wrong - {}", result_info.color)
+                                };
+                                let log = format!("**{} ({:?} Operative AI)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
+                                let _ = append_to_transcript(room_id, &room_name, log).await;
+
+                                if room.game.phase == GamePhase::Finished {
+                                    if let Some(winner) = room.game.winner {
+                                        let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
+                                        let _ = append_to_transcript(room_id, &room_name, format!("**Game Over! Winner: {:?}**", winner)).await;
+                                    }
+                                }
                             }
-                        };
-
-                        let card = &room.game.cards[position];
-                        let result_info = match &result {
-                            GuessResult::Correct { color, word } => GuessResultInfo {
-                                word: word.clone(),
-                                color: format!("{:?}", color),
-                                correct: true,
-                                game_over: false,
-                                winner: None,
-                            },
-                            GuessResult::WrongTeam { color, word } => GuessResultInfo {
-                                word: word.clone(),
-                                color: format!("{:?}", color),
-                                correct: false,
-                                game_over: false,
-                                winner: None,
-                            },
-                            GuessResult::Neutral { word } => GuessResultInfo {
-                                word: word.clone(),
-                                color: "Neutral".to_string(),
-                                correct: false,
-                                game_over: false,
-                                winner: None,
-                            },
-                            GuessResult::Assassin { winner } => GuessResultInfo {
-                                word: card.word.clone(),
-                                color: "Assassin".to_string(),
-                                correct: false,
-                                game_over: true,
-                                winner: Some(*winner),
-                            },
-                            GuessResult::LastCard { winner, word } => GuessResultInfo {
-                                word: word.clone(),
-                                color: format!("{:?}", team),
-                                correct: true,
-                                game_over: true,
-                                winner: Some(*winner),
-                            },
-                        };
-
-                        let _ = state.broadcast_tx.send((room_id, ServerMessage::GuessMade {
-                            team,
-                            position,
-                            result: result_info.clone(),
-                        }));
-
-                        // Log to transcript
-                        let result_str = if result_info.correct {
-                            "Correct".to_string()
-                        } else {
-                            format!("Wrong - {}", result_info.color)
-                        };
-                        let log = format!("**{} ({:?} Operative AI)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
-                        let _ = append_to_transcript(room_id, &room_name, log).await;
-
-                        if room.game.phase == GamePhase::Finished {
-                            if let Some(winner) = room.game.winner {
-                                let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
-                                let _ = append_to_transcript(room_id, &room_name, format!("**Game Over! Winner: {:?}**", winner)).await;
+                        }
+                        AiGuess::Pass => {
+                            let mut rooms = state.rooms.lock().await;
+                            if let Some(room) = rooms.get_mut(&room_id) {
+                                if let Err(e) = room.game.pass_turn(team) {
+                                    return vec![ServerMessage::Error {
+                                        message: e.to_string(),
+                                    }];
+                                }
+                                let _ = state.broadcast_tx.send((room_id, ServerMessage::TurnPassed { team }));
+                                let _ = append_to_transcript(room_id, &room_name, format!("**{} ({:?} Operative AI)** passed turn.", player_name, team)).await;
                             }
                         }
                     }

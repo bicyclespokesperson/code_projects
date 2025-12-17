@@ -28,6 +28,12 @@ pub struct LlmDebugInfo {
     pub response: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AiGuess {
+    Position(usize),
+    Pass,
+}
+
 impl LlmClient {
     pub fn new() -> Self {
         Self {
@@ -116,7 +122,7 @@ impl LlmClient {
         game_view: &GameView,
         team: Team,
         clue: &Clue,
-    ) -> Result<(usize, LlmDebugInfo)> {
+    ) -> Result<(AiGuess, LlmDebugInfo)> {
         let prompt = build_operative_prompt(game_view, team, clue);
 
         info!("Generating guess for {:?} team using model {}", team, model);
@@ -132,8 +138,8 @@ impl LlmClient {
         };
 
         // Parse the response to extract the chosen word position
-        let position = parse_guess_response(&response, game_view)?;
-        Ok((position, debug_info))
+        let guess = parse_guess_response(&response, game_view)?;
+        Ok((guess, debug_info))
     }
 
     async fn chat_completion(&self, api_key: &str, model: &str, prompt: &str) -> Result<String> {
@@ -149,7 +155,7 @@ impl LlmClient {
                     content: prompt.to_string(),
                 },
             ],
-            max_tokens: Some(256),
+            max_tokens: Some(1024),
             temperature: Some(0.7),
         };
 
@@ -288,10 +294,15 @@ RULES:
 - The clue CANNOT be a word that sounds like or rhymes with a word on the board
 - Try to connect multiple team words while avoiding opponent/assassin words
 
-Respond with ONLY the clue in this exact format:
+First, enclose your reasoning in <thinking> tags.
+Then, respond with ONLY the clue in this exact format:
 CLUE: [word] [number]
 
-Example: CLUE: OCEAN 3"#,
+Example:
+<thinking>
+...reasoning...
+</thinking>
+CLUE: OCEAN 3"#,
         team_color = team_color,
         team_words = team_words.join(", "),
         opponent_words = opponent_words.join(", "),
@@ -348,10 +359,18 @@ YOUR TASK:
 Choose ONE word from the available words that best matches the clue "{clue_word}".
 Think about which word has the strongest connection to the clue.
 
-Respond with ONLY the position number of your guess:
+First, enclose your reasoning in <thinking> tags.
+Then, respond with ONLY the position number of your guess:
 GUESS: [number]
 
-Example: GUESS: 5"#,
+OR if you want to end your turn (because you are unsure or have made enough guesses):
+GUESS: PASS
+
+Example:
+<thinking>
+...reasoning...
+</thinking>
+GUESS: 5"#,
         team_color = team_color,
         clue_word = clue.word,
         clue_number = clue.number,
@@ -361,9 +380,10 @@ Example: GUESS: 5"#,
     )
 }
 
-fn parse_clue_response(response: &str) -> Result<(String, u8)> {
-    // Try to find "CLUE: word number" pattern
-    let response = response.trim();
+fn parse_clue_response(raw_response: &str) -> Result<(String, u8)> {
+    // Strip thinking tags if present
+    let cleaned_response = strip_thinking_tags(raw_response);
+    let response = cleaned_response.trim();
 
     // Look for the CLUE: prefix
     let clue_part = if let Some(idx) = response.to_uppercase().find("CLUE:") {
@@ -381,7 +401,7 @@ fn parse_clue_response(response: &str) -> Result<(String, u8)> {
             .unwrap_or(1);
 
         if word.is_empty() {
-            return Err(anyhow!("Could not parse clue word from response"));
+            return Err(anyhow!("Could not parse clue word from response: {}", raw_response));
         }
 
         return Ok((word, number.min(9)));
@@ -408,8 +428,15 @@ fn parse_clue_response(response: &str) -> Result<(String, u8)> {
     Ok((word, number))
 }
 
-fn parse_guess_response(response: &str, game_view: &GameView) -> Result<usize> {
-    let response = response.trim();
+fn parse_guess_response(raw_response: &str, game_view: &GameView) -> Result<AiGuess> {
+    // Strip thinking tags if present
+    let cleaned_response = strip_thinking_tags(raw_response);
+    let response = cleaned_response.trim();
+
+    // Check for PASS
+    if response.to_uppercase().contains("GUESS: PASS") || response.to_uppercase().trim() == "PASS" {
+        return Ok(AiGuess::Pass);
+    }
 
     // Try to find "GUESS: number" pattern
     let guess_part = if let Some(idx) = response.to_uppercase().find("GUESS:") {
@@ -418,16 +445,14 @@ fn parse_guess_response(response: &str, game_view: &GameView) -> Result<usize> {
         response
     };
 
-    // Try to parse a number
+    // Try to parse a number (find first numeric token)
     let number: Option<usize> = guess_part
-        .trim()
         .split_whitespace()
-        .next()
-        .and_then(|s| s.trim_matches(|c: char| !c.is_numeric()).parse().ok());
+        .find_map(|s| s.trim_matches(|c: char| !c.is_numeric()).parse().ok());
 
     if let Some(pos) = number {
         if pos < game_view.cards.len() && !game_view.cards[pos].revealed {
-            return Ok(pos);
+            return Ok(AiGuess::Position(pos));
         }
     }
 
@@ -435,11 +460,79 @@ fn parse_guess_response(response: &str, game_view: &GameView) -> Result<usize> {
     let response_upper = response.to_uppercase();
     for card in &game_view.cards {
         if !card.revealed && response_upper.contains(&card.word.to_uppercase()) {
-            return Ok(card.position);
+            return Ok(AiGuess::Position(card.position));
         }
     }
 
-    Err(anyhow!("Could not parse guess from response: {}", response))
+    // Fallback: Check raw response for GUESS: <number> pattern (in case stripping failed or format is weird)
+    if let Some(idx) = raw_response.to_uppercase().find("GUESS:") {
+        let fallback_part = &raw_response[idx + 6..];
+        
+        // Check for PASS in raw
+        if fallback_part.trim().to_uppercase().starts_with("PASS") {
+            return Ok(AiGuess::Pass);
+        }
+
+        let fallback_number: Option<usize> = fallback_part
+            .split_whitespace()
+            .find_map(|s| s.trim_matches(|c: char| !c.is_numeric()).parse().ok());
+        
+        if let Some(pos) = fallback_number {
+            if pos < game_view.cards.len() && !game_view.cards[pos].revealed {
+                return Ok(AiGuess::Position(pos));
+            }
+        }
+    }
+
+    // Fallback: Check for raw "I pass" or "pass turn" if nothing else
+    if raw_response.to_uppercase().contains("GUESS: PASS") {
+        return Ok(AiGuess::Pass);
+    }
+
+    Err(anyhow!("Could not parse guess from response: {}", raw_response))
+}
+
+pub fn extract_thought(response: &str) -> Option<String> {
+    let lower_response = response.to_lowercase();
+    let start_tag = "<thinking>";
+    let end_tag = "</thinking>";
+
+    if let Some(start_idx) = lower_response.find(start_tag) {
+        let content_start = start_idx + start_tag.len();
+        if let Some(end_idx) = lower_response.find(end_tag) {
+            if end_idx > start_idx {
+                return Some(response[content_start..end_idx].trim().to_string());
+            }
+        }
+        // If no end tag (truncated), return everything after start tag
+        return Some(response[content_start..].trim().to_string());
+    }
+    None
+}
+
+pub fn clean_response(response: &str) -> String {
+    let lower_response = response.to_lowercase();
+    let start_tag = "<thinking>";
+    let end_tag = "</thinking>";
+
+    if let Some(start_idx) = lower_response.find(start_tag) {
+        if let Some(end_idx) = lower_response.find(end_tag) {
+            if end_idx > start_idx {
+                let mut result = String::new();
+                result.push_str(&response[..start_idx]);
+                // Skip the tag and content, continue after end tag
+                result.push_str(&response[end_idx + end_tag.len()..]);
+                return result.trim().to_string();
+            }
+        }
+        // If no end tag (truncated), keep only what's before the start tag
+        return response[..start_idx].trim().to_string();
+    }
+    response.trim().to_string()
+}
+
+fn strip_thinking_tags(response: &str) -> String {
+    clean_response(response)
 }
 
 /// Available models through OpenRouter

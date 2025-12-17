@@ -9,6 +9,7 @@ class CodenamesGame {
         this.playerName = '';
         this.selectedRoom = null;
         this.apiKey = localStorage.getItem('openrouter_api_key') || '';
+        this.isAiProcessing = false;
 
         this.init();
     }
@@ -268,11 +269,13 @@ class CodenamesGame {
                 break;
 
             case 'clue_given':
+                this.isAiProcessing = false;
                 this.showToast(`${message.team} Spymaster: "${message.word}" ${message.number}`, 'info');
                 this.send({ type: 'request_state' });
                 break;
 
             case 'guess_made':
+                this.isAiProcessing = false;
                 const resultText = message.result.correct ? 'Correct!' : `Wrong - ${message.result.color}`;
                 this.showToast(`${message.team} guessed ${message.result.word}: ${resultText}`,
                     message.result.correct ? 'success' : 'error');
@@ -280,11 +283,13 @@ class CodenamesGame {
                 break;
 
             case 'turn_passed':
+                this.isAiProcessing = false;
                 this.showToast(`${message.team} ended their turn`, 'info');
                 this.send({ type: 'request_state' });
                 break;
 
             case 'game_ended':
+                this.isAiProcessing = false;
                 this.showGameOver(message.winner);
                 break;
 
@@ -294,6 +299,12 @@ class CodenamesGame {
 
             case 'ai_thinking':
                 this.showToast(`AI is ${message.action}...`, 'info');
+                const btn = document.getElementById('trigger-ai-btn');
+                if (btn) {
+                    btn.textContent = 'Thinking...';
+                    this.isAiProcessing = true;
+                    btn.disabled = true;
+                }
                 break;
 
             case 'game_reset':
@@ -303,6 +314,7 @@ class CodenamesGame {
                 break;
 
             case 'error':
+                this.isAiProcessing = false;
                 this.showToast(message.message, 'error');
                 break;
         }
@@ -562,7 +574,16 @@ class CodenamesGame {
             document.getElementById('ai-thinking-text').textContent =
                 `${activeAI.name} is ready to ${game.turn_phase === 'giving_clue' ? 'give a clue' : 'guess'}`;
             // Store the AI player ID for triggering
-            document.getElementById('trigger-ai-btn').dataset.aiId = activeAI.id;
+            const btn = document.getElementById('trigger-ai-btn');
+            btn.dataset.aiId = activeAI.id;
+            
+            if (this.isAiProcessing) {
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Trigger AI Action';
+            }
             return;
         }
 
@@ -665,8 +686,12 @@ class CodenamesGame {
     }
 
     triggerAiAction() {
-        const aiId = document.getElementById('trigger-ai-btn').dataset.aiId;
+        const btn = document.getElementById('trigger-ai-btn');
+        const aiId = btn.dataset.aiId;
         if (aiId) {
+            this.isAiProcessing = true;
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
             this.send({ type: 'request_ai_action', player_id: aiId });
         }
     }
