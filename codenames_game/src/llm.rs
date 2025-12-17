@@ -46,7 +46,7 @@ impl LlmClient {
 
         let response: OpenRouterModelsResponse = response.json().await?;
 
-        let models = response.data
+        let mut models: Vec<ModelInfo> = response.data
             .into_iter()
             .map(|m| {
                 let provider = m.id.split('/').next().unwrap_or("Unknown").to_string();
@@ -63,6 +63,14 @@ impl LlmClient {
                 }
             })
             .collect();
+
+        // Sort models by provider, then by name
+        models.sort_by(|a, b| {
+            match a.provider.cmp(&b.provider) {
+                std::cmp::Ordering::Equal => a.name.cmp(&b.name),
+                other => other,
+            }
+        });
 
         Ok(models)
     }

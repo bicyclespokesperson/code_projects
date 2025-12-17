@@ -99,7 +99,8 @@ class CodenamesGame {
             const data = await response.json();
 
             if (data.success) {
-                this.renderModelSelect(data.data);
+                this.availableModels = data.data;
+                this.renderModelSelect(this.availableModels);
             }
         } catch (error) {
             console.error('Failed to fetch models:', error);
@@ -315,6 +316,21 @@ class CodenamesGame {
                 <span class="room-item-info">${room.player_count} players - ${room.phase}</span>
             </div>
         `).join('');
+    }
+
+    filterModels(query) {
+        if (!query) {
+            this.renderModelSelect(this.availableModels);
+            return;
+        }
+        
+        const lowerQuery = query.toLowerCase();
+        const filtered = this.availableModels.filter(m => 
+            m.name.toLowerCase().includes(lowerQuery) || 
+            m.provider.toLowerCase().includes(lowerQuery) ||
+            m.id.toLowerCase().includes(lowerQuery)
+        );
+        this.renderModelSelect(filtered);
     }
 
     renderModelSelect(models) {

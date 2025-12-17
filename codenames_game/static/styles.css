@@ -215,6 +215,12 @@ select:focus {
     border-color: var(--blue-primary);
 }
 
+.model-filter {
+    margin-bottom: var(--spacing-sm) !important;
+    font-size: 0.9rem !important;
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
+}
+
 input::placeholder {
     color: var(--text-muted);
 }
