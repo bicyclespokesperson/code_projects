@@ -26,6 +26,7 @@ pub enum ClientMessage {
     JoinRoom {
         room_id: Uuid,
         player_name: String,
+        player_id: Option<Uuid>,
     },
     /// Leave the current room
     LeaveRoom,
@@ -305,6 +306,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
                 .map(|p| p.name.clone())
                 .unwrap_or_else(|| "Unknown".to_string());
 
+            let room_name = room.game.name.clone();
             room.remove_player(player_id);
 
             // Broadcast player left
@@ -312,7 +314,7 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
             let _ = state.broadcast_tx.send((room_id, msg));
 
             // Log to transcript
-            let _ = append_to_transcript(room_id, format!("**{}** left the room.", player_name)).await;
+            let _ = append_to_transcript(room_id, &room_name, format!("**{}** left the room.", player_name)).await;
 
             // Remove empty rooms
             if room.players.is_empty() {
@@ -329,8 +331,8 @@ async fn handle_client_message(
     msg: ClientMessage,
 ) -> Vec<ServerMessage> {
     match msg {
-        ClientMessage::JoinRoom { room_id, player_name } => {
-            handle_join_room(state, conn_state, room_id, player_name).await
+        ClientMessage::JoinRoom { room_id, player_name, player_id } => {
+            handle_join_room(state, conn_state, room_id, player_name, player_id).await
         }
         ClientMessage::LeaveRoom => {
             handle_leave_room(state, conn_state).await
@@ -373,6 +375,7 @@ async fn handle_join_room(
     conn_state: &mut ConnectionState,
     room_id: Uuid,
     player_name: String,
+    claimed_player_id: Option<Uuid>,
 ) -> Vec<ServerMessage> {
     let mut rooms = state.rooms.lock().await;
 
@@ -385,38 +388,51 @@ async fn handle_join_room(
         }
     };
 
-    let player = Player::new_human(player_name.clone());
-    let player_id = player.id;
+    let (player_id, is_new_join) = if let Some(id) = claimed_player_id {
+        // Client claims an ID (e.g. host connecting after creation)
+        if room.get_player(id).is_some() {
+            (id, false)
+        } else {
+            return vec![ServerMessage::Error {
+                message: "Claimed player ID not found in room".to_string(),
+            }];
+        }
+    } else {
+        // No ID provided, create new player
+        let player = Player::new_human(player_name.clone());
+        if let Err(e) = room.add_player(player.clone()) {
+            return vec![ServerMessage::Error {
+                message: e.to_string(),
+            }];
+        }
+        (player.id, true)
+    };
 
-    // Update connection state's player_id to match the new player
+    // Update connection state
     conn_state.player_id = player_id;
-
-    if let Err(e) = room.add_player(player.clone()) {
-        return vec![ServerMessage::Error {
-            message: e.to_string(),
-        }];
-    }
-
     conn_state.room_id = Some(room_id);
 
     // Get room state for the joining player
     let room_state = build_room_state(room, conn_state.player_id);
+    let room_name = room.game.name.clone();
 
-    // Broadcast player joined to others
-    let player_info = PlayerInfo {
-        id: player_id,
-        name: player_name.clone(),
-        team: None,
-        role: None,
-        is_ai: false,
-    };
+    // Broadcast player joined to others ONLY if it's a new join
+    if is_new_join {
+        let player_info = PlayerInfo {
+            id: player_id,
+            name: player_name.clone(),
+            team: None,
+            role: None,
+            is_ai: false,
+        };
 
-    let _ = state.broadcast_tx.send((room_id, ServerMessage::PlayerJoined {
-        player: player_info,
-    }));
+        let _ = state.broadcast_tx.send((room_id, ServerMessage::PlayerJoined {
+            player: player_info,
+        }));
 
-    // Log to transcript
-    let _ = append_to_transcript(room_id, format!("**{}** joined the room.", player_name)).await;
+        // Log to transcript
+        let _ = append_to_transcript(room_id, &room_name, format!("**{}** joined the room.", player_name)).await;
+    }
 
     vec![
         ServerMessage::RoomJoined { room_id, player_id },
@@ -462,6 +478,8 @@ async fn handle_set_team(
         }],
     };
 
+    let room_name = room.game.name.clone();
+
     if let Some(player) = room.get_player_mut(conn_state.player_id) {
         player.team = Some(team);
 
@@ -478,7 +496,7 @@ async fn handle_set_team(
         }));
 
         // Log to transcript
-        let _ = append_to_transcript(room_id, format!("**{}** joined the **{:?}** team.", player.name, team)).await;
+        let _ = append_to_transcript(room_id, &room_name, format!("**{}** joined the **{:?}** team.", player.name, team)).await;
 
         vec![]
     } else {
@@ -507,6 +525,8 @@ async fn handle_set_role(
             message: "Room not found".to_string(),
         }],
     };
+
+    let room_name = room.game.name.clone();
 
     // First, check if player exists and get their team
     let player_info_opt = room.get_player(conn_state.player_id).map(|p| (p.id, p.team));
@@ -549,7 +569,7 @@ async fn handle_set_role(
         }));
 
         // Log to transcript
-        let _ = append_to_transcript(room_id, format!("**{}** became the **{:?}**.", player.name, role)).await;
+        let _ = append_to_transcript(room_id, &room_name, format!("**{}** became the **{:?}**.", player.name, role)).await;
 
         vec![]
     } else {
@@ -602,7 +622,7 @@ async fn handle_start_game(
     let _ = state.broadcast_tx.send((room_id, ServerMessage::GameStarted));
 
     // Log to transcript
-    let _ = append_to_transcript(room_id, "Game started.".to_string()).await;
+    let _ = append_to_transcript(room_id, &room.game.name, "Game started.".to_string()).await;
 
     // Send updated game state to all
     let room_state = build_room_state(room, conn_state.player_id);
@@ -669,7 +689,7 @@ async fn handle_give_clue(
 
     // Log to transcript
     let log = format!("**{} ({:?} Spymaster)** gives clue: `{} {}`", player_name, team, word, number);
-    let _ = append_to_transcript(room_id, log).await;
+    let _ = append_to_transcript(room_id, &room.game.name, log).await;
 
     vec![]
 }
@@ -776,13 +796,13 @@ async fn handle_make_guess(
         format!("Wrong - {}", result_info.color)
     };
     let log = format!("**{} ({:?} Operative)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
-    let _ = append_to_transcript(room_id, log).await;
+    let _ = append_to_transcript(room_id, &room.game.name, log).await;
 
     // If game ended, broadcast game ended
     if room.game.phase == GamePhase::Finished {
         if let Some(winner) = room.game.winner {
             let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
-            let _ = append_to_transcript(room_id, format!("**Game Over! Winner: {:?}**", winner)).await;
+            let _ = append_to_transcript(room_id, &room.game.name, format!("**Game Over! Winner: {:?}**", winner)).await;
         }
     }
 
@@ -833,7 +853,7 @@ async fn handle_pass_turn(
     let _ = state.broadcast_tx.send((room_id, ServerMessage::TurnPassed { team }));
 
     // Log to transcript
-    let _ = append_to_transcript(room_id, format!("**{} ({:?})** ended their turn.", player_name, team)).await;
+    let _ = append_to_transcript(room_id, &room.game.name, format!("**{} ({:?})** ended their turn.", player_name, team)).await;
 
     vec![]
 }
@@ -851,7 +871,7 @@ async fn handle_ai_action(
     };
 
     // Get room data and AI player info
-    let (ai_config, team, role, player_name, game_view, current_clue) = {
+    let (ai_config, team, role, player_name, room_name, game_view, current_clue) = {
         let rooms = state.rooms.lock().await;
         let room = match rooms.get(&room_id) {
             Some(room) => room,
@@ -906,8 +926,9 @@ async fn handle_ai_action(
         let is_spymaster = role == Role::Spymaster;
         let game_view = room.game.get_view(is_spymaster);
         let current_clue = room.game.current_clue.clone();
+        let room_name = room.game.name.clone();
 
-        (ai_config, team, role, player_name, game_view, current_clue)
+        (ai_config, team, role, player_name, room_name, game_view, current_clue)
     };
 
     // Get API key
@@ -947,7 +968,7 @@ async fn handle_ai_action(
                         debug_info.prompt,
                         debug_info.response
                     );
-                    let _ = append_to_transcript(room_id, thought_log).await;
+                    let _ = append_to_transcript(room_id, &room_name, thought_log).await;
 
                     // Give the clue
                     let mut rooms = state.rooms.lock().await;
@@ -964,7 +985,7 @@ async fn handle_ai_action(
                             number,
                         }));
 
-                        let _ = append_to_transcript(room_id, format!("**{} ({:?} Spymaster AI)** gives clue: `{} {}`", player_name, team, word, number)).await;
+                        let _ = append_to_transcript(room_id, &room_name, format!("**{} ({:?} Spymaster AI)** gives clue: `{} {}`", player_name, team, word, number)).await;
                     }
                 }
                 Err(e) => {
@@ -993,7 +1014,7 @@ async fn handle_ai_action(
                         debug_info.prompt,
                         debug_info.response
                     );
-                    let _ = append_to_transcript(room_id, thought_log).await;
+                    let _ = append_to_transcript(room_id, &room_name, thought_log).await;
 
                     // Make the guess
                     let mut rooms = state.rooms.lock().await;
@@ -1059,12 +1080,12 @@ async fn handle_ai_action(
                             format!("Wrong - {}", result_info.color)
                         };
                         let log = format!("**{} ({:?} Operative AI)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
-                        let _ = append_to_transcript(room_id, log).await;
+                        let _ = append_to_transcript(room_id, &room_name, log).await;
 
                         if room.game.phase == GamePhase::Finished {
                             if let Some(winner) = room.game.winner {
                                 let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
-                                let _ = append_to_transcript(room_id, format!("**Game Over! Winner: {:?}**", winner)).await;
+                                let _ = append_to_transcript(room_id, &room_name, format!("**Game Over! Winner: {:?}**", winner)).await;
                             }
                         }
                     }
@@ -1114,7 +1135,7 @@ async fn handle_chat(
     }));
 
     // Log to transcript
-    let _ = append_to_transcript(room_id, format!("**{}:** {}", player_name, message)).await;
+    let _ = append_to_transcript(room_id, &room.game.name, format!("**{}:** {}", player_name, message)).await;
 
     vec![]
 }
