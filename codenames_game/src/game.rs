@@ -486,7 +486,7 @@ impl GameRoom {
     }
 
     pub fn can_start(&self) -> bool {
-        // Need at least one player on each team
+        // Need at least two players on each team
         let red_count = self.players.values().filter(|p| p.team == Some(Team::Red)).count();
         let blue_count = self.players.values().filter(|p| p.team == Some(Team::Blue)).count();
 
@@ -498,7 +498,7 @@ impl GameRoom {
             p.team == Some(Team::Blue) && p.role == Some(Role::Spymaster)
         });
 
-        red_count >= 1 && blue_count >= 1 && red_spymaster && blue_spymaster
+        red_count >= 2 && blue_count >= 2 && red_spymaster && blue_spymaster
     }
 
     pub fn get_spymaster(&self, team: Team) -> Option<&Player> {

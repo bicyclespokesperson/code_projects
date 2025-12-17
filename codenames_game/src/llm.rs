@@ -440,18 +440,15 @@ fn parse_guess_response(response: &str, game_view: &GameView) -> Result<usize> {
 
 /// Available models through OpenRouter
 pub const AVAILABLE_MODELS: &[(&str, &str, &str)] = &[
-    ("openai/gpt-4o", "GPT-4o", "OpenAI"),
-    ("openai/gpt-4o-mini", "GPT-4o Mini", "OpenAI"),
-    ("openai/gpt-4-turbo", "GPT-4 Turbo", "OpenAI"),
-    ("anthropic/claude-3.5-sonnet", "Claude 3.5 Sonnet", "Anthropic"),
-    ("anthropic/claude-3-opus", "Claude 3 Opus", "Anthropic"),
-    ("anthropic/claude-3-haiku", "Claude 3 Haiku", "Anthropic"),
-    ("google/gemini-pro-1.5", "Gemini Pro 1.5", "Google"),
+    ("google/gemini-3-pro", "Gemini 3 Pro", "Google"),
     ("google/gemini-flash-1.5", "Gemini Flash 1.5", "Google"),
+    ("anthropic/claude-4-opus", "Claude 4 Opus", "Anthropic"),
+    ("anthropic/claude-4-sonnet", "Claude 4 Sonnet", "Anthropic"),
+    ("openai/gpt-5", "GPT-5", "OpenAI"),
+    ("openai/gpt-4o", "GPT-4o", "OpenAI"),
+    ("openai/o1-preview", "OpenAI o1", "OpenAI"),
     ("meta-llama/llama-3.1-70b-instruct", "Llama 3.1 70B", "Meta"),
-    ("meta-llama/llama-3.1-8b-instruct", "Llama 3.1 8B", "Meta"),
     ("mistralai/mistral-large", "Mistral Large", "Mistral"),
-    ("mistralai/mistral-small", "Mistral Small", "Mistral"),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
