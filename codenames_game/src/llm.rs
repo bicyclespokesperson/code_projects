@@ -155,8 +155,9 @@ impl LlmClient {
                     content: prompt.to_string(),
                 },
             ],
-            max_tokens: Some(1024),
+            max_tokens: Some(8192),
             temperature: Some(0.7),
+            include_reasoning: Some(true),
         };
 
         let response = self.client
@@ -199,6 +200,8 @@ struct OpenRouterRequest {
     max_tokens: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     temperature: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    include_reasoning: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -340,11 +343,21 @@ fn build_operative_prompt(game_view: &GameView, team: Team, clue: &Clue) -> Stri
         .collect::<Vec<_>>()
         .join("\n");
 
+    let max_guesses = clue.number + 1;
+    let guesses_left = max_guesses.saturating_sub(clue.guesses_made);
+    
+    let instructions = if clue.guesses_made < clue.number {
+        format!("You have {} guesses remaining for this clue.", guesses_left)
+    } else {
+        "You have found all words for this clue! You have 1 BONUS guess remaining. You can try to guess a word missed from a previous turn, or PASS.".to_string()
+    };
+
     format!(r#"You are a {team_color} OPERATIVE in Codenames.
 
 The spymaster gave the clue: "{clue_word}" {clue_number}
 
 This means there are approximately {clue_number} words on the board related to "{clue_word}".
+{instructions}
 
 AVAILABLE WORDS TO GUESS (position. word):
 {words}
@@ -374,6 +387,7 @@ GUESS: 5"#,
         team_color = team_color,
         clue_word = clue.word,
         clue_number = clue.number,
+        instructions = instructions,
         words = available_words.join("\n"),
         revealed = if revealed_info.is_empty() { "None".to_string() } else { revealed_info.join(", ") },
         history = if clue_history.is_empty() { "None".to_string() } else { clue_history },

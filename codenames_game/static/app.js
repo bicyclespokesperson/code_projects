@@ -192,10 +192,10 @@ class CodenamesGame {
         if (!this.roomId) return;
 
         const configs = [
-            { team: 'red', role: 'spymaster', search: 'sonnet' },
-            { team: 'red', role: 'operative', search: 'gemini' },
-            { team: 'blue', role: 'spymaster', search: 'grok' },
-            { team: 'blue', role: 'operative', search: 'haiku' }
+            { team: 'red', role: 'spymaster', search: 'anthropic/claude-sonnet-4.5' },
+            { team: 'red', role: 'operative', search: 'google/gemini-3-flash-preview' },
+            { team: 'blue', role: 'spymaster', search: 'x-ai/grok-4.1-fast' },
+            { team: 'blue', role: 'operative', search: 'anthropic/claude-haiku-4.5' }
         ];
 
         for (const config of configs) {
@@ -602,15 +602,31 @@ class CodenamesGame {
     }
 
     updateActionPanel(game, currentPlayer, isSpymaster, isMyTeamTurn) {
-        // Hide all panels
+        // 1. Reset all displays
         document.getElementById('clue-input-panel').style.display = 'none';
         document.getElementById('current-clue-panel').style.display = 'none';
         document.getElementById('ai-action-panel').style.display = 'none';
         document.getElementById('waiting-panel').style.display = 'none';
+        const passBtn = document.getElementById('pass-turn-btn');
+        passBtn.style.display = 'none';
 
         if (!currentPlayer) return;
 
-        // Check if AI should act (for AI trigger button)
+        // 2. Global Info: Current Clue (Visible to everyone in Guessing phase)
+        if (game.turn_phase === 'guessing' && game.current_clue) {
+            document.getElementById('current-clue-panel').style.display = 'block';
+            document.getElementById('current-clue-word').textContent = game.current_clue.word;
+            document.getElementById('current-clue-number').textContent = game.current_clue.number;
+            document.getElementById('guesses-made').textContent = game.current_clue.guesses_made;
+            document.getElementById('guesses-allowed').textContent = game.current_clue.number + 1;
+            
+            // Show Pass Button ONLY if it's my turn and I'm an operative
+            if (isMyTeamTurn && !isSpymaster) {
+                passBtn.style.display = 'block';
+            }
+        }
+
+        // 3. AI Controls
         const currentTeamPlayers = this.gameState.players.filter(p => p.team === game.current_team);
         const activeAI = currentTeamPlayers.find(p => {
             if (!p.is_ai) return false;
@@ -635,31 +651,34 @@ class CodenamesGame {
             }
         }
 
-        // Handle turn-specific panels
-        if (!isMyTeamTurn) {
+        // 4. Human Spymaster Input
+        if (isMyTeamTurn && game.turn_phase === 'giving_clue' && isSpymaster) {
+            document.getElementById('clue-input-panel').style.display = 'block';
+        }
+
+        // 5. Waiting State
+        let showWaiting = !isMyTeamTurn;
+        
+        if (isMyTeamTurn) {
+            if (game.turn_phase === 'giving_clue' && !isSpymaster) showWaiting = true; // Operative waiting for Spymaster
+            if (game.turn_phase === 'guessing' && isSpymaster) showWaiting = true; // Spymaster waiting for Operative
+        }
+
+        // If AI controls are visible, we don't need waiting text
+        if (document.getElementById('ai-action-panel').style.display === 'block') {
+            showWaiting = false;
+        }
+
+        if (showWaiting) {
             document.getElementById('waiting-panel').style.display = 'block';
-            document.getElementById('waiting-text').textContent =
-                `Waiting for ${game.current_team.toUpperCase()} team...`;
-        } else if (game.turn_phase === 'giving_clue') {
-            if (isSpymaster) {
-                document.getElementById('clue-input-panel').style.display = 'block';
-            } else if (!activeAI) {
-                document.getElementById('waiting-panel').style.display = 'block';
-                document.getElementById('waiting-text').textContent = 'Waiting for your Spymaster...';
-            }
-        } else if (game.turn_phase === 'guessing') {
-            // ALWAYS show current clue panel in guessing phase
-            document.getElementById('current-clue-panel').style.display = 'block';
-
-            if (game.current_clue) {
-                document.getElementById('current-clue-word').textContent = game.current_clue.word;
-                document.getElementById('current-clue-number').textContent = game.current_clue.number;
-                document.getElementById('guesses-made').textContent = game.current_clue.guesses_made;
-                document.getElementById('guesses-allowed').textContent = game.current_clue.number + 1;
-
-                // Show pass button for human operatives
-                const passBtnDisplay = !isSpymaster ? 'inline-block' : 'none';
-                document.getElementById('pass-turn-btn').style.display = passBtnDisplay;
+            const waitingText = document.getElementById('waiting-text');
+            
+            if (!isMyTeamTurn) {
+                waitingText.textContent = `Waiting for ${game.current_team.toUpperCase()} team...`;
+            } else if (game.turn_phase === 'giving_clue') {
+                waitingText.textContent = 'Waiting for Spymaster clue...';
+            } else {
+                waitingText.textContent = 'Waiting for Operatives to guess...';
             }
         }
     }

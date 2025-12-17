@@ -538,36 +538,38 @@ input::placeholder {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
 }
 
 .game-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-md);
     background: var(--bg-card);
     border-radius: var(--radius-md);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
 }
 
 .game-info {
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
 }
 
 .room-name {
     font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .turn-indicator {
-    padding: var(--spacing-xs) var(--spacing-md);
+    padding: 2px 8px;
     border-radius: var(--radius-sm);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     animation: pulse 2s infinite;
+    font-size: 0.8rem;
 }
 
 .turn-indicator.red {
@@ -589,12 +591,12 @@ input::placeholder {
 
 .score-display {
     display: flex;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
 }
 
 .score {
     text-align: center;
-    padding: var(--spacing-xs) var(--spacing-lg);
+    padding: 2px 12px;
     border-radius: var(--radius-sm);
 }
 
@@ -610,15 +612,16 @@ input::placeholder {
 
 .score-label {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--text-secondary);
 }
 
 .score-value {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
+    line-height: 1.2;
 }
 
 .red-score .score-value { color: var(--red-primary); }
@@ -627,15 +630,15 @@ input::placeholder {
 .game-main {
     flex: 1;
     display: grid;
-    grid-template-columns: 250px 1fr 250px;
-    gap: var(--spacing-md);
+    grid-template-columns: 220px 1fr 220px;
+    gap: var(--spacing-sm);
     overflow: hidden;
 }
 
 .game-sidebar {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     overflow-y: auto;
 }
 
@@ -644,15 +647,15 @@ input::placeholder {
 .chat-section {
     background: var(--bg-card);
     border-radius: var(--radius-md);
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
 }
 
 .team-roster h3,
 .clue-history-section h3,
 .chat-section h3 {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
     font-family: 'Inter', sans-serif;
 }
 
@@ -662,17 +665,17 @@ input::placeholder {
 .roster-list {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: 2px;
 }
 
 .roster-player {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    gap: var(--spacing-xs);
+    padding: 2px 6px;
     background: var(--bg-secondary);
     border-radius: var(--radius-sm);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 .roster-player.current-turn {
@@ -680,31 +683,31 @@ input::placeholder {
 }
 
 .roster-player .role-badge {
-    font-size: 0.75rem;
-    padding: 2px 6px;
+    font-size: 0.7rem;
+    padding: 1px 4px;
     border-radius: var(--radius-sm);
     background: var(--bg-card-hover);
     color: var(--text-muted);
 }
 
 .roster-player .ai-badge {
-    font-size: 0.7rem;
-    padding: 2px 4px;
+    font-size: 0.65rem;
+    padding: 1px 3px;
     border-radius: var(--radius-sm);
     background: var(--warning);
     color: var(--bg-primary);
 }
 
 .clue-history {
-    max-height: 200px;
+    max-height: 150px;
     overflow-y: auto;
 }
 
 .clue-entry {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    margin-bottom: var(--spacing-xs);
+    padding: 2px 6px;
+    margin-bottom: 2px;
     border-radius: var(--radius-sm);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .clue-entry.red { background: var(--red-bg); }
@@ -719,37 +722,39 @@ input::placeholder {
 .game-board-section {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .game-board {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
     flex: 1;
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
     background: var(--bg-card);
     border-radius: var(--radius-lg);
 }
 
 .card-tile {
-    aspect-ratio: 1.6;
+    aspect-ratio: 1.8;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xs);
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: clamp(0.7rem, 1.5vw, 1rem);
+    font-size: clamp(0.6rem, 1.2vw, 0.9rem);
     cursor: pointer;
     transition: all var(--transition-fast);
     border: 2px solid transparent;
     text-align: center;
     word-break: break-word;
-    line-height: 1.2;
+    line-height: 1.1;
 }
 
 .card-tile:hover:not(.revealed):not(.disabled) {
@@ -815,66 +820,72 @@ input::placeholder {
 
 /* ===== Action Panel ===== */
 .action-panel {
-    min-height: 80px;
+    min-height: 60px;
 }
 
 .action-card {
     background: var(--bg-card);
     border-radius: var(--radius-md);
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
     text-align: center;
 }
 
 .action-card h3 {
-    margin-bottom: var(--spacing-md);
-    font-size: 1rem;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.9rem;
 }
 
 .clue-form {
     display: flex;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
     justify-content: center;
     align-items: center;
 }
 
 .clue-form input[type="text"] {
-    max-width: 200px;
+    max-width: 180px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
 }
 
 .clue-form input[type="number"] {
-    width: 60px;
+    width: 50px;
     text-align: center;
+    padding: 4px;
+    font-size: 0.9rem;
 }
 
 .current-clue {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
 }
 
 .clue-label {
     color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
 .clue-word {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
 }
 
 .clue-number {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     background: var(--bg-secondary);
-    padding: var(--spacing-xs) var(--spacing-md);
+    padding: 2px 8px;
     border-radius: var(--radius-sm);
 }
 
 .guess-info {
     color: var(--text-secondary);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.85rem;
 }
 
 /* ===== Chat ===== */
@@ -888,16 +899,16 @@ input::placeholder {
     flex: 1;
     overflow-y: auto;
     margin-bottom: var(--spacing-sm);
-    min-height: 150px;
-    max-height: 300px;
+    min-height: 100px;
+    max-height: 200px;
 }
 
 .chat-message {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    margin-bottom: var(--spacing-xs);
+    padding: 2px 6px;
+    margin-bottom: 2px;
     background: var(--bg-secondary);
     border-radius: var(--radius-sm);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .chat-message-sender {
@@ -906,7 +917,7 @@ input::placeholder {
 }
 
 .chat-message-time {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     margin-left: var(--spacing-xs);
 }
@@ -918,6 +929,8 @@ input::placeholder {
 
 .chat-input input {
     flex: 1;
+    padding: 4px 8px;
+    font-size: 0.9rem;
 }
 
 /* ===== Modal ===== */
