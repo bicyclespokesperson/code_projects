@@ -469,6 +469,7 @@ class CodenamesGame {
             this.renderGameBoard(game, isSpymaster, isMyRole && !isSpymaster);
             this.renderGamePlayers(players, game.current_team);
             this.renderClueHistory(game.clue_history);
+            this.renderTranscript(game.transcript);
             this.updateActionPanel(game, currentPlayer, isSpymaster, isMyTeamTurn);
         }
     }
@@ -602,6 +603,26 @@ class CodenamesGame {
                 <span class="clue-entry-number">${clue.number}</span>
             </div>
         `).reverse().join('');
+    }
+
+    renderTranscript(transcript) {
+        const container = document.getElementById('game-transcript');
+        if (!transcript) return;
+
+        if (transcript.length === 0) {
+            container.innerHTML = '<p class="empty-slot">No transcript yet</p>';
+            return;
+        }
+
+        container.innerHTML = transcript.map(log => {
+            // Simple markdown parser for bold text
+            const formatted = this.escapeHtml(log)
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            return `<div class="transcript-entry">${formatted}</div>`;
+        }).join('');
+        
+        container.scrollTop = container.scrollHeight;
     }
 
     updateActionPanel(game, currentPlayer, isSpymaster, isMyTeamTurn) {

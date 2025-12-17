@@ -277,6 +277,7 @@ fn build_public_room_state(room: &GameRoom) -> RoomState {
             cards,
             current_clue,
             clue_history,
+            transcript: game_view.transcript,
             red_remaining: game_view.red_remaining,
             blue_remaining: game_view.blue_remaining,
             starting_team: game_view.starting_team,

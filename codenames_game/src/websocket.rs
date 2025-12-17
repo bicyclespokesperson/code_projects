@@ -161,6 +161,7 @@ pub struct GameStateInfo {
     pub cards: Vec<CardInfo>,
     pub current_clue: Option<ClueInfo>,
     pub clue_history: Vec<ClueInfo>,
+    pub transcript: Vec<String>,
     pub red_remaining: u8,
     pub blue_remaining: u8,
     pub starting_team: Team,
@@ -314,7 +315,9 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
             let _ = state.broadcast_tx.send((room_id, msg));
 
             // Log to transcript
-            let _ = append_to_transcript(room_id, &room_name, format!("**{}** left the room.", player_name)).await;
+            let log_msg = format!("**{}** left the room.", player_name);
+            room.game.transcript.push(log_msg.clone());
+            let _ = append_to_transcript(room_id, &room_name, log_msg).await;
 
             // Remove empty rooms
             if room.players.is_empty() {
@@ -431,7 +434,9 @@ async fn handle_join_room(
         }));
 
         // Log to transcript
-        let _ = append_to_transcript(room_id, &room_name, format!("**{}** joined the room.", player_name)).await;
+        let log_msg = format!("**{}** joined the room.", player_name);
+        room.game.transcript.push(log_msg.clone());
+        let _ = append_to_transcript(room_id, &room_name, log_msg).await;
     }
 
     vec![
@@ -496,7 +501,9 @@ async fn handle_set_team(
         }));
 
         // Log to transcript
-        let _ = append_to_transcript(room_id, &room_name, format!("**{}** joined the **{:?}** team.", player.name, team)).await;
+        let log_msg = format!("**{}** joined the **{:?}** team.", player.name, team);
+        room.game.transcript.push(log_msg.clone());
+        let _ = append_to_transcript(room_id, &room_name, log_msg).await;
 
         vec![]
     } else {
@@ -569,7 +576,9 @@ async fn handle_set_role(
         }));
 
         // Log to transcript
-        let _ = append_to_transcript(room_id, &room_name, format!("**{}** became the **{:?}**.", player.name, role)).await;
+        let log_msg = format!("**{}** became the **{:?}**.", player.name, role);
+        room.game.transcript.push(log_msg.clone());
+        let _ = append_to_transcript(room_id, &room_name, log_msg).await;
 
         vec![]
     } else {
@@ -622,7 +631,9 @@ async fn handle_start_game(
     let _ = state.broadcast_tx.send((room_id, ServerMessage::GameStarted));
 
     // Log to transcript
-    let _ = append_to_transcript(room_id, &room.game.name, "Game started.".to_string()).await;
+    let log_msg = "Game started.".to_string();
+    room.game.transcript.push(log_msg.clone());
+    let _ = append_to_transcript(room_id, &room.game.name, log_msg).await;
 
     // Send updated game state to all
     let room_state = build_room_state(room, conn_state.player_id);
@@ -689,6 +700,7 @@ async fn handle_give_clue(
 
     // Log to transcript
     let log = format!("**{} ({:?} Spymaster)** gives clue: `{} {}`", player_name, team, word, number);
+    room.game.transcript.push(log.clone());
     let _ = append_to_transcript(room_id, &room.game.name, log).await;
 
     vec![]
@@ -796,13 +808,16 @@ async fn handle_make_guess(
         format!("Wrong - {}", result_info.color)
     };
     let log = format!("**{} ({:?} Operative)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
+    room.game.transcript.push(log.clone());
     let _ = append_to_transcript(room_id, &room.game.name, log).await;
 
     // If game ended, broadcast game ended
     if room.game.phase == GamePhase::Finished {
         if let Some(winner) = room.game.winner {
             let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
-            let _ = append_to_transcript(room_id, &room.game.name, format!("**Game Over! Winner: {:?}**", winner)).await;
+            let end_msg = format!("**Game Over! Winner: {:?}**", winner);
+            room.game.transcript.push(end_msg.clone());
+            let _ = append_to_transcript(room_id, &room.game.name, end_msg).await;
         }
     }
 
@@ -853,7 +868,9 @@ async fn handle_pass_turn(
     let _ = state.broadcast_tx.send((room_id, ServerMessage::TurnPassed { team }));
 
     // Log to transcript
-    let _ = append_to_transcript(room_id, &room.game.name, format!("**{} ({:?})** ended their turn.", player_name, team)).await;
+    let log_msg = format!("**{} ({:?})** ended their turn.", player_name, team);
+    room.game.transcript.push(log_msg.clone());
+    let _ = append_to_transcript(room_id, &room.game.name, log_msg).await;
 
     vec![]
 }
@@ -989,7 +1006,9 @@ async fn handle_ai_action(
                             number,
                         }));
 
-                        let _ = append_to_transcript(room_id, &room_name, format!("**{} ({:?} Spymaster AI)** gives clue: `{} {}`", player_name, team, word, number)).await;
+                        let log_msg = format!("**{} ({:?} Spymaster AI)** gives clue: `{} {}`", player_name, team, word, number);
+                        room.game.transcript.push(log_msg.clone());
+                        let _ = append_to_transcript(room_id, &room_name, log_msg).await;
                     }
                 }
                 Err(e) => {
@@ -1090,12 +1109,15 @@ async fn handle_ai_action(
                                     format!("Wrong - {}", result_info.color)
                                 };
                                 let log = format!("**{} ({:?} Operative AI)** guesses: `{}` (Result: {})", player_name, team, result_info.word, result_str);
+                                room.game.transcript.push(log.clone());
                                 let _ = append_to_transcript(room_id, &room_name, log).await;
 
                                 if room.game.phase == GamePhase::Finished {
                                     if let Some(winner) = room.game.winner {
                                         let _ = state.broadcast_tx.send((room_id, ServerMessage::GameEnded { winner }));
-                                        let _ = append_to_transcript(room_id, &room_name, format!("**Game Over! Winner: {:?}**", winner)).await;
+                                        let end_msg = format!("**Game Over! Winner: {:?}**", winner);
+                                        room.game.transcript.push(end_msg.clone());
+                                        let _ = append_to_transcript(room_id, &room_name, end_msg).await;
                                     }
                                 }
                             }
@@ -1109,7 +1131,9 @@ async fn handle_ai_action(
                                     }];
                                 }
                                 let _ = state.broadcast_tx.send((room_id, ServerMessage::TurnPassed { team }));
-                                let _ = append_to_transcript(room_id, &room_name, format!("**{} ({:?} Operative AI)** passed turn.", player_name, team)).await;
+                                let pass_msg = format!("**{} ({:?} Operative AI)** passed turn.", player_name, team);
+                                room.game.transcript.push(pass_msg.clone());
+                                let _ = append_to_transcript(room_id, &room_name, pass_msg).await;
                             }
                         }
                     }
@@ -1138,8 +1162,8 @@ async fn handle_chat(
         }],
     };
 
-    let rooms = state.rooms.lock().await;
-    let room = match rooms.get(&room_id) {
+    let mut rooms = state.rooms.lock().await;
+    let room = match rooms.get_mut(&room_id) {
         Some(room) => room,
         None => return vec![ServerMessage::Error {
             message: "Room not found".to_string(),
@@ -1159,7 +1183,9 @@ async fn handle_chat(
     }));
 
     // Log to transcript
-    let _ = append_to_transcript(room_id, &room.game.name, format!("**{}:** {}", player_name, message)).await;
+    let log_msg = format!("**{}:** {}", player_name, message);
+    room.game.transcript.push(log_msg.clone());
+    let _ = append_to_transcript(room_id, &room.game.name, log_msg).await;
 
     vec![]
 }
@@ -1280,6 +1306,7 @@ fn build_room_state(room: &GameRoom, viewer_id: Uuid) -> RoomState {
             cards,
             current_clue,
             clue_history,
+            transcript: game_view.transcript,
             red_remaining: game_view.red_remaining,
             blue_remaining: game_view.blue_remaining,
             starting_team: game_view.starting_team,
