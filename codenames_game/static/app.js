@@ -197,7 +197,8 @@ class CodenamesGame {
                 this.send({
                     type: 'join_room',
                     room_id: this.roomId,
-                    player_name: this.playerName
+                    player_name: this.playerName,
+                    player_id: this.playerId
                 });
             }
         };
@@ -555,7 +556,8 @@ class CodenamesGame {
             return p.role === 'operative';
         });
 
-        if (activeAI && isMyTeamTurn) {
+        const isHost = this.gameState.host_id === this.playerId;
+        if (activeAI && (isMyTeamTurn || isHost)) {
             document.getElementById('ai-action-panel').style.display = 'block';
             document.getElementById('ai-thinking-text').textContent =
                 `${activeAI.name} is ready to ${game.turn_phase === 'giving_clue' ? 'give a clue' : 'guess'}`;
