@@ -142,7 +142,15 @@ class CodenamesGame {
     async addAiPlayer() {
         if (!this.roomId) return;
 
-        const name = document.getElementById('ai-name').value.trim() || 'AI Player';
+        let name = document.getElementById('ai-name').value.trim();
+        const modelSelect = document.getElementById('ai-model');
+        
+        if (!name && modelSelect.selectedIndex >= 0) {
+            name = modelSelect.options[modelSelect.selectedIndex].text;
+        }
+        
+        if (!name) name = 'AI Player';
+
         const team = document.getElementById('ai-team').value;
         const role = document.getElementById('ai-role').value;
         const model = document.getElementById('ai-model').value;
@@ -447,7 +455,8 @@ class CodenamesGame {
 
     renderPlayerChip(player) {
         const isMe = player.id === this.playerId;
-        const canRemove = this.gameState.host_id === this.playerId && player.is_ai;
+        const isHost = this.gameState.host_id === this.playerId;
+        const canRemove = isHost && !isMe;
 
         return `
             <span class="player-chip ${player.is_ai ? 'is-ai' : ''} ${isMe ? 'is-me' : ''}">
