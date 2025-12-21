@@ -161,6 +161,16 @@ h1, h2, h3, h4 {
     color: white;
 }
 
+.btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
 .btn-ghost {
     background: transparent;
     color: var(--text-secondary);
