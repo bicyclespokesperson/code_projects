@@ -10,6 +10,7 @@ class CodenamesGame {
         this.selectedRoom = null;
         this.apiKey = localStorage.getItem('openrouter_api_key') || '';
         this.isAiProcessing = false;
+        this.isAutoPlaying = false;
 
         this.init();
     }
@@ -47,6 +48,8 @@ class CodenamesGame {
         document.getElementById('give-clue-btn').addEventListener('click', () => this.giveClue());
         document.getElementById('pass-turn-btn').addEventListener('click', () => this.passTurn());
         document.getElementById('trigger-ai-btn').addEventListener('click', () => this.triggerAiAction());
+        document.getElementById('autoplay-btn').addEventListener('click', () => this.startAutoPlay());
+        document.getElementById('stop-autoplay-btn').addEventListener('click', () => this.stopAutoPlay());
         document.getElementById('reset-game-btn').addEventListener('click', () => this.resetGame());
         document.getElementById('send-chat-btn').addEventListener('click', () => this.sendChat());
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
@@ -325,6 +328,7 @@ class CodenamesGame {
                 this.isAiProcessing = false;
                 this.showToast(`${message.team} Spymaster: "${message.word}" ${message.number}`, 'info');
                 this.send({ type: 'request_state' });
+                setTimeout(() => this.continueAutoPlayIfNeeded(), 100);
                 break;
 
             case 'guess_made':
@@ -333,17 +337,20 @@ class CodenamesGame {
                 this.showToast(`${message.team} guessed ${message.result.word}: ${resultText}`,
                     message.result.correct ? 'success' : 'error');
                 this.send({ type: 'request_state' });
+                setTimeout(() => this.continueAutoPlayIfNeeded(), 100);
                 break;
 
             case 'turn_passed':
                 this.isAiProcessing = false;
                 this.showToast(`${message.team} ended their turn`, 'info');
                 this.send({ type: 'request_state' });
+                setTimeout(() => this.continueAutoPlayIfNeeded(), 100);
                 break;
 
             case 'game_ended':
                 this.isAiProcessing = false;
                 this.showGameOver(message.winner);
+                this.stopAutoPlay();
                 break;
 
             case 'chat_message':
@@ -369,6 +376,7 @@ class CodenamesGame {
             case 'error':
                 this.isAiProcessing = false;
                 this.showToast(message.message, 'error');
+                this.stopAutoPlay();
                 break;
         }
     }
@@ -630,6 +638,7 @@ class CodenamesGame {
         document.getElementById('clue-input-panel').style.display = 'none';
         document.getElementById('current-clue-panel').style.display = 'none';
         document.getElementById('ai-action-panel').style.display = 'none';
+        document.getElementById('autoplay-panel').style.display = 'none';
         document.getElementById('waiting-panel').style.display = 'none';
         const passBtn = document.getElementById('pass-turn-btn');
         passBtn.style.display = 'none';
@@ -675,12 +684,19 @@ class CodenamesGame {
             }
         }
 
-        // 4. Human Spymaster Input
+        // 4. Auto-play Panel - Show if there are any AI players in the game
+        const hasAI = this.gameState.players.some(p => p.is_ai);
+        if (hasAI && !game.game_over) {
+            document.getElementById('autoplay-panel').style.display = 'block';
+            this.updateAutoPlayUI();
+        }
+
+        // 5. Human Spymaster Input
         if (isMyTeamTurn && game.turn_phase === 'giving_clue' && isSpymaster) {
             document.getElementById('clue-input-panel').style.display = 'block';
         }
 
-        // 5. Waiting State
+        // 6. Waiting State
         let showWaiting = !isMyTeamTurn;
         
         if (isMyTeamTurn) {
@@ -783,6 +799,74 @@ class CodenamesGame {
             btn.disabled = true;
             btn.textContent = 'Processing...';
             this.send({ type: 'request_ai_action', player_id: aiId });
+        }
+    }
+
+    startAutoPlay() {
+        this.isAutoPlaying = true;
+        this.updateAutoPlayUI();
+        this.continueAutoPlayIfNeeded();
+    }
+
+    stopAutoPlay() {
+        this.isAutoPlaying = false;
+        this.updateAutoPlayUI();
+    }
+
+    updateAutoPlayUI() {
+        const autoplayBtn = document.getElementById('autoplay-btn');
+        const stopBtn = document.getElementById('stop-autoplay-btn');
+        const autoplayText = document.getElementById('autoplay-text');
+
+        if (this.isAutoPlaying) {
+            autoplayBtn.style.display = 'none';
+            stopBtn.style.display = 'block';
+            autoplayText.textContent = 'Auto-play is running...';
+        } else {
+            autoplayBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            autoplayText.textContent = 'Run all AI turns automatically';
+        }
+    }
+
+    continueAutoPlayIfNeeded() {
+        // Don't continue if auto-play is disabled or we're already processing
+        if (!this.isAutoPlaying || this.isAiProcessing) {
+            return;
+        }
+
+        // Don't continue if game is over or no game state
+        if (!this.gameState || !this.gameState.game || this.gameState.game.game_over) {
+            if (this.gameState && this.gameState.game && this.gameState.game.game_over) {
+                this.stopAutoPlay();
+            }
+            return;
+        }
+
+        const game = this.gameState.game;
+
+        // Check if current active player is AI
+        const currentTeamPlayers = this.gameState.players.filter(p => p.team === game.current_team);
+        const activeAI = currentTeamPlayers.find(p => {
+            if (!p.is_ai) return false;
+            if (game.turn_phase === 'giving_clue') return p.role === 'spymaster';
+            return p.role === 'operative';
+        });
+
+        // If there's an active AI, trigger it after a short delay for visibility
+        if (activeAI) {
+            setTimeout(() => {
+                // Double-check we're still auto-playing
+                if (this.isAutoPlaying && !this.isAiProcessing) {
+                    const btn = document.getElementById('trigger-ai-btn');
+                    if (btn && btn.dataset.aiId) {
+                        this.triggerAiAction();
+                    }
+                }
+            }, 500); // 500ms delay so users can see what's happening
+        } else {
+            // No AI to play, stop auto-play
+            this.stopAutoPlay();
         }
     }
 
