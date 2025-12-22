@@ -2,9 +2,6 @@
 
 This project is a Codenames game implementation in Rust.
 
-For full documentation, please refer to the [README](./README.md).
+For full documentation, please refer to the README
 
-## Quick Links
-
-- [README.md](./README.md)
-- [Source Code](./src/)
+@./README.md

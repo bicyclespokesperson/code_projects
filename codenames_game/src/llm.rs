@@ -269,6 +269,12 @@ fn build_spymaster_prompt(game_view: &GameView, team: Team) -> String {
             .collect::<Vec<_>>()
             .join("\n")
     };
+    
+    let transcript = if game_view.transcript.is_empty() {
+        "No transcript available.".to_string()
+    } else {
+        game_view.transcript.join("\n")
+    };
 
     format!(r#"You are the {team_color} SPYMASTER in Codenames.
 
@@ -290,12 +296,17 @@ Already revealed words (can't be guessed):
 Previous clues in this game:
 {history}
 
+Game Transcript:
+{transcript}
+
 RULES:
 - Give a ONE-WORD clue and a NUMBER indicating how many words relate to it
 - The clue must be a single English word
 - The clue CANNOT be any word on the board
 - The clue CANNOT be a word that sounds like or rhymes with a word on the board
 - Try to connect multiple team words while avoiding opponent/assassin words
+- You can use "0" as the number. This means the clue relates to ZERO of your team's words. This is useful to tell your team what is NOT related, or to let them guess freely (they get unlimited guesses with a 0 clue).
+- You can use "UNLIMITED" as the number. This means the clue relates to an unknown number of words. This gives your team unlimited guesses.
 
 First, enclose your reasoning in <thinking> tags.
 Then, respond with ONLY the clue in this exact format:
@@ -313,6 +324,7 @@ CLUE: OCEAN 3"#,
         assassin = assassin_word,
         revealed = if revealed_words.is_empty() { "None".to_string() } else { revealed_words.join(", ") },
         history = clue_history,
+        transcript = transcript,
     )
 }
 
@@ -342,21 +354,31 @@ fn build_operative_prompt(game_view: &GameView, team: Team, clue: &Clue) -> Stri
         .map(|c| format!("{:?}: {} {}", c.team, c.word, c.number))
         .collect::<Vec<_>>()
         .join("\n");
+        
+    let transcript = if game_view.transcript.is_empty() {
+        "No transcript available.".to_string()
+    } else {
+        game_view.transcript.join("\n")
+    };
 
-    let max_guesses = clue.number + 1;
-    let guesses_left = max_guesses.saturating_sub(clue.guesses_made);
-    
-    let instructions = if clue.guesses_made < clue.number {
+    let instructions = if clue.number == 0 {
+        "The spymaster gave a '0' clue. This means NONE of your words relate to the clue. You have UNLIMITED guesses.".to_string()
+    } else if clue.number == 30 {
+        "The spymaster gave an 'UNLIMITED' clue. You have UNLIMITED guesses.".to_string()
+    } else if clue.guesses_made < clue.number {
+        let max_guesses = clue.number + 1;
+        let guesses_left = max_guesses.saturating_sub(clue.guesses_made);
         format!("You have {} guesses remaining for this clue.", guesses_left)
     } else {
         "You have found all words for this clue! You have 1 BONUS guess remaining. You can try to guess a word missed from a previous turn, or PASS.".to_string()
     };
+    
+    let clue_display = if clue.number == 30 { "UNLIMITED".to_string() } else { clue.number.to_string() };
 
     format!(r#"You are a {team_color} OPERATIVE in Codenames.
 
-The spymaster gave the clue: "{clue_word}" {clue_number}
+The spymaster gave the clue: "{clue_word}" {clue_display}
 
-This means there are approximately {clue_number} words on the board related to "{clue_word}".
 {instructions}
 
 AVAILABLE WORDS TO GUESS (position. word):
@@ -367,6 +389,9 @@ ALREADY REVEALED (for context):
 
 CLUE HISTORY:
 {history}
+
+GAME TRANSCRIPT:
+{transcript}
 
 YOUR TASK:
 Choose ONE word from the available words that best matches the clue "{clue_word}".
@@ -386,11 +411,12 @@ Example:
 GUESS: 5"#,
         team_color = team_color,
         clue_word = clue.word,
-        clue_number = clue.number,
+        clue_display = clue_display,
         instructions = instructions,
         words = available_words.join("\n"),
         revealed = if revealed_info.is_empty() { "None".to_string() } else { revealed_info.join(", ") },
         history = if clue_history.is_empty() { "None".to_string() } else { clue_history },
+        transcript = transcript,
     )
 }
 
@@ -410,15 +436,21 @@ fn parse_clue_response(raw_response: &str) -> Result<(String, u8)> {
 
     if parts.len() >= 2 {
         let word = parts[0].to_uppercase().trim_matches(|c: char| !c.is_alphanumeric()).to_string();
-        let number: u8 = parts[1].trim_matches(|c: char| !c.is_numeric())
-            .parse()
-            .unwrap_or(1);
+        
+        let number_str = parts[1].trim().to_uppercase();
+        let number: u8 = if number_str.contains("UNLIMITED") {
+            30
+        } else {
+            number_str.trim_matches(|c: char| !c.is_numeric())
+                .parse()
+                .unwrap_or(1)
+        };
 
         if word.is_empty() {
             return Err(anyhow!("Could not parse clue word from response: {}", raw_response));
         }
 
-        return Ok((word, number.min(9)));
+        return Ok((word, number.min(30)));
     }
 
     // Fallback: try to extract any word and number
@@ -431,13 +463,18 @@ fn parse_clue_response(raw_response: &str) -> Result<(String, u8)> {
         .unwrap_or("HINT")
         .to_uppercase();
 
-    let number: u8 = response
-        .chars()
-        .filter(|c| c.is_numeric())
-        .collect::<String>()
-        .parse()
-        .unwrap_or(1)
-        .min(9);
+    // Check for UNLIMITED in response
+    let number: u8 = if response.to_uppercase().contains("UNLIMITED") {
+        30
+    } else {
+        response
+            .chars()
+            .filter(|c| c.is_numeric())
+            .collect::<String>()
+            .parse()
+            .unwrap_or(1)
+            .min(30)
+    };
 
     Ok((word, number))
 }

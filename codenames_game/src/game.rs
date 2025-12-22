@@ -313,8 +313,11 @@ impl GameState {
         // Check if team should continue guessing
         if matches!(result, GuessResult::Correct { .. }) {
             if let Some(ref clue) = self.current_clue {
-                // Can guess clue.number + 1 times (for the bonus guess)
-                if clue.guesses_made > clue.number {
+                // Unlimited guesses for "0" or "Unlimited" (represented as 30) clues
+                let unlimited = clue.number == 0 || clue.number == 30;
+                
+                // For normal clues, can guess clue.number + 1 times
+                if !unlimited && clue.guesses_made > clue.number {
                     self.end_turn();
                 }
             }

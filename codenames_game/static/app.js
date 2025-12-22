@@ -32,10 +32,7 @@ class CodenamesGame {
         // Lobby screen
         document.getElementById('leave-lobby-btn').addEventListener('click', () => this.leaveLobby());
         document.querySelectorAll('.join-team-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.joinTeam(e.target.dataset.team));
-        });
-        document.querySelectorAll('.role-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.setRole(e.target.dataset.role));
+            btn.addEventListener('click', (e) => this.joinTeam(e.target.dataset.team, e.target.dataset.role));
         });
         document.getElementById('add-ai-btn').addEventListener('click', () => this.addAiPlayer());
         document.getElementById('quick-populate-btn').addEventListener('click', () => this.quickPopulate());
@@ -518,14 +515,6 @@ class CodenamesGame {
         document.getElementById('unassigned-players').innerHTML = unassigned.length > 0
             ? unassigned.map(p => this.renderPlayerChip(p)).join('')
             : '<span class="empty-slot">No unassigned players</span>';
-
-        // Show role selection if player has team but no role
-        const roleSelection = document.getElementById('role-selection');
-        if (currentPlayer && currentPlayer.team && !currentPlayer.role) {
-            roleSelection.style.display = 'block';
-        } else {
-            roleSelection.style.display = 'none';
-        }
     }
 
     renderPlayerChip(player) {
@@ -736,8 +725,11 @@ class CodenamesGame {
     }
 
     // ===== Game Actions =====
-    joinTeam(team) {
+    joinTeam(team, role) {
         this.send({ type: 'set_team', team });
+        if (role) {
+            this.send({ type: 'set_role', role });
+        }
     }
 
     setRole(role) {

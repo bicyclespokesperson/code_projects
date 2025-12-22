@@ -1,22 +1,24 @@
 /* ===== CSS Variables ===== */
 :root {
     /* Colors */
-    --red-primary: #e63946;
-    --red-dark: #c1121f;
+    --red-primary: #ff4d6d;
+    --red-dark: #c9184a;
     --red-light: #ffccd5;
-    --red-bg: rgba(230, 57, 70, 0.1);
+    --red-bg: rgba(255, 77, 109, 0.25);
 
-    --blue-primary: #457b9d;
-    --blue-dark: #1d3557;
-    --blue-light: #a8dadc;
-    --blue-bg: rgba(69, 123, 157, 0.1);
+    --blue-primary: #00b4d8;
+    --blue-dark: #0077b6;
+    --blue-light: #90e0ef;
+    --blue-bg: rgba(0, 180, 216, 0.25);
 
-    --neutral-primary: #d4a574;
-    --neutral-dark: #8b6914;
-    --neutral-light: #f5e6d3;
+    --neutral-primary: #fb8500;
+    --neutral-dark: #e36414;
+    --neutral-light: #ffb703;
+    --neutral-bg: rgba(251, 133, 0, 0.15);
 
-    --assassin-primary: #2b2d42;
-    --assassin-dark: #14213d;
+    --assassin-primary: #7b2cbf;
+    --assassin-dark: #3c096c;
+    --assassin-bg: rgba(123, 44, 191, 0.3);
 
     --bg-primary: #1a1a2e;
     --bg-secondary: #16213e;
@@ -867,52 +869,62 @@ input::placeholder {
 .card-tile.selectable {
     border-color: var(--success);
     cursor: pointer;
+    box-shadow: 0 0 10px rgba(82, 183, 136, 0.3);
 }
 
 .card-tile.revealed {
     cursor: default;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
 }
 
 .card-tile.revealed.red {
     background: linear-gradient(135deg, var(--red-primary), var(--red-dark));
-    color: white;
+    color: #ffffff;
+    border: none;
 }
 
 .card-tile.revealed.blue {
     background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
-    color: white;
+    color: #ffffff;
+    border: none;
 }
 
 .card-tile.revealed.neutral {
     background: linear-gradient(135deg, var(--neutral-primary), var(--neutral-dark));
-    color: white;
+    color: #ffffff;
+    border: none;
 }
 
 .card-tile.revealed.assassin {
-    background: linear-gradient(135deg, var(--assassin-primary), var(--assassin-dark));
-    color: white;
+    background: linear-gradient(135deg, #000000, #2b2d42);
+    color: #ff4d6d;
+    border: 2px solid #ff4d6d;
 }
 
 /* Spymaster view - show colors */
 .card-tile.spymaster-view.red:not(.revealed) {
-    border-color: var(--red-primary);
+    border: 3px solid var(--red-primary);
     background: var(--red-bg);
+    color: var(--red-light);
 }
 
 .card-tile.spymaster-view.blue:not(.revealed) {
-    border-color: var(--blue-primary);
+    border: 3px solid var(--blue-primary);
     background: var(--blue-bg);
+    color: var(--blue-light);
 }
 
 .card-tile.spymaster-view.neutral:not(.revealed) {
-    border-color: var(--neutral-primary);
-    background: rgba(212, 165, 116, 0.1);
+    border: 3px solid var(--neutral-primary);
+    background: var(--neutral-bg);
+    color: var(--neutral-light);
 }
 
 .card-tile.spymaster-view.assassin:not(.revealed) {
-    border-color: var(--assassin-primary);
-    background: rgba(43, 45, 66, 0.3);
-    color: var(--error);
+    border: 3px solid var(--assassin-primary);
+    background: var(--assassin-bg);
+    color: #ff00ff; /* Bright magenta for assassin in spymaster view */
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
 .card-tile.disabled {
