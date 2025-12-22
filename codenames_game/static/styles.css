@@ -252,6 +252,57 @@ input::placeholder {
     color: var(--blue-light);
 }
 
+/* ===== Toggles ===== */
+.toggle-group {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid var(--text-muted);
+}
+
+.btn-toggle {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-toggle:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-toggle.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+}
+
+#ai-team-toggle .btn-toggle[data-value="red"].active {
+    background: linear-gradient(135deg, var(--red-primary), var(--red-dark));
+    color: white;
+}
+
+#ai-team-toggle .btn-toggle[data-value="blue"].active {
+    background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+    color: white;
+}
+
+#ai-role-toggle .btn-toggle.active {
+    background: var(--text-secondary);
+    color: var(--bg-primary);
+}
+
 /* ===== Cards ===== */
 .card {
     background: var(--bg-card);

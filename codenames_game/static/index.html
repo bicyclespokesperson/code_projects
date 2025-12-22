@@ -116,18 +116,20 @@
                                     <input type="text" id="ai-name" placeholder="AI Player" maxlength="20">
                                 </div>
                                 <div class="form-group">
-                                    <label for="ai-team">Team</label>
-                                    <select id="ai-team">
-                                        <option value="red">Red</option>
-                                        <option value="blue">Blue</option>
-                                    </select>
+                                    <label>Team</label>
+                                    <div class="toggle-group" id="ai-team-toggle">
+                                        <button type="button" class="btn-toggle active" data-value="red">Red</button>
+                                        <button type="button" class="btn-toggle" data-value="blue">Blue</button>
+                                    </div>
+                                    <input type="hidden" id="ai-team" value="red">
                                 </div>
                                 <div class="form-group">
-                                    <label for="ai-role">Role</label>
-                                    <select id="ai-role">
-                                        <option value="spymaster">Spymaster</option>
-                                        <option value="operative">Operative</option>
-                                    </select>
+                                    <label>Role</label>
+                                    <div class="toggle-group" id="ai-role-toggle">
+                                        <button type="button" class="btn-toggle active" data-value="spymaster">Spymaster</button>
+                                        <button type="button" class="btn-toggle" data-value="operative">Operative</button>
+                                    </div>
+                                    <input type="hidden" id="ai-role" value="spymaster">
                                 </div>
                                 <div class="form-group">
                                     <label for="ai-model">Model</label>

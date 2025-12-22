@@ -67,6 +67,27 @@ class CodenamesGame {
         document.getElementById('player-name-create').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.createRoom();
         });
+
+        // Toggle groups
+        this.setupToggle('ai-team-toggle', 'ai-team');
+        this.setupToggle('ai-role-toggle', 'ai-role');
+    }
+
+    setupToggle(containerId, inputId) {
+        const container = document.getElementById(containerId);
+        const input = document.getElementById(inputId);
+        if (!container || !input) return;
+
+        container.querySelectorAll('.btn-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from siblings
+                container.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+                // Add active class to clicked
+                btn.classList.add('active');
+                // Update hidden input
+                input.value = btn.dataset.value;
+            });
+        });
     }
 
     // ===== API Key Management =====
