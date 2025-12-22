@@ -675,7 +675,7 @@ class CodenamesGame {
 
         // 4. Auto-play Panel - Show if there are any AI players in the game
         const hasAI = this.gameState.players.some(p => p.is_ai);
-        if (hasAI && !game.game_over) {
+        if (hasAI && game.phase !== 'finished') {
             document.getElementById('autoplay-panel').style.display = 'block';
             this.updateAutoPlayUI();
         }
@@ -828,8 +828,8 @@ class CodenamesGame {
         }
 
         // Don't continue if game is over or no game state
-        if (!this.gameState || !this.gameState.game || this.gameState.game.game_over) {
-            if (this.gameState && this.gameState.game && this.gameState.game.game_over) {
+        if (!this.gameState || !this.gameState.game || this.gameState.game.phase === 'finished') {
+            if (this.gameState && this.gameState.game && this.gameState.game.phase === 'finished') {
                 this.stopAutoPlay();
             }
             return;
