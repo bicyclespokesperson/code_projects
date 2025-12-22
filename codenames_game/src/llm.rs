@@ -276,7 +276,7 @@ fn build_spymaster_prompt(game_view: &GameView, team: Team) -> String {
         game_view.transcript.join("\n")
     };
 
-    format!(r#"You are the {team_color} SPYMASTER in Codenames.
+    format!(r##"You are the {team_color} SPYMASTER in Codenames.
 
 YOUR TEAM'S WORDS (you want your operatives to guess these):
 {team_words}
@@ -316,7 +316,7 @@ Example:
 <thinking>
 ...reasoning...
 </thinking>
-CLUE: OCEAN 3"#,
+CLUE: OCEAN 3"##,
         team_color = team_color,
         team_words = team_words.join(", "),
         opponent_words = opponent_words.join(", "),
@@ -375,7 +375,7 @@ fn build_operative_prompt(game_view: &GameView, team: Team, clue: &Clue) -> Stri
     
     let clue_display = if clue.number == 30 { "UNLIMITED".to_string() } else { clue.number.to_string() };
 
-    format!(r#"You are a {team_color} OPERATIVE in Codenames.
+    format!(r##"You are a {team_color} OPERATIVE in Codenames.
 
 The spymaster gave the clue: "{clue_word}" {clue_display}
 
@@ -408,7 +408,7 @@ Example:
 <thinking>
 ...reasoning...
 </thinking>
-GUESS: 5"#,
+GUESS: 5"##,
         team_color = team_color,
         clue_word = clue.word,
         clue_display = clue_display,
@@ -437,6 +437,11 @@ fn parse_clue_response(raw_response: &str) -> Result<(String, u8)> {
     if parts.len() >= 2 {
         let word = parts[0].to_uppercase().trim_matches(|c: char| !c.is_alphanumeric()).to_string();
         
+        // Ensure word has at least one letter
+        if !word.chars().any(|c| c.is_alphabetic()) {
+             return Err(anyhow!("Clue word must contain letters: {}", word));
+        }
+        
         let number_str = parts[1].trim().to_uppercase();
         let number: u8 = if number_str.contains("UNLIMITED") {
             30
@@ -454,14 +459,18 @@ fn parse_clue_response(raw_response: &str) -> Result<(String, u8)> {
     }
 
     // Fallback: try to extract any word and number
-    let word: String = response
+    let word_opt = response
         .chars()
         .filter(|c| c.is_alphabetic() || *c == ' ')
         .collect::<String>()
         .split_whitespace()
         .next()
-        .unwrap_or("HINT")
-        .to_uppercase();
+        .map(|s| s.to_string());
+
+    let word = match word_opt {
+        Some(w) => w.to_uppercase(),
+        None => return Err(anyhow!("Could not parse clue word from response: {}", raw_response)),
+    };
 
     // Check for UNLIMITED in response
     let number: u8 = if response.to_uppercase().contains("UNLIMITED") {
@@ -615,4 +624,70 @@ pub fn get_available_models() -> Vec<ModelInfo> {
             provider: provider.to_string(),
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_clue_response_standard() {
+        let input = "CLUE: APPLE 3";
+        let result = parse_clue_response(input).unwrap();
+        assert_eq!(result, ("APPLE".to_string(), 3));
+    }
+
+    #[test]
+    fn test_parse_clue_response_with_thinking() {
+        let input = "<thinking>Some thoughts</thinking> CLUE: BANANA 2";
+        let result = parse_clue_response(input).unwrap();
+        assert_eq!(result, ("BANANA".to_string(), 2));
+    }
+
+    #[test]
+    fn test_parse_clue_response_malformed_but_recoverable() {
+        // Just the word and number without prefix
+        let input = "CHERRY 1";
+        let result = parse_clue_response(input).unwrap();
+        assert_eq!(result, ("CHERRY".to_string(), 1));
+    }
+
+    #[test]
+    fn test_parse_clue_response_unlimited() {
+        let input = "CLUE: SPACE UNLIMITED";
+        let result = parse_clue_response(input).unwrap();
+        assert_eq!(result, ("SPACE".to_string(), 30));
+    }
+
+    #[test]
+    fn test_parse_clue_response_empty_fail() {
+        let input = "";
+        let result = parse_clue_response(input);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_clue_response_thinking_only_fail() {
+        let input = "<thinking>I have no idea</thinking>";
+        let result = parse_clue_response(input);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_clue_response_no_words_fail() {
+        let input = "123 456"; // Only numbers
+        // This fails because the first token "123" is consumed as "123" in fallback
+        // The fallback logic:
+        // `word_opt` takes alphabetic or space. "123 456" -> ""
+        let result = parse_clue_response(input);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_clue_response_hint_fallback_gone() {
+        // This mimics the empty output that caused the issue
+        let input = "   ";
+        let result = parse_clue_response(input);
+        assert!(result.is_err());
+    }
 }
